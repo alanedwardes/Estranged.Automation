@@ -13,7 +13,7 @@ node("linux") {
         }
 
         stage ("Run") {
-            sh "dotnet run src/Automation"
+            sh "dotnet run --project src/Automation"
         }
     }
 }
