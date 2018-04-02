@@ -1,3 +1,5 @@
+properties([pipelineTriggers([cron('H/6 * * * *')])])
+
 node("linux") {
     timestamps {
         stage ("Checkout") {
