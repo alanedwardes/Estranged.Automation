@@ -13,7 +13,12 @@ node("linux") {
         }
 
         stage ("Run") {
-            sh "dotnet run --project src/Automation"
+            withCredentials([
+                string(credentialsId: 'SlackWebHookUrl', variable: 'SLACK_WEB_HOOK_URL'),
+                [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'JenkinsEstrangedAutomation']
+            ]) {
+                sh "dotnet run --project src/Automation"
+            }
         }
     }
 }
