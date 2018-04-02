@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using Humanizer;
 using Microsoft.Extensions.Logging;
 using Narochno.Slack;
 using Narochno.Slack.Entities;
@@ -87,13 +88,13 @@ namespace Estranged.Automation.Runner.Reviews
                                 new Field
                                 {
                                     Title = "Play Time Total",
-                                    Value = unseenReview.Author.PlaytimeForever.ToString(),
+                                    Value = unseenReview.Author.PlayTimeForever.Humanize(),
                                     Short = true
                                 },
                                 new Field
                                 {
                                     Title = "Play Time Last 2 Weeks",
-                                    Value = unseenReview.Author.PlaytimeLastTwoWeeks.ToString(),
+                                    Value = unseenReview.Author.PlaytimeLastTwoWeeks.Humanize(),
                                     Short = true
                                 },
                                 new Field
