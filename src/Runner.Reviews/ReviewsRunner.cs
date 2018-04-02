@@ -32,7 +32,7 @@ namespace Estranged.Automation.Runner.Reviews
             this.dynamo = dynamo;
         }
 
-        public async Task GatherReviews(uint appId)
+        public async Task GatherReviews(string product, uint appId)
         {
             GetReviewsResponse response = await steam.GetReviews(new GetReviewsRequest(appId) { Filter = ReviewFilter.Recent });
             logger.LogInformation("Got {0} recent reviews", response.Reviews.Count);
@@ -74,7 +74,7 @@ namespace Estranged.Automation.Runner.Reviews
                 {
                     Channel = "#reviews",
                     Emoji = ":jenkins:",
-                    Username = GetType().Assembly.GetName().Name,
+                    Username = $"{product} ({appId}) Reviews",
                     Attachments = new List<Attachment>
                     {
                         new Attachment

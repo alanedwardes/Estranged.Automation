@@ -17,8 +17,11 @@ namespace Estranged.Automation
 
         public async Task Run()
         {
+            logger.LogInformation("Gathering reviews for app 261820");
+            await reviewsRunner.GatherReviews("Estranged: Act I", 261820);
+
             logger.LogInformation("Gathering reviews for app 582890");
-            await reviewsRunner.GatherReviews(582890);
+            await reviewsRunner.GatherReviews("Estranged: Act II", 582890);
         }
     }
 }
