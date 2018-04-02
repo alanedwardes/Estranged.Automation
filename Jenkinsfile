@@ -1,5 +1,9 @@
 node("linux") {
     timestamps {
+        stage ("Checkout") {
+            scm checkout
+        }
+
         stage ("Restore") {
             sh "dotnet restore"
         }
