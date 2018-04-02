@@ -1,7 +1,7 @@
 node("linux") {
     timestamps {
         stage ("Checkout") {
-            scm checkout
+            checkout scm
         }
 
         stage ("Restore") {
