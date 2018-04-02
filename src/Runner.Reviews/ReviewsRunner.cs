@@ -102,6 +102,12 @@ namespace Estranged.Automation.Runner.Reviews
                                     Title = "Language",
                                     Value = unseenReview.Language,
                                     Short = true
+                                },
+                                new Field
+                                {
+                                    Title = "Created",
+                                    Value = unseenReview.Created.Humanize(),
+                                    Short = true
                                 }
                             }
                         }
