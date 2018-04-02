@@ -73,7 +73,7 @@ namespace Estranged.Automation.Runner.Reviews
                 await slack.IncomingWebHook(new IncomingWebHookRequest
                 {
                     Channel = "#reviews",
-                    Emoji = ":jenkins:",
+                    Emoji = ":steam:",
                     Username = $"{product} ({appId}) Reviews",
                     Attachments = new List<Attachment>
                     {
