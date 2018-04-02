@@ -79,8 +79,8 @@ namespace Estranged.Automation.Runner.Reviews
                         new Attachment
                         {
                             Text = unseenReview.Comment,
-                            AuthorIcon = unseenReview.VotedUp ? "https://steamcommunity-a.akamaihd.net/public/shared/images/userreviews/icon_thumbsUp.png" : "https://steamcommunity-a.akamaihd.net/public/shared/images/userreviews/icon_thumbsDown.png",
-                            AuthorName = unseenReview.VotedUp ? "Recommended" : "Not Recommended",
+                            AuthorIcon = "https://steamcommunity-a.akamaihd.net/public/shared/images/userreviews/" + (unseenReview.VotedUp ? "icon_thumbsUp.png" : "icon_thumbsDown.png"),
+                            AuthorName = (unseenReview.VotedUp ? "Recommended" : "Not Recommended") + " (open review)",
                             AuthorLink = reviewUrl,
                             Fields = new List<Field>
                             {
