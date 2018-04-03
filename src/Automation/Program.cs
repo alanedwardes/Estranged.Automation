@@ -1,6 +1,7 @@
 ﻿using Amazon;
 using Amazon.DynamoDBv2;
 using Estranged.Automation.Runner.Reviews;
+using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Narochno.Slack;
@@ -20,6 +21,7 @@ namespace Estranged.Automation
                 .AddTransient<ReviewsRunner>()
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddSlack(new SlackConfig { WebHookUrl = Environment.GetEnvironmentVariable("SLACK_WEB_HOOK_URL") })
+                .AddSingleton(TranslationClient.Create())
                 .BuildServiceProvider();
 
             provider.GetRequiredService<ILoggerFactory>()

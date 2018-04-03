@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using Google.Cloud.Translation.V2;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Narochno.Slack;
@@ -21,15 +22,17 @@ namespace Estranged.Automation.Runner.Reviews
         private readonly ISteamClient steam;
         private readonly ISlackClient slack;
         private readonly IAmazonDynamoDB dynamo;
+        private readonly TranslationClient translation;
         private const string StateTableName = "EstrangedAutomationState";
         private const string ItemIdKey = "ItemId";
 
-        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISlackClient slack, IAmazonDynamoDB dynamo)
+        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISlackClient slack, IAmazonDynamoDB dynamo, TranslationClient translation)
         {
             this.logger = logger;
             this.steam = steam;
             this.slack = slack;
             this.dynamo = dynamo;
+            this.translation = translation;
         }
 
         public async Task GatherReviews(string product, uint appId)
@@ -70,6 +73,46 @@ namespace Estranged.Automation.Runner.Reviews
                 string reviewUrl = $"https://steamcommunity.com/profiles/{unseenReview.Author.SteamId}/recommended/{appId}";
 
                 logger.LogInformation("Posting review {0} to Slack", reviewUrl);
+
+                var fields = new List<Field>
+                {
+                    new Field
+                    {
+                        Title = "Play Time Total",
+                        Value = unseenReview.Author.PlayTimeForever.Humanize(),
+                        Short = true
+                    },
+                    new Field
+                    {
+                        Title = "Play Time Last 2 Weeks",
+                        Value = unseenReview.Author.PlayTimeLastTwoWeeks.Humanize(),
+                        Short = true
+                    },
+                    new Field
+                    {
+                        Title = "Language",
+                        Value = unseenReview.Language.ToString(),
+                        Short = true
+                    },
+                    new Field
+                    {
+                        Title = "Created",
+                        Value = unseenReview.Created.Humanize(),
+                        Short = true
+                    }
+                };
+
+                if (unseenReview.Language != Narochno.Steam.Entities.Language.English)
+                {
+                    TranslationResult translationResponse = await translation.TranslateTextAsync(unseenReview.Comment, "en");
+                    fields.Insert(0, new Field
+                    {
+                        Title = $"Translation (from {translationResponse.DetectedSourceLanguage})",
+                        Value = translationResponse.TranslatedText,
+                        Short = false
+                    });
+                }
+
                 await slack.IncomingWebHook(new IncomingWebHookRequest
                 {
                     Channel = "#reviews",
@@ -83,33 +126,7 @@ namespace Estranged.Automation.Runner.Reviews
                             AuthorIcon = "https://steamcommunity-a.akamaihd.net/public/shared/images/userreviews/" + (unseenReview.VotedUp ? "icon_thumbsUp.png" : "icon_thumbsDown.png"),
                             AuthorName = (unseenReview.VotedUp ? "Recommended" : "Not Recommended") + " (open review)",
                             AuthorLink = reviewUrl,
-                            Fields = new List<Field>
-                            {
-                                new Field
-                                {
-                                    Title = "Play Time Total",
-                                    Value = unseenReview.Author.PlayTimeForever.Humanize(),
-                                    Short = true
-                                },
-                                new Field
-                                {
-                                    Title = "Play Time Last 2 Weeks",
-                                    Value = unseenReview.Author.PlayTimeLastTwoWeeks.Humanize(),
-                                    Short = true
-                                },
-                                new Field
-                                {
-                                    Title = "Language",
-                                    Value = unseenReview.Language.ToString(),
-                                    Short = true
-                                },
-                                new Field
-                                {
-                                    Title = "Created",
-                                    Value = unseenReview.Created.Humanize(),
-                                    Short = true
-                                }
-                            }
+                            Fields = fields
                         }
                     }
                 });

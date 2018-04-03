@@ -9,6 +9,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Estranged.Automation", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Estranged.Automation.Runner.Reviews", "src\Runner.Reviews\Estranged.Automation.Runner.Reviews.csproj", "{B92D638D-57FD-418E-A248-3A0068E89682}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{35EED37E-D5BA-4360-B292-68B94403C89E}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Jenkinsfile = Jenkinsfile
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
