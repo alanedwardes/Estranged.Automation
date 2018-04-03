@@ -17,7 +17,7 @@ node("linux") {
 		stage ("Run") {
 			withCredentials([
 				string(credentialsId: 'SlackWebHookUrl', variable: 'SLACK_WEB_HOOK_URL'),
-				file(credentialsId: 'secret', variable: 'GOOGLE_APPLICATION_CREDENTIALS'),
+				file(credentialsId: 'GoogleComputeEstrangedAutomation', variable: 'GOOGLE_APPLICATION_CREDENTIALS'),
 				[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'JenkinsEstrangedAutomation']
 			]) {
 				sh "dotnet run --project src/Automation"
