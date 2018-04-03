@@ -37,9 +37,9 @@ namespace Estranged.Automation.Runner.Reviews
             GetReviewsResponse response = await steam.GetReviews(new GetReviewsRequest(appId) { Filter = ReviewFilter.Recent });
             logger.LogInformation("Got {0} recent reviews", response.Reviews.Count);
 
-            IDictionary<string, Review> reviews = response.Reviews.ToDictionary(x => x.RecommendationId, x => x);
+            IDictionary<uint, Review> reviews = response.Reviews.ToDictionary(x => x.RecommendationId, x => x);
 
-            string[] recentReviewIds = reviews.Keys.ToArray();
+            uint[] recentReviewIds = reviews.Keys.ToArray();
 
             BatchGetItemResponse items = await dynamo.BatchGetItemAsync(new BatchGetItemRequest
             {
@@ -49,15 +49,15 @@ namespace Estranged.Automation.Runner.Reviews
                         StateTableName,
                         new KeysAndAttributes
                         {
-                            Keys = recentReviewIds.Select(x => new Dictionary<string, AttributeValue> { { ItemIdKey, new AttributeValue(x) } }).ToList()
+                            Keys = recentReviewIds.Select(x => new Dictionary<string, AttributeValue> { { ItemIdKey, new AttributeValue(x.ToString()) } }).ToList()
                         }
                     }
                 }
             });
 
-            string[] seenReviewIds = items.Responses[StateTableName].Select(x => x[ItemIdKey].S).ToArray();
+            uint[] seenReviewIds = items.Responses[StateTableName].Select(x => uint.Parse(x[ItemIdKey].S)).ToArray();
 
-            string[] unseenReviewIds = recentReviewIds.Except(seenReviewIds).ToArray();
+            uint[] unseenReviewIds = recentReviewIds.Except(seenReviewIds).ToArray();
             logger.LogInformation("Of which {0} are unseen", unseenReviewIds.Length);
 
             Review[] unseenReviews = reviews.Where(x => unseenReviewIds.Contains(x.Key))
@@ -94,13 +94,13 @@ namespace Estranged.Automation.Runner.Reviews
                                 new Field
                                 {
                                     Title = "Play Time Last 2 Weeks",
-                                    Value = unseenReview.Author.PlaytimeLastTwoWeeks.Humanize(),
+                                    Value = unseenReview.Author.PlayTimeLastTwoWeeks.Humanize(),
                                     Short = true
                                 },
                                 new Field
                                 {
                                     Title = "Language",
-                                    Value = unseenReview.Language,
+                                    Value = unseenReview.Language.ToString(),
                                     Short = true
                                 },
                                 new Field
@@ -115,7 +115,7 @@ namespace Estranged.Automation.Runner.Reviews
                 });
 
                 logger.LogInformation("Inserting review {0} into DynamoDB", unseenReview.RecommendationId);
-                await dynamo.PutItemAsync(StateTableName, new Dictionary<string, AttributeValue> { { ItemIdKey, new AttributeValue(unseenReview.RecommendationId) } });
+                await dynamo.PutItemAsync(StateTableName, new Dictionary<string, AttributeValue> { { ItemIdKey, new AttributeValue(unseenReview.RecommendationId.ToString()) } });
             }
 
             logger.LogInformation("Finished posting reviews.");
