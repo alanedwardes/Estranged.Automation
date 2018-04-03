@@ -78,6 +78,12 @@ namespace Estranged.Automation.Runner.Reviews
                 {
                     new Field
                     {
+                        Title = $"Original Text ({unseenReview.Language})",
+                        Value = unseenReview.Comment,
+                        Short = false
+                    },
+                    new Field
+                    {
                         Title = "Play Time Total",
                         Value = unseenReview.Author.PlayTimeForever.Humanize(),
                         Short = true
@@ -86,12 +92,6 @@ namespace Estranged.Automation.Runner.Reviews
                     {
                         Title = "Play Time Last 2 Weeks",
                         Value = unseenReview.Author.PlayTimeLastTwoWeeks.Humanize(),
-                        Short = true
-                    },
-                    new Field
-                    {
-                        Title = "Language",
-                        Value = unseenReview.Language.ToString(),
                         Short = true
                     },
                     new Field
@@ -105,9 +105,9 @@ namespace Estranged.Automation.Runner.Reviews
                 if (unseenReview.Language != Narochno.Steam.Entities.Language.English)
                 {
                     TranslationResult translationResponse = await translation.TranslateTextAsync(unseenReview.Comment, "en");
-                    fields.Insert(0, new Field
+                    fields.Insert(1, new Field
                     {
-                        Title = $"Translation (from {translationResponse.DetectedSourceLanguage})",
+                        Title = $"Translated Text",
                         Value = translationResponse.TranslatedText,
                         Short = false
                     });
@@ -122,7 +122,6 @@ namespace Estranged.Automation.Runner.Reviews
                     {
                         new Attachment
                         {
-                            Text = unseenReview.Comment,
                             AuthorIcon = "https://steamcommunity-a.akamaihd.net/public/shared/images/userreviews/" + (unseenReview.VotedUp ? "icon_thumbsUp.png" : "icon_thumbsDown.png"),
                             AuthorName = (unseenReview.VotedUp ? "Recommended" : "Not Recommended") + " (open review)",
                             AuthorLink = reviewUrl,
