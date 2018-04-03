@@ -93,12 +93,6 @@ namespace Estranged.Automation.Runner.Reviews
                         Title = "Play Time Last 2 Weeks",
                         Value = unseenReview.Author.PlayTimeLastTwoWeeks.Humanize(),
                         Short = true
-                    },
-                    new Field
-                    {
-                        Title = "Created",
-                        Value = unseenReview.Created.Humanize(),
-                        Short = true
                     }
                 };
 
