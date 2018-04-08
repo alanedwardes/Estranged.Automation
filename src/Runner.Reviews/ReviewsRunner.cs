@@ -25,6 +25,7 @@ namespace Estranged.Automation.Runner.Reviews
         private readonly TranslationClient translation;
         private const string StateTableName = "EstrangedAutomationState";
         private const string ItemIdKey = "ItemId";
+        private const string EnglishLanguage = "en";
 
         public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISlackClient slack, IAmazonDynamoDB dynamo, TranslationClient translation)
         {
@@ -74,11 +75,13 @@ namespace Estranged.Automation.Runner.Reviews
 
                 logger.LogInformation("Posting review {0} to Slack", reviewUrl);
 
+                TranslationResult translationResponse = await translation.TranslateTextAsync(unseenReview.Comment, EnglishLanguage);
+
                 var fields = new List<Field>
                 {
                     new Field
                     {
-                        Title = $"Original Text ({unseenReview.Language})",
+                        Title = $"Original Text ({translationResponse.DetectedSourceLanguage ?? "unknown"})",
                         Value = unseenReview.Comment,
                         Short = false
                     },
@@ -96,12 +99,11 @@ namespace Estranged.Automation.Runner.Reviews
                     }
                 };
 
-                if (unseenReview.Language != Narochno.Steam.Entities.Language.English)
+                if (translationResponse.DetectedSourceLanguage != EnglishLanguage)
                 {
-                    TranslationResult translationResponse = await translation.TranslateTextAsync(unseenReview.Comment, "en");
                     fields.Insert(1, new Field
                     {
-                        Title = $"Translated Text",
+                        Title = $"Auto-Translated Text",
                         Value = translationResponse.TranslatedText,
                         Short = false
                     });
