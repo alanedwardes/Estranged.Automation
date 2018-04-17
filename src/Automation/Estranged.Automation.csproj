@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Runner.Reviews\Estranged.Automation.Runner.Reviews.csproj" />
+    <ProjectReference Include="..\Runner.Syndication\Estranged.Automation.Runner.Syndication.csproj" />
   </ItemGroup>
 
 </Project>

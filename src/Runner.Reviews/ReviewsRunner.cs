@@ -13,6 +13,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Estranged.Automation.Shared;
 using System.Threading;
+using System.Net.Http;
+using System;
 
 namespace Estranged.Automation.Runner.Reviews
 {
@@ -27,17 +29,19 @@ namespace Estranged.Automation.Runner.Reviews
         private const string ItemIdKey = "ItemId";
         private const string EnglishLanguage = "en";
 
-        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISlackClient slack, ISeenItemRepository seenItemRepository, TranslationClient translation)
+        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISeenItemRepository seenItemRepository, TranslationClient translation, HttpClient httpClient)
         {
             this.logger = logger;
             this.steam = steam;
-            this.slack = slack;
+            this.slack = new SlackClient(new SlackConfig { WebHookUrl = Environment.GetEnvironmentVariable("REVIEWS_WEB_HOOK_URL"), HttpClient = httpClient });
             this.seenItemRepository = seenItemRepository;
             this.translation = translation;
         }
 
         public async Task GatherReviews(string product, uint appId)
         {
+            logger.LogInformation("Gathering reviews for app {0}", appId);
+
             GetReviewsResponse response = await steam.GetReviews(new GetReviewsRequest(appId) { Filter = ReviewFilter.Recent });
             logger.LogInformation("Got {0} recent reviews", response.Reviews.Count);
 
@@ -97,9 +101,7 @@ namespace Estranged.Automation.Runner.Reviews
 
                 await slack.IncomingWebHook(new IncomingWebHookRequest
                 {
-                    Channel = "#reviews",
-                    Emoji = ":steam:",
-                    Username = $"{product} ({appId}) Reviews",
+                    Username = $"{product}",
                     Attachments = new List<Attachment>
                     {
                         new Attachment

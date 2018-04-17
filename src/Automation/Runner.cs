@@ -1,27 +1,25 @@
 ﻿using Estranged.Automation.Runner.Reviews;
-using Microsoft.Extensions.Logging;
+using Estranged.Automation.Runner.Syndication;
 using System.Threading.Tasks;
 
 namespace Estranged.Automation
 {
     public class RunnerManager
     {
-        private readonly ILogger<RunnerManager> logger;
         private readonly ReviewsRunner reviewsRunner;
+        private readonly SyndicationRunner syndicationRunner;
 
-        public RunnerManager(ILogger<RunnerManager> logger, ReviewsRunner reviewsRunner)
+        public RunnerManager(ReviewsRunner reviewsRunner, SyndicationRunner syndicationRunner)
         {
-            this.logger = logger;
             this.reviewsRunner = reviewsRunner;
+            this.syndicationRunner = syndicationRunner;
         }
 
         public async Task Run()
         {
-            logger.LogInformation("Gathering reviews for app 261820");
             await reviewsRunner.GatherReviews("Estranged: Act I", 261820);
-
-            logger.LogInformation("Gathering reviews for app 582890");
             await reviewsRunner.GatherReviews("Estranged: Act II", 582890);
+            await syndicationRunner.GatherSyndication("http://feeds.feedburner.com/GamasutraNews");
         }
     }
 }
