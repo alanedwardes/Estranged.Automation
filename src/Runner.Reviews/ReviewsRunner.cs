@@ -1,6 +1,4 @@
-﻿using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.Model;
-using Google.Cloud.Translation.V2;
+﻿using Google.Cloud.Translation.V2;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Narochno.Slack;
@@ -13,6 +11,8 @@ using Narochno.Steam.Entities.Responses;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Estranged.Automation.Shared;
+using System.Threading;
 
 namespace Estranged.Automation.Runner.Reviews
 {
@@ -21,18 +21,18 @@ namespace Estranged.Automation.Runner.Reviews
         private readonly ILogger<ReviewsRunner> logger;
         private readonly ISteamClient steam;
         private readonly ISlackClient slack;
-        private readonly IAmazonDynamoDB dynamo;
+        private readonly ISeenItemRepository seenItemRepository;
         private readonly TranslationClient translation;
         private const string StateTableName = "EstrangedAutomationState";
         private const string ItemIdKey = "ItemId";
         private const string EnglishLanguage = "en";
 
-        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISlackClient slack, IAmazonDynamoDB dynamo, TranslationClient translation)
+        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISlackClient slack, ISeenItemRepository seenItemRepository, TranslationClient translation)
         {
             this.logger = logger;
             this.steam = steam;
             this.slack = slack;
-            this.dynamo = dynamo;
+            this.seenItemRepository = seenItemRepository;
             this.translation = translation;
         }
 
@@ -45,21 +45,7 @@ namespace Estranged.Automation.Runner.Reviews
 
             uint[] recentReviewIds = reviews.Keys.ToArray();
 
-            BatchGetItemResponse items = await dynamo.BatchGetItemAsync(new BatchGetItemRequest
-            {
-                RequestItems = new Dictionary<string, KeysAndAttributes>
-                {
-                    {
-                        StateTableName,
-                        new KeysAndAttributes
-                        {
-                            Keys = recentReviewIds.Select(x => new Dictionary<string, AttributeValue> { { ItemIdKey, new AttributeValue(x.ToString()) } }).ToList()
-                        }
-                    }
-                }
-            });
-
-            uint[] seenReviewIds = items.Responses[StateTableName].Select(x => uint.Parse(x[ItemIdKey].S)).ToArray();
+            uint[] seenReviewIds = (await seenItemRepository.GetSeenItems(recentReviewIds.Select(x => x.ToString()).ToArray(), CancellationToken.None)).Select(x => uint.Parse(x)).ToArray();
 
             uint[] unseenReviewIds = recentReviewIds.Except(seenReviewIds).ToArray();
             logger.LogInformation("Of which {0} are unseen", unseenReviewIds.Length);
@@ -127,7 +113,7 @@ namespace Estranged.Automation.Runner.Reviews
                 });
 
                 logger.LogInformation("Inserting review {0} into DynamoDB", unseenReview.RecommendationId);
-                await dynamo.PutItemAsync(StateTableName, new Dictionary<string, AttributeValue> { { ItemIdKey, new AttributeValue(unseenReview.RecommendationId.ToString()) } });
+                await seenItemRepository.SetItemSeen(unseenReview.RecommendationId.ToString(), CancellationToken.None);
             }
 
             logger.LogInformation("Finished posting reviews.");
