@@ -20,6 +20,7 @@ namespace Estranged.Automation
             await reviewsRunner.GatherReviews("Estranged: Act I", 261820);
             await reviewsRunner.GatherReviews("Estranged: Act II", 582890);
             await syndicationRunner.GatherSyndication("http://feeds.feedburner.com/GamasutraNews");
+            await syndicationRunner.GatherSyndication("https://www.unrealengine.com/rss");
         }
     }
 }
