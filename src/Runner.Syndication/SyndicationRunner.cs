@@ -12,12 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Syndication
 {
-    public class SyndicationRunner
+    public class SyndicationRunner : PeriodicRunner
     {
         private readonly ILogger<SyndicationRunner> logger;
         private readonly ISeenItemRepository seenItemRepository;
         private readonly HttpClient httpClient;
         private readonly ISlackClient slackClient;
+
+        public override TimeSpan Period => TimeSpan.FromMinutes(15);
 
         public SyndicationRunner(ILogger<SyndicationRunner> logger, ISeenItemRepository seenItemRepository, HttpClient httpClient)
         {
@@ -75,6 +77,12 @@ namespace Estranged.Automation.Runner.Syndication
             }
 
             logger.LogInformation("Syndication completed for {0}", feed);
+        }
+
+        public async override Task RunPeriodically(CancellationToken token)
+        {
+            await GatherSyndication("http://feeds.feedburner.com/GamasutraNews");
+            await GatherSyndication("https://www.unrealengine.com/rss");
         }
     }
 }

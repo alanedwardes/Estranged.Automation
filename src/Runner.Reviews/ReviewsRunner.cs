@@ -18,7 +18,7 @@ using System;
 
 namespace Estranged.Automation.Runner.Reviews
 {
-    public class ReviewsRunner
+    public class ReviewsRunner : PeriodicRunner
     {
         private readonly ILogger<ReviewsRunner> logger;
         private readonly ISteamClient steam;
@@ -28,6 +28,8 @@ namespace Estranged.Automation.Runner.Reviews
         private const string StateTableName = "EstrangedAutomationState";
         private const string ItemIdKey = "ItemId";
         private const string EnglishLanguage = "en";
+
+        public override TimeSpan Period => TimeSpan.FromMinutes(30);
 
         public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISeenItemRepository seenItemRepository, TranslationClient translation, HttpClient httpClient)
         {
@@ -119,6 +121,12 @@ namespace Estranged.Automation.Runner.Reviews
             }
 
             logger.LogInformation("Finished posting reviews.");
+        }
+
+        public async override Task RunPeriodically(CancellationToken token)
+        {
+            await GatherReviews("Estranged: Act I", 261820);
+            await GatherReviews("Estranged: Act II", 582890);
         }
     }
 }

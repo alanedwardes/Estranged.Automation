@@ -1,4 +1,4 @@
-properties([pipelineTriggers([cron('H/15 * * * *')])])
+properties([pipelineTriggers([cron('H * * * *')])])
 
 node("linux") {
 	timestamps {

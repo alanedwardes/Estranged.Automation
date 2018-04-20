@@ -7,7 +7,9 @@ using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Narochno.Steam;
+using System;
 using System.Net.Http;
+using System.Threading;
 
 namespace Estranged.Automation
 {
@@ -32,8 +34,10 @@ namespace Estranged.Automation
             provider.GetRequiredService<ILoggerFactory>()
                 .AddConsole();
 
+            var source = new CancellationTokenSource(TimeSpan.FromHours(1));
+
             provider.GetRequiredService<RunnerManager>()
-                .Run()
+                .Run(source.Token)
                 .GetAwaiter()
                 .GetResult();
 

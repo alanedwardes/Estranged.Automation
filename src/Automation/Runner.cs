@@ -1,26 +1,46 @@
-﻿using Estranged.Automation.Runner.Reviews;
-using Estranged.Automation.Runner.Syndication;
+﻿using Estranged.Automation.Shared;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Estranged.Automation
 {
     public class RunnerManager
     {
-        private readonly ReviewsRunner reviewsRunner;
-        private readonly SyndicationRunner syndicationRunner;
+        private readonly ILogger<RunnerManager> logger;
+        private readonly IServiceProvider serviceProvider;
 
-        public RunnerManager(ReviewsRunner reviewsRunner, SyndicationRunner syndicationRunner)
+        public RunnerManager(ILogger<RunnerManager> logger, IServiceProvider serviceProvider)
         {
-            this.reviewsRunner = reviewsRunner;
-            this.syndicationRunner = syndicationRunner;
+            this.logger = logger;
+            this.serviceProvider = serviceProvider;
         }
 
-        public async Task Run()
+        public async Task Run(CancellationToken token)
         {
-            await reviewsRunner.GatherReviews("Estranged: Act I", 261820);
-            await reviewsRunner.GatherReviews("Estranged: Act II", 582890);
-            await syndicationRunner.GatherSyndication("http://feeds.feedburner.com/GamasutraNews");
-            await syndicationRunner.GatherSyndication("https://www.unrealengine.com/rss");
+            var tasks = serviceProvider.GetServices<IRunner>()
+                                       .Select(x => RunForever(x, token));
+
+            await Task.WhenAll(tasks);
+        }
+
+        public async Task RunForever(IRunner runner, CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    await runner.Run(token);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Exception from task");
+                    await Task.Delay(TimeSpan.FromMinutes(1), token);
+                }
+            }
         }
     }
 }
