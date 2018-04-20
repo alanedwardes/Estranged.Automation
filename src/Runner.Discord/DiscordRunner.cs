@@ -27,6 +27,8 @@ namespace Estranged.Automation.Runner.Syndication
             await client.StartAsync();
 
             client.MessageReceived += ClientMessageReceived;
+
+            await Task.Delay(-1);
         }
 
         private async Task ClientMessageReceived(SocketMessage socketMessage)
