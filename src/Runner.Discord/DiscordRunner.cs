@@ -33,12 +33,12 @@ namespace Estranged.Automation.Runner.Syndication
 
         private async Task ClientMessageReceived(SocketMessage socketMessage)
         {
-            logger.LogInformation("Received message: {0}", socketMessage);
-
-            if (socketMessage.Author.IsBot)
+            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
                 return;
             }
+
+            logger.LogInformation("Received message: {0}", socketMessage);
 
             if (socketMessage.Content != null && socketMessage.Content.ToLower().Contains("linux"))
             {
