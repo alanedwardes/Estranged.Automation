@@ -33,6 +33,13 @@ namespace Estranged.Automation.Runner.Syndication
 
         private async Task ClientMessageReceived(SocketMessage socketMessage)
         {
+            logger.LogInformation("Received message: {0}", socketMessage);
+
+            if (socketMessage.Author.IsBot)
+            {
+                return;
+            }
+
             if (socketMessage.Content != null && socketMessage.Content.ToLower().Contains("linux"))
             {
                 await socketMessage.Channel.SendMessageAsync("I'd just like to interject for a moment. What you’re referring to as Linux, is in fact, GNU/Linux, or as I’ve recently taken to calling it, GNU plus Linux.");
