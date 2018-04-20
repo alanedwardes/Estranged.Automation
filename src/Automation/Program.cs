@@ -26,6 +26,7 @@ namespace Estranged.Automation
                 .AddTransient<RunnerManager>()
                 .AddTransient<IRunner, ReviewsRunner>()
                 .AddTransient<IRunner, SyndicationRunner>()
+                .AddTransient<IRunner, DiscordRunner>()
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
                 .AddSingleton(TranslationClient.Create())
