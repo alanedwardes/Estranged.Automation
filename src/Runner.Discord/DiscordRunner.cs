@@ -11,6 +11,7 @@ namespace Estranged.Automation.Runner.Syndication
     public class DiscordRunner : IRunner
     {
         private readonly ILogger<DiscordRunner> logger;
+        private IDiscordClient discordClient;
 
         public DiscordRunner(ILogger<DiscordRunner> logger)
         {
@@ -20,6 +21,7 @@ namespace Estranged.Automation.Runner.Syndication
         public async Task Run(CancellationToken token)
         {
             var client = new DiscordSocketClient();
+            discordClient = client;
 
             client.Log += ClientLog;
 
@@ -40,6 +42,11 @@ namespace Estranged.Automation.Runner.Syndication
 
             string content = socketMessage.Content.Trim();
             string contentLower = content.ToLower();
+
+            if (contentLower.StartsWith("/botname"))
+            {
+                await discordClient.CurrentUser.ModifyAsync(x => x.Username = content.Substring(0).Trim());
+            }
 
             if (contentLower.Contains("linux") && !contentLower.Contains("gnu/linux"))
             {
