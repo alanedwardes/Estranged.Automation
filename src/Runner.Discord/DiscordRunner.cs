@@ -45,7 +45,7 @@ namespace Estranged.Automation.Runner.Syndication
 
             if (contentLower.StartsWith("/botname"))
             {
-                await discordClient.CurrentUser.ModifyAsync(x => x.Username = content.Substring(0).Trim());
+                await discordClient.CurrentUser.ModifyAsync(x => x.Username = content.Substring(8).Trim());
             }
 
             if (contentLower.Contains("linux") && !contentLower.Contains("gnu/linux"))
