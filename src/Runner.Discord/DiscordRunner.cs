@@ -45,11 +45,14 @@ namespace Estranged.Automation.Runner.Syndication
 
             if (contentLower.StartsWith("/botname"))
             {
-                await discordClient.CurrentUser.ModifyAsync(x => x.Username = content.Substring(8).Trim());
+                string newName = content.Substring(8).Trim();
+                logger.LogInformation("Changing name to {0}", newName);
+                await discordClient.CurrentUser.ModifyAsync(x => x.Username = newName);
             }
 
             if (contentLower.Contains("linux") && !contentLower.Contains("gnu/linux"))
             {
+                logger.LogInformation("Sending Linux text");
                 await socketMessage.Channel.SendMessageAsync("I'd just like to interject for a moment. What you’re referring to as Linux, is in fact, GNU/Linux, or as I’ve recently taken to calling it, GNU plus Linux.");
             }
         }
