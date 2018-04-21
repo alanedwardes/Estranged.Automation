@@ -1,4 +1,7 @@
-properties([pipelineTriggers([cron('H * * * *')])])
+properties([
+	pipelineTriggers([cron('H * * * *')])
+	disableConcurrentBuilds()
+])
 
 node("linux") {
 	timestamps {
