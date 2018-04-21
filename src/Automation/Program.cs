@@ -10,6 +10,7 @@ using Narochno.Steam;
 using System;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Estranged.Automation
 {
@@ -32,15 +33,23 @@ namespace Estranged.Automation
                 .AddSingleton(TranslationClient.Create())
                 .BuildServiceProvider();
 
-            provider.GetRequiredService<ILoggerFactory>()
-                .AddConsole();
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+
+            loggerFactory.AddConsole();
 
             var source = new CancellationTokenSource(TimeSpan.FromHours(1));
 
-            provider.GetRequiredService<RunnerManager>()
-                .Run(source.Token)
-                .GetAwaiter()
-                .GetResult();
+            try
+            {
+                provider.GetRequiredService<RunnerManager>()
+                        .Run(source.Token)
+                        .GetAwaiter()
+                        .GetResult();
+            }
+            catch (TaskCanceledException e)
+            {
+                loggerFactory.CreateLogger(nameof(Program)).LogInformation(e, "Task cancelled.");
+            }
 
             return 0;
         }
