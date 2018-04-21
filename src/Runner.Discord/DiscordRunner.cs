@@ -33,14 +33,15 @@ namespace Estranged.Automation.Runner.Syndication
 
         private async Task ClientMessageReceived(SocketMessage socketMessage)
         {
-            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
+            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
             {
                 return;
             }
 
-            logger.LogInformation("Received message: {0}", socketMessage);
+            string content = socketMessage.Content.Trim();
+            string contentLower = content.ToLower();
 
-            if (socketMessage.Content != null && socketMessage.Content.ToLower().Contains("linux"))
+            if (contentLower.Contains("linux") && !contentLower.Contains("gnu/linux"))
             {
                 await socketMessage.Channel.SendMessageAsync("I'd just like to interject for a moment. What you’re referring to as Linux, is in fact, GNU/Linux, or as I’ve recently taken to calling it, GNU plus Linux.");
             }
