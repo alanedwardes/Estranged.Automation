@@ -39,6 +39,8 @@ namespace Estranged.Automation
 
             var source = new CancellationTokenSource(TimeSpan.FromHours(1));
 
+            AppDomain.CurrentDomain.ProcessExit += (sender, ev) => source.Cancel();
+
             try
             {
                 provider.GetRequiredService<RunnerManager>()
