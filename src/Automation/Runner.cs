@@ -35,6 +35,10 @@ namespace Estranged.Automation
                 {
                     await runner.Run(token);
                 }
+                catch (TaskCanceledException)
+                {
+                    throw;
+                }
                 catch (Exception e)
                 {
                     logger.LogError(e, "Exception from task");

@@ -31,14 +31,14 @@ namespace Estranged.Automation.Runner.Syndication
 
         public string GetUniqueId(XmlNode node) => node["guid"]?.InnerText ?? node["link"].InnerText;
 
-        public async Task GatherSyndication(string feed)
+        public async Task GatherSyndication(string feed, CancellationToken token)
         {
             logger.LogInformation("Gathering syndication for {0}", feed);
 
-            var stream = await httpClient.GetStreamAsync(feed);
+            var response = await httpClient.GetAsync(feed, token);
 
             var document = new XmlDocument();
-            document.Load(stream);
+            document.Load(await response.Content.ReadAsStreamAsync());
 
             var channel = document["rss"]["channel"];
 
@@ -51,7 +51,7 @@ namespace Estranged.Automation.Runner.Syndication
                 itemIds.Add(GetUniqueId(item));
             }
 
-            var seenItems = await seenItemRepository.GetSeenItems(itemIds.ToArray(), CancellationToken.None);
+            var seenItems = await seenItemRepository.GetSeenItems(itemIds.ToArray(), token);
 
             logger.LogInformation("Found {0} items, {1} of which are seen", itemIds.Count, seenItems.Length);
 
@@ -69,11 +69,11 @@ namespace Estranged.Automation.Runner.Syndication
                 {
                     Username = feedName,
                     Text = link
-                });
+                }, token);
 
                 logger.LogInformation("Marking {0} as read", link);
 
-                await seenItemRepository.SetItemSeen(uniqueId, CancellationToken.None);
+                await seenItemRepository.SetItemSeen(uniqueId, token);
             }
 
             logger.LogInformation("Syndication completed for {0}", feed);
@@ -81,8 +81,8 @@ namespace Estranged.Automation.Runner.Syndication
 
         public async override Task RunPeriodically(CancellationToken token)
         {
-            await GatherSyndication("http://feeds.feedburner.com/GamasutraNews");
-            await GatherSyndication("https://www.unrealengine.com/rss");
+            await GatherSyndication("http://feeds.feedburner.com/GamasutraNews", token);
+            await GatherSyndication("https://www.unrealengine.com/rss", token);
         }
     }
 }

@@ -40,18 +40,18 @@ namespace Estranged.Automation.Runner.Reviews
             this.translation = translation;
         }
 
-        public async Task GatherReviews(string product, uint appId)
+        public async Task GatherReviews(string product, uint appId, CancellationToken token)
         {
             logger.LogInformation("Gathering reviews for app {0}", appId);
 
-            GetReviewsResponse response = await steam.GetReviews(new GetReviewsRequest(appId) { Filter = ReviewFilter.Recent });
+            GetReviewsResponse response = await steam.GetReviews(new GetReviewsRequest(appId) { Filter = ReviewFilter.Recent }, token);
             logger.LogInformation("Got {0} recent reviews", response.Reviews.Count);
 
             IDictionary<uint, Review> reviews = response.Reviews.ToDictionary(x => x.RecommendationId, x => x);
 
             uint[] recentReviewIds = reviews.Keys.ToArray();
 
-            uint[] seenReviewIds = (await seenItemRepository.GetSeenItems(recentReviewIds.Select(x => x.ToString()).ToArray(), CancellationToken.None)).Select(x => uint.Parse(x)).ToArray();
+            uint[] seenReviewIds = (await seenItemRepository.GetSeenItems(recentReviewIds.Select(x => x.ToString()).ToArray(), token)).Select(x => uint.Parse(x)).ToArray();
 
             uint[] unseenReviewIds = recentReviewIds.Except(seenReviewIds).ToArray();
             logger.LogInformation("Of which {0} are unseen", unseenReviewIds.Length);
@@ -67,7 +67,7 @@ namespace Estranged.Automation.Runner.Reviews
 
                 logger.LogInformation("Posting review {0} to Slack", reviewUrl);
 
-                TranslationResult translationResponse = await translation.TranslateTextAsync(unseenReview.Comment, EnglishLanguage);
+                TranslationResult translationResponse = await translation.TranslateTextAsync(unseenReview.Comment, EnglishLanguage, null, null, token);
 
                 var fields = new List<Field>
                 {
@@ -114,10 +114,10 @@ namespace Estranged.Automation.Runner.Reviews
                             Fields = fields
                         }
                     }
-                });
+                }, token);
 
                 logger.LogInformation("Inserting review {0} into DynamoDB", unseenReview.RecommendationId);
-                await seenItemRepository.SetItemSeen(unseenReview.RecommendationId.ToString(), CancellationToken.None);
+                await seenItemRepository.SetItemSeen(unseenReview.RecommendationId.ToString(), token);
             }
 
             logger.LogInformation("Finished posting reviews.");
@@ -125,8 +125,8 @@ namespace Estranged.Automation.Runner.Reviews
 
         public async override Task RunPeriodically(CancellationToken token)
         {
-            await GatherReviews("Estranged: Act I", 261820);
-            await GatherReviews("Estranged: Act II", 582890);
+            await GatherReviews("Estranged: Act I", 261820, token);
+            await GatherReviews("Estranged: Act II", 582890, token);
         }
     }
 }
