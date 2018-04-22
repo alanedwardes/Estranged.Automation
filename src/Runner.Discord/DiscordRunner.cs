@@ -47,7 +47,7 @@ namespace Estranged.Automation.Runner.Syndication
             await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await client.StartAsync();
 
-            client.MessageReceived += message => ClientMessageReceived(responderProvider, message, token);
+            client.MessageReceived += async message => await ClientMessageReceived(responderProvider, message, token);
 
             while (true)
             {
@@ -56,15 +56,14 @@ namespace Estranged.Automation.Runner.Syndication
             }
         }
 
-        private Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
+        private async Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
         {
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            provider.GetServices<IResponder>().Select(x => RunResponder(x, socketMessage, token)).ToArray();
-            return Task.CompletedTask;
+            await Task.WhenAll(provider.GetServices<IResponder>().Select(x => RunResponder(x, socketMessage, token)));
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
