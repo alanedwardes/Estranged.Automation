@@ -29,6 +29,8 @@ namespace Estranged.Automation.Runner.Syndication
             var client = new DiscordSocketClient();
             discordClient = client;
 
+            logger.LogInformation("Created client.");
+
             var responderProvider = new ServiceCollection()
                 .AddSingleton(loggerFactory)
                 .AddLogging()
@@ -43,6 +45,8 @@ namespace Estranged.Automation.Runner.Syndication
             await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await client.StartAsync();
 
+            logger.LogInformation("Connection status: {0}", client.ConnectionState);
+
             client.MessageReceived += message => ClientMessageReceived(responderProvider, message, token);
 
             await Task.Delay(-1, token);
@@ -55,7 +59,12 @@ namespace Estranged.Automation.Runner.Syndication
                 return;
             }
 
-            await Task.WhenAll(provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)));
+            logger.LogInformation("Received message from {0}: {1}", socketMessage.Author, socketMessage);
+            var tasks = provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)).ToArray();
+
+            logger.LogInformation("Waiting for completion of {0} tasks", tasks.Length);
+            await Task.WhenAll(tasks);
+            logger.LogInformation("Completed {0} tasks", tasks.Length);
         }
 
         private Task ClientLog(LogMessage logMessage)
