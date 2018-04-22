@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Estranged.Automation.Runner.Discord.Responders;
 using Estranged.Automation.Runner.Discord;
 using System.Diagnostics;
+using System.Net.Http;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -17,19 +18,18 @@ namespace Estranged.Automation.Runner.Syndication
     {
         private readonly ILogger<DiscordRunner> logger;
         private readonly ILoggerFactory loggerFactory;
-        private IDiscordClient client;
         private IServiceProvider responderProvider;
 
-        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory)
+        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient)
         {
             this.logger = logger;
             this.loggerFactory = loggerFactory;
 
-            client = new DiscordSocketClient();
             responderProvider = new ServiceCollection()
                 .AddSingleton(loggerFactory)
                 .AddLogging()
-                .AddSingleton(client)
+                .AddSingleton(httpClient)
+                .AddSingleton<IDiscordClient, DiscordSocketClient>()
                 .AddSingleton<IResponder, TextResponder>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()
                 .AddSingleton<IResponder, DadJokeResponder>()
@@ -38,7 +38,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         public async Task Run(CancellationToken token)
         {
-            var socketClient = (DiscordSocketClient)client;
+            var socketClient = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
 
             socketClient.Log += ClientLog;
             socketClient.MessageReceived += ClientMessageReceived;
