@@ -50,13 +50,13 @@ namespace Estranged.Automation.Runner.Syndication
 
         private Task ClientMessageReceived(SocketMessage socketMessage)
         {
-            logger.LogInformation("Message received");
-
+            logger.LogInformation("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
                 return Task.CompletedTask;
             }
 
+            logger.LogInformation("Finding responder services");
             var responders = responderProvider.GetServices<IResponder>().ToArray();
             logger.LogInformation("Starting to invoke {0} responders", responders.Length);
             Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, CancellationToken.None)));
