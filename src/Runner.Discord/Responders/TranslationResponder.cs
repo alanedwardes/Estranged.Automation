@@ -52,15 +52,16 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             logger.LogInformation("Message is written in {0} with {1} confidence", detection.Language, detection.Confidence);
 
-            using (message.Channel.EnterTypingState(token.ToRequestOptions()))
+            using (var typing = message.Channel.EnterTypingState(token.ToRequestOptions()))
             {
                 var translated = await translation.TranslateTextAsync(messageContent, "en", detection.Language, cancellationToken: token);
                 if (translated.TranslatedText == translated.OriginalText)
                 {
+                    typing.Dispose();
                     return;
                 }
 
-                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.SpecifiedSourceLanguage}:\n{translated.TranslatedText}";
+                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.SpecifiedSourceLanguage.ToUpper()}```{translated.TranslatedText}```";
                 await message.Channel.SendMessageAsync(responseMessage, options: token.ToRequestOptions());
             }
         }
