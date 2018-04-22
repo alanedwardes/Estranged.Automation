@@ -35,6 +35,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton(discordClient)
                 .AddSingleton<IResponder, TextResponder>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()
+                .AddSingleton<IResponder, DadJokeResponder>()
                 .BuildServiceProvider();
 
             client.Log += ClientLog;
