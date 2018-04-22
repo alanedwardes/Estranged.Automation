@@ -49,6 +49,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             logger.LogInformation("{0} sent unknown command {1}", message.Author, message);
             await message.Channel.SendMessageAsync($"{message.Author}, I do not understand `{message.Content}`");
+            await message.DeleteAsync();
         }
     }
 }
