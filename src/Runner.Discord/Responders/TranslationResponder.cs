@@ -9,8 +9,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
     public class TranslationResponder : IResponder
     {
         private readonly TranslationClient translation;
-        private uint numberOfTranslations;
-        private const uint MaximumTranslations = 512;
+        private int numberOfCharacters;
+        private const int MaximumCharacters = 15000;
 
         public TranslationResponder(TranslationClient translation)
         {
@@ -19,20 +19,25 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (numberOfTranslations >= MaximumTranslations)
+            if (numberOfCharacters >= MaximumCharacters)
             {
                 return;
             }
 
-            numberOfTranslations++;
+            numberOfCharacters += message.Content.Length;
 
-            var response = await translation.TranslateTextAsync(message.Content, "en", cancellationToken: token);
-            if (response.DetectedSourceLanguage == "en")
+            var detection = await translation.DetectLanguageAsync(message.Content, token);
+            if (!detection.IsReliable || detection.Language == "en")
             {
                 return;
             }
 
-            await message.Channel.SendMessageAsync(response.TranslatedText, options: token.ToRequestOptions());
+            using (message.Channel.EnterTypingState(token.ToRequestOptions()))
+            {
+                var translated = await translation.TranslateTextAsync(message.Content, "en", detection.Language, cancellationToken: token);
+                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.SpecifiedSourceLanguage}:\n{translated.TranslatedText}";
+                await message.Channel.SendMessageAsync(responseMessage, options: token.ToRequestOptions());
+            }
         }
     }
 }
