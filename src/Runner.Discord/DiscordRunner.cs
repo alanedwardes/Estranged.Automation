@@ -47,17 +47,14 @@ namespace Estranged.Automation.Runner.Syndication
             await Task.Delay(-1, token);
         }
 
-        private Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
+        private async Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
         {
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            // Run all message processors in parallel, don't wait for completion
-            Task.WhenAll(provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)));
-
-            return Task.CompletedTask;
+            await Task.WhenAll(provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)));
         }
 
         private Task ClientLog(LogMessage logMessage)
