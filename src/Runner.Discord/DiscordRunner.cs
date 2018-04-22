@@ -52,7 +52,7 @@ namespace Estranged.Automation.Runner.Syndication
         {
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             await Task.WhenAll(provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)));
