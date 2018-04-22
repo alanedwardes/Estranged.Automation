@@ -21,7 +21,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             if (contentLower.Contains("linux") && !contentLower.Contains("gnu/linux"))
             {
                 logger.LogInformation("Sending Linux text");
-                await message.Channel.SendMessageAsync("I'd just like to interject for a moment. What you’re referring to as Linux, is in fact, GNU/Linux, or as I’ve recently taken to calling it, GNU plus Linux.");
+                await message.Channel.SendMessageAsync("I'd just like to interject for a moment. What you’re referring to as Linux, is in fact, GNU/Linux, or as I’ve recently taken to calling it, GNU plus Linux.", false, null, token.ToRequestOptions());
             }
         }
     }
