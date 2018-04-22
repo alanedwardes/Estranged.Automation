@@ -11,7 +11,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
         private readonly ILogger<TranslationResponder> logger;
         private readonly TranslationClient translation;
         private int numberOfCharacters;
-        private const int MaximumCharacters = 15000;
+        private const int MaximumCharacters = 2500;
 
         public TranslationResponder(ILogger<TranslationResponder> logger, TranslationClient translation)
         {
@@ -36,9 +36,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (detection.Confidence < 0.8)
+            if (detection.Confidence < 0.75)
             {
-                logger.LogInformation("Ignoring message {0} due to lack of confidence", message.Content);
+                logger.LogInformation("Ignoring message {0} due to lack of confidence ({1})", message.Content, detection.Confidence);
                 return;
             }
 
@@ -46,7 +46,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using (message.Channel.EnterTypingState(token.ToRequestOptions()))
             {
-                var translated = await translation.TranslateTextAsync(message.Content, "en", detection.Language, cancellationToken: token);
+                var translated = await translation.TranslateTextAsync(message.Content.Trim(), "en", detection.Language, cancellationToken: token);
+                if (translated.TranslatedText == translated.OriginalText)
+                {
+                    return;
+                }
+
                 string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.SpecifiedSourceLanguage}:\n{translated.TranslatedText}";
                 await message.Channel.SendMessageAsync(responseMessage, options: token.ToRequestOptions());
             }
