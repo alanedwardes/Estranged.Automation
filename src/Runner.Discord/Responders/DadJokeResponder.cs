@@ -34,7 +34,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 RequestUri = new Uri("https://icanhazdadjoke.com/")
             };
 
-            request.Headers.UserAgent.Add(new ProductInfoHeaderValue("Estranged.Automation(https://github.com/alanedwardes/Estranged.Automation)"));
+            request.Headers.TryAddWithoutValidation("User-Agent", "Estranged.Automation(https://github.com/alanedwardes/Estranged.Automation)");
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
 
             var response = await httpClient.SendAsync(request, token);
