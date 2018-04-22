@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Discord.WebSocket;
 using Discord;
 using System;
+using System.Linq;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -40,20 +41,26 @@ namespace Estranged.Automation.Runner.Syndication
                 return;
             }
 
-            string content = socketMessage.Content.Trim();
+            string content = socketMessage.Content;
             string contentLower = content.ToLower();
-
-            if (contentLower.StartsWith("/botname"))
-            {
-                string newName = content.Substring(8).Trim();
-                logger.LogInformation("Changing name to {0}", newName);
-                await discordClient.CurrentUser.ModifyAsync(x => x.Username = newName);
-            }
 
             if (contentLower.Contains("linux") && !contentLower.Contains("gnu/linux"))
             {
                 logger.LogInformation("Sending Linux text");
                 await socketMessage.Channel.SendMessageAsync("I'd just like to interject for a moment. What you’re referring to as Linux, is in fact, GNU/Linux, or as I’ve recently taken to calling it, GNU plus Linux.");
+            }
+
+            if (socketMessage.Author is SocketGuildUser guildUser)
+            {
+                if (guildUser.Roles.Any(x => x.IsHoisted))
+                {
+                    if (contentLower.StartsWith("/botname"))
+                    {
+                        string newName = content.Substring(8).Trim();
+                        logger.LogInformation("Changing name to {0}", newName);
+                        await discordClient.CurrentUser.ModifyAsync(x => x.Username = newName);
+                    }
+                }
             }
         }
 
