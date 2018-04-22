@@ -28,12 +28,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (!message.Content.ToLower().StartsWith(InvocationCommand))
+            if (!message.Content.ToLower().StartsWith(InvocationCommand) && message.Channel.Name != "general")
             {
                 return;
             }
 
-            string messageContent = message.Content.Substring(InvocationCommand.Length).Trim();
+            string messageContent = message.Content.Replace(InvocationCommand, string.Empty).Trim();
 
             numberOfCharacters += message.Content.Length;
 
