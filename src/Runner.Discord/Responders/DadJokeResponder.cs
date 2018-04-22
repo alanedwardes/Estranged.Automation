@@ -18,6 +18,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (!message.Content.ToLower().Contains("dad joke"))
+            {
+                return;
+            }
+
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
