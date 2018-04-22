@@ -42,26 +42,26 @@ namespace Estranged.Automation.Runner.Syndication
             var socketClient = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
 
             socketClient.Log += ClientLog;
-            socketClient.MessageReceived += ClientMessageReceived;
+            socketClient.MessageReceived += message => ClientMessageReceived(message, token);
 
             await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await socketClient.StartAsync();
             await Task.Delay(-1, token);
         }
 
-        private async Task ClientMessageReceived(SocketMessage socketMessage)
+        private Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
             logger.LogTrace("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             logger.LogTrace("Finding responder services");
             var responders = responderProvider.GetServices<IResponder>().ToArray();
-            logger.LogTrace("Starting to invoke {0} responders", responders.Length);
-            await Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, CancellationToken.None)));
-            logger.LogTrace("Completed invoking {0} responders", responders.Length);
+            logger.LogTrace("Invoking {0} responders", responders.Length);
+            Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
+            return Task.CompletedTask;
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
