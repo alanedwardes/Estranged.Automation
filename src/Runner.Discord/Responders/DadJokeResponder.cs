@@ -4,15 +4,18 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class DadJokeResponder : IResponder
     {
+        private readonly ILogger<DadJokeResponder> logger;
         private readonly HttpClient httpClient;
 
-        public DadJokeResponder(HttpClient httpClient)
+        public DadJokeResponder(ILogger<DadJokeResponder> logger, HttpClient httpClient)
         {
+            this.logger = logger;
             this.httpClient = httpClient;
         }
 
@@ -22,6 +25,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 return;
             }
+
+            logger.LogInformation("Fetching dad joke.");
 
             var request = new HttpRequestMessage
             {
@@ -35,6 +40,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var joke = await response.Content.ReadAsStringAsync();
 
+            logger.LogInformation("Sending dad joke: {0}", joke);
             await message.Channel.SendMessageAsync(joke, options: token.ToRequestOptions());
         }
     }
