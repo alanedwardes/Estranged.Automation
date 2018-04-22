@@ -12,6 +12,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
         private readonly TranslationClient translation;
         private int numberOfCharacters;
         private const int MaximumCharacters = 2500;
+        private const string InvocationCommand = "!translate";
 
         public TranslationResponder(ILogger<TranslationResponder> logger, TranslationClient translation)
         {
@@ -27,18 +28,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            numberOfCharacters += message.Content.Length;
-
-            var detection = await translation.DetectLanguageAsync(message.Content, token);
-            if (detection.Language == "en")
+            if (!message.Content.ToLower().StartsWith(InvocationCommand))
             {
-                logger.LogTrace("Ignoring message {0} due to it being in English", message.Content);
                 return;
             }
 
-            if (detection.Confidence < 0.75)
+            string messageContent = message.Content.Substring(InvocationCommand.Length).Trim();
+
+            numberOfCharacters += message.Content.Length;
+
+            var detection = await translation.DetectLanguageAsync(messageContent, token);
+            if (detection.Language == "en")
             {
-                logger.LogInformation("Ignoring message {0} due to lack of confidence ({1})", message.Content, detection.Confidence);
+                logger.LogInformation("Ignoring message {0} due to it being in English", message.Content);
                 return;
             }
 
@@ -46,7 +48,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using (message.Channel.EnterTypingState(token.ToRequestOptions()))
             {
-                var translated = await translation.TranslateTextAsync(message.Content.Trim(), "en", detection.Language, cancellationToken: token);
+                var translated = await translation.TranslateTextAsync(messageContent, "en", detection.Language, cancellationToken: token);
                 if (translated.TranslatedText == translated.OriginalText)
                 {
                     return;

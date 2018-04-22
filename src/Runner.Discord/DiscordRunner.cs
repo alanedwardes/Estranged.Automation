@@ -78,7 +78,7 @@ namespace Estranged.Automation.Runner.Syndication
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Got exception from responder");
+                logger.LogError(e, "Got exception from responder caused by message \"{0}\"", message);
             }
             logger.LogTrace("Completed responder {0} in {1} for message: {2}", responder.GetType().Name, stopwatch.Elapsed, message);
         }
