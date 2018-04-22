@@ -30,12 +30,25 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (message.Content.ToLower().StartsWith("/botname"))
+            if (!message.Content.StartsWith("/"))
+            {
+                return;
+            }
+
+            string command = message.Content.Substring(1).ToLower();
+
+            if (command.StartsWith("botname"))
             {
                 string newName = message.Content.Substring(8).Trim();
                 logger.LogInformation("Changing name to {0}", newName);
                 await discordClient.CurrentUser.ModifyAsync(x => x.Username = newName);
+                await message.DeleteAsync();
+                await message.Channel.SendMessageAsync($"{message.Author} changed my name to `{newName}`");
+                return;
             }
+
+            logger.LogInformation("{0} sent unknown command {1}", message.Author, message);
+            await message.Channel.SendMessageAsync($"{message.Author}, I do not understand `{message.Content}`");
         }
     }
 }

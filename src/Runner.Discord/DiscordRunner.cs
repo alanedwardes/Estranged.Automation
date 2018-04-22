@@ -47,14 +47,15 @@ namespace Estranged.Automation.Runner.Syndication
             await Task.Delay(-1, token);
         }
 
-        private async Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
+        private Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
         {
-            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
+            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            await Task.WhenAll(provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)));
+            Task.WhenAll(provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)));
+            return Task.CompletedTask;
         }
 
         private Task ClientLog(LogMessage logMessage)
