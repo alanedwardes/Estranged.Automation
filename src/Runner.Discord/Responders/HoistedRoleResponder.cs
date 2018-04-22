@@ -37,6 +37,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
+            logger.LogInformation("{0} sent command {1}", message.Author, message);
+
+            // Delete the command message
+            await message.DeleteAsync(token.ToRequestOptions());
+
             if (!(message.Author is SocketGuildUser guildUser))
             {
                 return;
@@ -52,10 +57,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
             if (command.StartsWith("botname"))
             {
                 string newName = message.Content.Substring(8).Trim();
-                logger.LogInformation("Changing name to {0}", newName);
                 await discordClient.CurrentUser.ModifyAsync(x => x.Username = newName, token.ToRequestOptions());
-                await message.DeleteAsync(token.ToRequestOptions());
                 await message.Channel.SendMessageAsync($"{message.Author} changed my name to `{newName}`", options: token.ToRequestOptions());
+                return;
+            }
+
+            if (command.StartsWith("help"))
+            {
+                await message.Author.SendMessageAsync($"Available commands:\n* /mute @user1 @user2\n* /unmute @user1 @user2\n* /botname <newname>", options: token.ToRequestOptions());
                 return;
             }
 
@@ -66,7 +75,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     mutedUsers.Add(userId);
                 }
-                await message.DeleteAsync(token.ToRequestOptions());
                 await message.Channel.SendMessageAsync($"{message.Author} muted user(s) `{mutedUsersDebug}`", options: token.ToRequestOptions());
                 return;
             }
@@ -78,14 +86,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     mutedUsers.Remove(userId);
                 }
-                await message.DeleteAsync(token.ToRequestOptions());
                 await message.Channel.SendMessageAsync($"{message.Author} unmuted user(s) `{mutedUsersDebug}`", options: token.ToRequestOptions());
                 return;
             }
 
-            logger.LogInformation("{0} sent unknown command {1}", message.Author, message);
             await message.Channel.SendMessageAsync($"{message.Author}, I do not understand `{message.Content}`", options: token.ToRequestOptions());
-            await message.DeleteAsync(token.ToRequestOptions());
         }
     }
 }
