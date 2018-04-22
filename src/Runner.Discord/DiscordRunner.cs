@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Estranged.Automation.Runner.Discord.Responders;
 using Estranged.Automation.Runner.Discord;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -51,7 +52,7 @@ namespace Estranged.Automation.Runner.Syndication
             while (true)
             {
                 logger.LogInformation("Connection status: {0}", client.ConnectionState);
-                await Task.Delay(TimeSpan.FromSeconds(10), token);
+                await Task.Delay(TimeSpan.FromSeconds(30), token);
             }
         }
 
@@ -62,16 +63,17 @@ namespace Estranged.Automation.Runner.Syndication
                 return Task.CompletedTask;
             }
 
-            RunResponders(provider.GetServices<IResponder>(), socketMessage, token);
+            provider.GetServices<IResponder>().Select(x => RunResponder(x, socketMessage, token)).ToArray();
             return Task.CompletedTask;
         }
 
-        private async Task RunResponders(IEnumerable<IResponder> responders, IMessage message, CancellationToken token)
+        private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
         {
-            var tasks = responders.Select(x => x.ProcessMessage(message, token)).ToArray();
-            logger.LogInformation("Waiting for completion of {0} tasks", tasks.Length);
-            await Task.WhenAll(tasks);
-            logger.LogInformation("Completed {0} tasks for message: {1}", tasks.Length, message);
+            var stopwatch = new Stopwatch();
+            logger.LogTrace("Running responder {0} for message {1}", responder.GetType().Name, message);
+            stopwatch.Start();
+            await responder.ProcessMessage(message, token);
+            logger.LogInformation("Completed responder {0} in {1} for message: {2}", responder.GetType().Name, stopwatch.Elapsed, message);
         }
 
         private Task ClientLog(LogMessage logMessage)

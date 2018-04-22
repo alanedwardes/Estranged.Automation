@@ -35,7 +35,7 @@ namespace Estranged.Automation
 
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
 
-            loggerFactory.AddConsole();
+            loggerFactory.AddConsole(LogLevel.Trace);
 
             var source = new CancellationTokenSource(TimeSpan.FromHours(1));
 
