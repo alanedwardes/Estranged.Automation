@@ -44,6 +44,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
+            if (detection.Confidence < 0.75)
+            {
+                logger.LogInformation("Ignoring message {0} due to lack of confidence ({1})", message.Content, detection.Confidence);
+                return;
+            }
+
             logger.LogInformation("Message is written in {0} with {1} confidence", detection.Language, detection.Confidence);
 
             using (message.Channel.EnterTypingState(token.ToRequestOptions()))
