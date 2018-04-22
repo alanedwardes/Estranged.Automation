@@ -45,6 +45,7 @@ namespace Estranged.Automation.Runner.Syndication
 
             await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await socketClient.StartAsync();
+            await Task.Delay(-1, token);
         }
 
         private Task ClientMessageReceived(SocketMessage socketMessage)
