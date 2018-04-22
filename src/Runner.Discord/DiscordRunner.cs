@@ -33,6 +33,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, TextResponder>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()
                 .AddSingleton<IResponder, DadJokeResponder>()
+                .AddSingleton<IResponder, PullTheLeverResponder>()
                 .BuildServiceProvider();
         }
 

@@ -22,7 +22,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (!message.Content.ToLower().Contains("dad joke"))
+            if (!message.Content.ToLower().Contains("dad joke") &&
+                !message.Content.ToLower().Contains("tell me a joke"))
             {
                 return;
             }
