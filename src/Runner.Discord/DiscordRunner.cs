@@ -55,7 +55,7 @@ namespace Estranged.Automation.Runner.Syndication
             }
 
             // Run all message processors in parallel, don't wait for completion
-            provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token));
+            Task.WhenAll(provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)));
 
             return Task.CompletedTask;
         }
