@@ -25,7 +25,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (guildUser.Roles.Any(x => x.IsHoisted))
+            if (!guildUser.Roles.Any(x => x.IsHoisted))
             {
                 return;
             }
