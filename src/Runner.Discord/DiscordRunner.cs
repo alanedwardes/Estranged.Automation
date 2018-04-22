@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Estranged.Automation.Runner.Discord.Responders;
 using Estranged.Automation.Runner.Discord;
+using System.Collections.Generic;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -45,26 +46,32 @@ namespace Estranged.Automation.Runner.Syndication
             await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await client.StartAsync();
 
-            logger.LogInformation("Connection status: {0}", client.ConnectionState);
-
             client.MessageReceived += message => ClientMessageReceived(responderProvider, message, token);
 
-            await Task.Delay(-1, token);
+            while (true)
+            {
+                logger.LogInformation("Connection status: {0}", client.ConnectionState);
+                await Task.Delay(TimeSpan.FromSeconds(10), token);
+            }
         }
 
-        private async Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
+        private Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
         {
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            logger.LogInformation("Received message from {0}: {1}", socketMessage.Author, socketMessage);
-            var tasks = provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token)).ToArray();
+            RunResponders(provider.GetServices<IResponder>(), socketMessage, token);
+            return Task.CompletedTask;
+        }
 
+        private async Task RunResponders(IEnumerable<IResponder> responders, IMessage message, CancellationToken token)
+        {
+            var tasks = responders.Select(x => x.ProcessMessage(message, token)).ToArray();
             logger.LogInformation("Waiting for completion of {0} tasks", tasks.Length);
             await Task.WhenAll(tasks);
-            logger.LogInformation("Completed {0} tasks", tasks.Length);
+            logger.LogInformation("Completed {0} tasks for message: {1}", tasks.Length, message);
         }
 
         private Task ClientLog(LogMessage logMessage)
