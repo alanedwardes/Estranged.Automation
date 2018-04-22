@@ -36,7 +36,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (detection.Confidence < 0.5)
+            if (detection.Confidence < 0.8)
             {
                 logger.LogInformation("Ignoring message {0} due to lack of confidence", message.Content);
                 return;
