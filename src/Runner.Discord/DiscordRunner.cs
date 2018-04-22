@@ -48,29 +48,35 @@ namespace Estranged.Automation.Runner.Syndication
             await Task.Delay(-1, token);
         }
 
-        private Task ClientMessageReceived(SocketMessage socketMessage)
+        private async Task ClientMessageReceived(SocketMessage socketMessage)
         {
-            logger.LogInformation("Message received: {0}", socketMessage);
+            logger.LogTrace("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            logger.LogInformation("Finding responder services");
+            logger.LogTrace("Finding responder services");
             var responders = responderProvider.GetServices<IResponder>().ToArray();
-            logger.LogInformation("Starting to invoke {0} responders", responders.Length);
-            Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, CancellationToken.None)));
-            logger.LogInformation("Completed invoking {0} responders", responders.Length);
-            return Task.CompletedTask;
+            logger.LogTrace("Starting to invoke {0} responders", responders.Length);
+            await Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, CancellationToken.None)));
+            logger.LogTrace("Completed invoking {0} responders", responders.Length);
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
         {
             var stopwatch = new Stopwatch();
-            logger.LogInformation("Running responder {0} for message {1}", responder.GetType().Name, message);
+            logger.LogTrace("Running responder {0} for message {1}", responder.GetType().Name, message);
             stopwatch.Start();
-            await responder.ProcessMessage(message, token);
-            logger.LogInformation("Completed responder {0} in {1} for message: {2}", responder.GetType().Name, stopwatch.Elapsed, message);
+            try
+            {
+                await responder.ProcessMessage(message, token);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Got exception from responder");
+            }
+            logger.LogTrace("Completed responder {0} in {1} for message: {2}", responder.GetType().Name, stopwatch.Elapsed, message);
         }
 
         private Task ClientLog(LogMessage logMessage)
