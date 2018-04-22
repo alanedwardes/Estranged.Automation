@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders
@@ -37,12 +38,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
             request.Headers.TryAddWithoutValidation("User-Agent", "Estranged.Automation(https://github.com/alanedwardes/Estranged.Automation)");
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
 
-            var response = await httpClient.SendAsync(request, token);
+            using (message.Channel.EnterTypingState(token.ToRequestOptions()))
+            {
+                var response = await httpClient.SendAsync(request, token);
+                var joke = await response.Content.ReadAsStringAsync();
 
-            var joke = await response.Content.ReadAsStringAsync();
-
-            logger.LogInformation("Sending dad joke: {0}", joke);
-            await message.Channel.SendMessageAsync(joke, options: token.ToRequestOptions());
+                logger.LogInformation("Sending dad joke: {0}", joke);
+                await message.Channel.SendMessageAsync(joke, options: token.ToRequestOptions());
+            }
         }
     }
 }
