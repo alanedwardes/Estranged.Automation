@@ -32,6 +32,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var detection = await translation.DetectLanguageAsync(message.Content, token);
             if (detection.Language == "en")
             {
+                logger.LogTrace("Ignoring message {0} due to it being in English", message.Content);
+                return;
+            }
+
+            if (detection.Confidence < 0.5)
+            {
+                logger.LogInformation("Ignoring message {0} due to lack of confidence", message.Content);
                 return;
             }
 

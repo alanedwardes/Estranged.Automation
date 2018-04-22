@@ -55,7 +55,7 @@ namespace Estranged.Automation.Runner.Syndication
         private Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
             logger.LogTrace("Message received: {0}", socketMessage);
-            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
+            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
             {
                 return Task.CompletedTask;
             }
