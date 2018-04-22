@@ -63,13 +63,16 @@ namespace Estranged.Automation.Runner.Syndication
                 return;
             }
 
-            await Task.WhenAll(provider.GetServices<IResponder>().Select(x => RunResponder(x, socketMessage, token)));
+            var responders = provider.GetServices<IResponder>().ToArray();
+            logger.LogInformation("Starting to invoke {0} responders", responders.Length);
+            await Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
+            logger.LogInformation("Completed invoking {0} responders", responders.Length);
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
         {
             var stopwatch = new Stopwatch();
-            logger.LogTrace("Running responder {0} for message {1}", responder.GetType().Name, message);
+            logger.LogInformation("Running responder {0} for message {1}", responder.GetType().Name, message);
             stopwatch.Start();
             await responder.ProcessMessage(message, token);
             logger.LogInformation("Completed responder {0} in {1} for message: {2}", responder.GetType().Name, stopwatch.Elapsed, message);
