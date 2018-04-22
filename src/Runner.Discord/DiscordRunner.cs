@@ -6,17 +6,22 @@ using Discord.WebSocket;
 using Discord;
 using System;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Estranged.Automation.Runner.Discord.Responders;
+using Estranged.Automation.Runner.Discord;
 
 namespace Estranged.Automation.Runner.Syndication
 {
     public class DiscordRunner : IRunner
     {
         private readonly ILogger<DiscordRunner> logger;
+        private readonly ILoggerFactory loggerFactory;
         private IDiscordClient discordClient;
 
-        public DiscordRunner(ILogger<DiscordRunner> logger)
+        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory)
         {
             this.logger = logger;
+            this.loggerFactory = loggerFactory;
         }
 
         public async Task Run(CancellationToken token)
@@ -24,44 +29,35 @@ namespace Estranged.Automation.Runner.Syndication
             var client = new DiscordSocketClient();
             discordClient = client;
 
+            var responderProvider = new ServiceCollection()
+                .AddSingleton(loggerFactory)
+                .AddLogging()
+                .AddSingleton(discordClient)
+                .AddSingleton<TextResponder>()
+                .AddSingleton<HoistedRoleResponder>()
+                .BuildServiceProvider();
+
             client.Log += ClientLog;
 
             await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await client.StartAsync();
 
-            client.MessageReceived += ClientMessageReceived;
+            client.MessageReceived += message => ClientMessageReceived(responderProvider, message, token);
 
             await Task.Delay(-1, token);
         }
 
-        private async Task ClientMessageReceived(SocketMessage socketMessage)
+        private Task ClientMessageReceived(IServiceProvider provider, SocketMessage socketMessage, CancellationToken token)
         {
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            string content = socketMessage.Content;
-            string contentLower = content.ToLower();
+            // Run all message processors in parallel, don't wait for completion
+            provider.GetServices<IResponder>().Select(x => x.ProcessMessage(socketMessage, token));
 
-            if (contentLower.Contains("linux") && !contentLower.Contains("gnu/linux"))
-            {
-                logger.LogInformation("Sending Linux text");
-                await socketMessage.Channel.SendMessageAsync("I'd just like to interject for a moment. What you’re referring to as Linux, is in fact, GNU/Linux, or as I’ve recently taken to calling it, GNU plus Linux.");
-            }
-
-            if (socketMessage.Author is SocketGuildUser guildUser)
-            {
-                if (guildUser.Roles.Any(x => x.IsHoisted))
-                {
-                    if (contentLower.StartsWith("/botname"))
-                    {
-                        string newName = content.Substring(8).Trim();
-                        logger.LogInformation("Changing name to {0}", newName);
-                        await discordClient.CurrentUser.ModifyAsync(x => x.Username = newName);
-                    }
-                }
-            }
+            return Task.CompletedTask;
         }
 
         private Task ClientLog(LogMessage logMessage)
