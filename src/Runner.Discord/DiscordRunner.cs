@@ -47,17 +47,20 @@ namespace Estranged.Automation.Runner.Syndication
             await socketClient.StartAsync();
         }
 
-        private async Task ClientMessageReceived(SocketMessage socketMessage)
+        private Task ClientMessageReceived(SocketMessage socketMessage)
         {
+            logger.LogInformation("Message received");
+
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             var responders = responderProvider.GetServices<IResponder>().ToArray();
             logger.LogInformation("Starting to invoke {0} responders", responders.Length);
-            await Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, CancellationToken.None)));
+            Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, CancellationToken.None)));
             logger.LogInformation("Completed invoking {0} responders", responders.Length);
+            return Task.CompletedTask;
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
