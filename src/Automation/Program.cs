@@ -22,7 +22,7 @@ namespace Estranged.Automation
 
             var provider = new ServiceCollection()
                 .AddSteam()
-                .AddLogging(x => x.SetMinimumLevel(LogLevel.Trace))
+                .AddLogging()
                 .AddSingleton(httpClient)
                 .AddTransient<RunnerManager>()
                 .AddTransient<IRunner, ReviewsRunner>()
