@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2;
 using Estranged.Automation.Runner.Reviews;
 using Estranged.Automation.Runner.Syndication;
 using Estranged.Automation.Shared;
+using Google.Cloud.Language.V1;
 using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,7 @@ namespace Estranged.Automation
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
                 .AddSingleton(TranslationClient.Create())
+                .AddSingleton(LanguageServiceClient.Create())
                 .BuildServiceProvider();
 
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();

@@ -12,6 +12,7 @@ using Estranged.Automation.Runner.Discord;
 using System.Diagnostics;
 using System.Net.Http;
 using Google.Cloud.Translation.V2;
+using Google.Cloud.Language.V1;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -21,7 +22,7 @@ namespace Estranged.Automation.Runner.Syndication
         private readonly ILoggerFactory loggerFactory;
         private IServiceProvider responderProvider;
 
-        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, TranslationClient translationClient)
+        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, TranslationClient translationClient, LanguageServiceClient languageServiceClient)
         {
             this.logger = logger;
             this.loggerFactory = loggerFactory;
@@ -31,12 +32,14 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddLogging()
                 .AddSingleton(httpClient)
                 .AddSingleton(translationClient)
+                .AddSingleton(languageServiceClient)
                 .AddSingleton<IDiscordClient, DiscordSocketClient>()
                 .AddSingleton<IResponder, TextResponder>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()
                 .AddSingleton<IResponder, DadJokeResponder>()
                 .AddSingleton<IResponder, PullTheLeverResponder>()
                 .AddSingleton<IResponder, TranslationResponder>()
+                .AddSingleton<IResponder, NaturalLanguageResponder>()
                 .BuildServiceProvider();
         }
 
