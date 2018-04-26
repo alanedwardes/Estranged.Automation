@@ -16,16 +16,16 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            var sentiment = await languageServiceClient.AnalyzeSentimentAsync(new AnalyzeSentimentRequest
-            {
-                Document = Document.FromPlainText(message.Content),
-                EncodingType = EncodingType.Utf8
-            });
+            //var sentiment = await languageServiceClient.AnalyzeSentimentAsync(new AnalyzeSentimentRequest
+            //{
+            //    Document = Document.FromPlainText(message.Content),
+            //    EncodingType = EncodingType.Utf8
+            //});
 
-            if (sentiment.DocumentSentiment.Score < 0f)
-            {
-                await message.Channel.SendMessageAsync("Don't be negative!", options: token.ToRequestOptions());
-            }
+            //if (sentiment.DocumentSentiment.Score < 0f)
+            //{
+            //    await message.Channel.SendMessageAsync("Don't be negative!", options: token.ToRequestOptions());
+            //}
         }
     }
 }
