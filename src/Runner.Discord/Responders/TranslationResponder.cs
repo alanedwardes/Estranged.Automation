@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Google.Cloud.Translation.V2;
@@ -35,12 +36,18 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             string messageContent = message.Content.Replace(InvocationCommand, string.Empty).Trim();
 
+            if (Uri.TryCreate(messageContent, UriKind.Absolute, out var uri))
+            {
+                logger.LogInformation("Ignoring message {0} due to it being a URL", message.Content);
+                return;
+            }
+
             numberOfCharacters += message.Content.Length;
 
             var detection = await translation.DetectLanguageAsync(messageContent, token);
-            if (detection.Language == "en")
+            if (detection.Language == "en" || detection.Language == "und")
             {
-                logger.LogInformation("Ignoring message {0} due to it being in English", message.Content);
+                logger.LogInformation("Ignoring message {0} due to it being in {1}", message.Content, detection.Language);
                 return;
             }
 
