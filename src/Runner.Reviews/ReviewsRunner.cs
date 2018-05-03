@@ -15,6 +15,7 @@ using Estranged.Automation.Shared;
 using System.Threading;
 using System.Net.Http;
 using System;
+using Google;
 
 namespace Estranged.Automation.Runner.Reviews
 {
@@ -63,18 +64,28 @@ namespace Estranged.Automation.Runner.Reviews
 
             foreach (Review unseenReview in unseenReviews)
             {
+                var reviewContent = unseenReview.Comment.Truncate(512);
+
                 string reviewUrl = $"https://steamcommunity.com/profiles/{unseenReview.Author.SteamId}/recommended/{appId}";
 
                 logger.LogInformation("Posting review {0} to Slack", reviewUrl);
 
-                TranslationResult translationResponse = await translation.TranslateTextAsync(unseenReview.Comment, EnglishLanguage, null, null, token);
+                TranslationResult translationResponse = null;
+                try
+                {
+                    translationResponse = await translation.TranslateTextAsync(reviewContent, EnglishLanguage, null, null, token);
+                }
+                catch (GoogleApiException e)
+                {
+                    logger.LogError(e, "Encountered error translating review.");
+                }
 
                 var fields = new List<Field>
                 {
                     new Field
                     {
-                        Title = $"Original Text ({translationResponse.DetectedSourceLanguage ?? "unknown"})",
-                        Value = unseenReview.Comment,
+                        Title = $"Original Text ({translationResponse?.DetectedSourceLanguage ?? "unknown"})",
+                        Value = reviewContent,
                         Short = false
                     },
                     new Field
@@ -91,7 +102,7 @@ namespace Estranged.Automation.Runner.Reviews
                     }
                 };
 
-                if (translationResponse.DetectedSourceLanguage != EnglishLanguage)
+                if (translationResponse != null && translationResponse.DetectedSourceLanguage != EnglishLanguage)
                 {
                     fields.Insert(1, new Field
                     {
