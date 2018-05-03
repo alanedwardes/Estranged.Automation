@@ -4,7 +4,6 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders
