@@ -11,8 +11,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly ILogger<TranslationResponder> logger;
         private readonly TranslationClient translation;
-        private int numberOfCharacters;
-        private const int MaximumCharacters = 2500;
         private const string InvocationCommand = "!translate";
 
         public TranslationResponder(ILogger<TranslationResponder> logger, TranslationClient translation)
@@ -23,13 +21,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (numberOfCharacters >= MaximumCharacters)
-            {
-                logger.LogWarning("Rate limiting translation");
-                return;
-            }
-
-            if (!message.Content.ToLower().StartsWith(InvocationCommand) && message.Channel.Name != "general")
+            if (!message.Content.ToLower().StartsWith(InvocationCommand))
             {
                 return;
             }
@@ -42,18 +34,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            numberOfCharacters += message.Content.Length;
-
             var detection = await translation.DetectLanguageAsync(messageContent, token);
             if (detection.Language == "en" || detection.Language == "und")
             {
                 logger.LogInformation("Ignoring message {0} due to it being in {1}", message.Content, detection.Language);
-                return;
-            }
-
-            if (detection.Confidence < 0.75)
-            {
-                logger.LogInformation("Ignoring message {0} due to lack of confidence ({1})", message.Content, detection.Confidence);
                 return;
             }
 
