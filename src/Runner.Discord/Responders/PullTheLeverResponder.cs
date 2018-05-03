@@ -38,13 +38,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             "<:shibwhine:436284167999848458>"
         };
 
-        private string RandomEmoji(string[] icons) => ':' + icons.OrderBy(x => Guid.NewGuid()).First() + ':';
+        private string RandomEmoji(string[] icons) => icons.OrderBy(x => Guid.NewGuid()).First();
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
             if (message.Content.ToLower().Contains("pull the lever"))
             {
-                await message.Channel.SendMessageAsync($"{RandomEmoji(normalEmoji)}{RandomEmoji(normalEmoji)}{RandomEmoji(normalEmoji)}", options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync($":{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}:", options: token.ToRequestOptions());
             }
 
             if (message.Content.ToLower().Contains("pull the shib"))
