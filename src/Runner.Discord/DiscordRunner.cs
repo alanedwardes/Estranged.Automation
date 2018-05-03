@@ -40,6 +40,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, PullTheLeverResponder>()
                 .AddSingleton<IResponder, TranslationResponder>()
                 .AddSingleton<IResponder, NaturalLanguageResponder>()
+                .AddSingleton<IResponder, DogResponder>()
                 .BuildServiceProvider();
         }
 
