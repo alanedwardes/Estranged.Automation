@@ -28,10 +28,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var breed = breeds.OrderBy(x => Guid.NewGuid()).First();
+            using (message.Channel.EnterTypingState(token.ToRequestOptions()))
+            {
+                var breed = breeds.OrderBy(x => Guid.NewGuid()).First();
 
-            var dog = JObject.Parse(await httpClient.GetStringAsync($"https://dog.ceo/api/breed/{breed}/images/random"));
-            await message.Channel.SendMessageAsync(dog.Value<string>("message"));
+                var dog = JObject.Parse(await httpClient.GetStringAsync($"https://dog.ceo/api/breed/{breed}/images/random"));
+                await message.Channel.SendMessageAsync(dog.Value<string>("message"));
+            }
         }
     }
 }
