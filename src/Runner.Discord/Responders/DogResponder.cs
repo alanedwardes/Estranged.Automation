@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +13,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly HttpClient httpClient;
 
+        private string[] breeds = new[] { "shiba", "corgi" };
+
         public DogResponder(HttpClient httpClient)
         {
             this.httpClient = httpClient;
@@ -19,13 +23,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
             IList<string> words = message.Content.ToLower().Split(' ');
-
             if (!words.Contains("dog"))
             {
                 return;
             }
 
-            var dog = JObject.Parse(await httpClient.GetStringAsync("https://dog.ceo/api/breed/shiba/images/random"));
+            var breed = breeds.OrderBy(x => Guid.NewGuid()).First();
+
+            var dog = JObject.Parse(await httpClient.GetStringAsync($"https://dog.ceo/api/breed/{breed}/images/random"));
             await message.Channel.SendMessageAsync(dog.Value<string>("message"));
         }
     }
