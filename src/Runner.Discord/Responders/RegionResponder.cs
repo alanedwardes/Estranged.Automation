@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -9,22 +10,29 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class RegionResponder : IResponder
     {
-        public Task ProcessMessage(IMessage message, CancellationToken token)
+        public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            RegionInfo[] regions = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
-                                              .Select(x => new RegionInfo(x.Name))
-                                              .ToArray();
-
             string[] words = message.Content.ToLower().Split(' ');
 
-            RegionInfo[] foundRegions = regions.Where(x => words.Contains(x.EnglishName, StringComparer.InvariantCultureIgnoreCase))
-                                               .ToArray();
-            foreach (RegionInfo region in foundRegions)
+            IDictionary<CultureInfo, RegionInfo> regionAndCultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
+                                                                      .ToDictionary(x => x, x => new RegionInfo(x.Name));
+
+            var foundCultures = regionAndCultures.Where(x => words.Contains(x.Key.EnglishName, StringComparer.InvariantCultureIgnoreCase));
+            foreach (var culture in foundCultures)
             {
-                message.Channel.SendMessageAsync($"Ah yes, {region.EnglishName}! ({region.NativeName}). They use the {region.CurrencyEnglishName} ({region.CurrencySymbol}).");
+                await PrintRegionAndCulture(message.Channel, culture);
             }
 
-            return Task.CompletedTask;
+            var foundRegions = regionAndCultures.Where(x => words.Contains(x.Value.EnglishName, StringComparer.InvariantCultureIgnoreCase));
+            foreach (var region in foundRegions)
+            {
+                await PrintRegionAndCulture(message.Channel, region);
+            }
+        }
+
+        public async Task PrintRegionAndCulture(IMessageChannel channel, KeyValuePair<CultureInfo, RegionInfo> pair)
+        {
+            await channel.SendMessageAsync($"Ah yes, {pair.Key.EnglishName} from {pair.Value.EnglishName}, with the currency {pair.Value.CurrencyEnglishName} ({pair.Value.CurrencySymbol})");
         }
     }
 }
