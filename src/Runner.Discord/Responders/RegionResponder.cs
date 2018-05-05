@@ -15,13 +15,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
                                               .Select(x => new RegionInfo(x.Name))
                                               .ToArray();
 
-            string[] words = message.Content.Split(' ');
+            string[] words = message.Content.ToLower().Split(' ');
 
-            RegionInfo[] foundRegions = regions.Where(x => words.Contains(x.EnglishName))
+            RegionInfo[] foundRegions = regions.Where(x => words.Contains(x.EnglishName, StringComparer.InvariantCultureIgnoreCase))
                                                .ToArray();
             foreach (RegionInfo region in foundRegions)
             {
-                message.Channel.SendMessageAsync($"Ah yes! {region.EnglishName} ({region.NativeName})! They use the {region.CurrencyEnglishName} ({region.CurrencySymbol}).");
+                message.Channel.SendMessageAsync($"Ah yes, {region.EnglishName}! ({region.NativeName}). They use the {region.CurrencyEnglishName} ({region.CurrencySymbol}).");
             }
 
             return Task.CompletedTask;
