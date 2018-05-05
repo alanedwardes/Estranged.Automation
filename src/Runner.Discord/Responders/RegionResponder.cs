@@ -23,6 +23,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 message.Channel.SendMessageAsync($"Ah yes! {region.EnglishName} ({region.NativeName})! They use the {region.CurrencyEnglishName} ({region.CurrencySymbol}).");
             }
+
+            return Task.CompletedTask;
         }
     }
 }
