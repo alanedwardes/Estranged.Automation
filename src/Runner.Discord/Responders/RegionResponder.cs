@@ -12,10 +12,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            return;
+
             string[] words = message.Content.ToLower().Split(' ');
 
             IDictionary<CultureInfo, RegionInfo> regionAndCultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures)
-                                                                      .ToDictionary(x => x, x => new RegionInfo(x.Name));
+                                                                                .ToDictionary(x => x, x => new RegionInfo(x.Name));
 
             var foundCultures = regionAndCultures.Where(x => words.Contains(x.Key.EnglishName, StringComparer.InvariantCultureIgnoreCase));
             foreach (var culture in foundCultures)
@@ -32,7 +34,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task PrintRegionAndCulture(IMessageChannel channel, KeyValuePair<CultureInfo, RegionInfo> pair)
         {
-            await channel.SendMessageAsync($"Ah yes, {pair.Key.EnglishName} from {pair.Value.EnglishName}, with the currency {pair.Value.CurrencyEnglishName} ({pair.Value.CurrencySymbol})");
+            await channel.SendMessageAsync($"Ah yes, {pair.Key.EnglishName} spoken in {pair.Value.EnglishName}, with the currency {pair.Value.CurrencyEnglishName} ({pair.Value.CurrencySymbol})");
         }
     }
 }
