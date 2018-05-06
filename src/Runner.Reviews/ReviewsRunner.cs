@@ -1,5 +1,4 @@
-﻿using Google.Cloud.Translation.V2;
-using Humanizer;
+﻿using Humanizer;
 using Microsoft.Extensions.Logging;
 using Narochno.Slack;
 using Narochno.Slack.Entities;
@@ -15,7 +14,9 @@ using Estranged.Automation.Shared;
 using System.Threading;
 using System.Net.Http;
 using System;
-using Google;
+using Amazon.Translate;
+using Amazon.Translate.Model;
+using Amazon.Runtime;
 
 namespace Estranged.Automation.Runner.Reviews
 {
@@ -25,14 +26,14 @@ namespace Estranged.Automation.Runner.Reviews
         private readonly ISteamClient steam;
         private readonly ISlackClient slack;
         private readonly ISeenItemRepository seenItemRepository;
-        private readonly TranslationClient translation;
+        private readonly IAmazonTranslate translation;
         private const string StateTableName = "EstrangedAutomationState";
         private const string ItemIdKey = "ItemId";
         private const string EnglishLanguage = "en";
 
         public override TimeSpan Period => TimeSpan.FromMinutes(30);
 
-        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISeenItemRepository seenItemRepository, TranslationClient translation, HttpClient httpClient)
+        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISeenItemRepository seenItemRepository, IAmazonTranslate translation, HttpClient httpClient)
         {
             this.logger = logger;
             this.steam = steam;
@@ -70,12 +71,17 @@ namespace Estranged.Automation.Runner.Reviews
 
                 logger.LogInformation("Posting review {0} to Slack", reviewUrl);
 
-                TranslationResult translationResponse = null;
+                TranslateTextResponse translationResponse = null;
                 try
                 {
-                    translationResponse = await translation.TranslateTextAsync(reviewContent, EnglishLanguage, null, null, token);
+                    translationResponse = await translation.TranslateTextAsync(new TranslateTextRequest
+                    {
+                        SourceLanguageCode = "auto",
+                        TargetLanguageCode = EnglishLanguage,
+                        Text = reviewContent
+                    }, token);
                 }
-                catch (GoogleApiException e)
+                catch (AmazonServiceException e)
                 {
                     logger.LogError(e, "Encountered error translating review.");
                 }
@@ -84,7 +90,7 @@ namespace Estranged.Automation.Runner.Reviews
                 {
                     new Field
                     {
-                        Title = $"Original Text ({translationResponse?.DetectedSourceLanguage ?? "unknown"})",
+                        Title = $"Original Text ({translationResponse?.SourceLanguageCode ?? "unknown"})",
                         Value = reviewContent,
                         Short = false
                     },
@@ -102,7 +108,7 @@ namespace Estranged.Automation.Runner.Reviews
                     }
                 };
 
-                if (translationResponse != null && translationResponse.DetectedSourceLanguage != EnglishLanguage)
+                if (translationResponse != null && translationResponse.SourceLanguageCode != EnglishLanguage)
                 {
                     fields.Insert(1, new Field
                     {
