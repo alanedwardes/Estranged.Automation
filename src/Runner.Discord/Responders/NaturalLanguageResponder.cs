@@ -16,12 +16,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessSentiment(IMessage message, CancellationToken token)
         {
-            if (!message.Content.StartsWith("!sentiment"))
+            const string command = "!sentiment";
+
+            if (!message.Content.StartsWith(command))
             {
                 return;
             }
 
-            var sentiment = await languageServiceClient.AnalyzeSentimentAsync(Document.FromPlainText(message.Content), token);
+            var sentiment = await languageServiceClient.AnalyzeSentimentAsync(Document.FromPlainText(message.Content.Substring(command.Length)), token);
 
             await message.Channel.SendMessageAsync($"Sentiment score of {sentiment.DocumentSentiment.Score} with magnitude of {sentiment.DocumentSentiment.Magnitude}");
         }
