@@ -13,7 +13,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly HttpClient httpClient;
 
-        private string[] breeds = new[] { "shiba", "corgi" };
+        private string[] breeds = new[] { "shiba", "corgi", "samoyed" };
 
         public DogResponder(HttpClient httpClient)
         {
