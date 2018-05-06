@@ -14,18 +14,21 @@ namespace Estranged.Automation.Runner.Discord.Responders
             this.languageServiceClient = languageServiceClient;
         }
 
+        public async Task ProcessSentiment(IMessage message, CancellationToken token)
+        {
+            if (message.Content.StartsWith("!sentiment"))
+            {
+                return;
+            }
+
+            var sentiment = await languageServiceClient.AnalyzeSentimentAsync(Document.FromPlainText(message.Content), token);
+
+            await message.Channel.SendMessageAsync($"Sentiment score of {sentiment.DocumentSentiment.Score} with magnitude of {sentiment.DocumentSentiment.Magnitude}");
+        }
+
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            //var sentiment = await languageServiceClient.AnalyzeSentimentAsync(new AnalyzeSentimentRequest
-            //{
-            //    Document = Document.FromPlainText(message.Content),
-            //    EncodingType = EncodingType.Utf8
-            //});
-
-            //if (sentiment.DocumentSentiment.Score < 0f)
-            //{
-            //    await message.Channel.SendMessageAsync("Don't be negative!", options: token.ToRequestOptions());
-            //}
+            await ProcessSentiment(message, token);
         }
     }
 }
