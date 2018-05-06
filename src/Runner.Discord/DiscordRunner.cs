@@ -11,7 +11,8 @@ using Estranged.Automation.Runner.Discord.Responders;
 using Estranged.Automation.Runner.Discord;
 using System.Diagnostics;
 using System.Net.Http;
-using Amazon.Translate;
+using Google.Cloud.Translation.V2;
+using Google.Cloud.Language.V1;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -21,7 +22,7 @@ namespace Estranged.Automation.Runner.Syndication
         private readonly ILoggerFactory loggerFactory;
         private IServiceProvider responderProvider;
 
-        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, IAmazonTranslate amazonTranslate)
+        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, TranslationClient translationClient, LanguageServiceClient languageServiceClient)
         {
             this.logger = logger;
             this.loggerFactory = loggerFactory;
@@ -30,14 +31,17 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton(loggerFactory)
                 .AddLogging()
                 .AddSingleton(httpClient)
-                .AddSingleton(amazonTranslate)
+                .AddSingleton(translationClient)
+                .AddSingleton(languageServiceClient)
                 .AddSingleton<IDiscordClient, DiscordSocketClient>()
                 .AddSingleton<IResponder, TextResponder>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()
                 .AddSingleton<IResponder, DadJokeResponder>()
                 .AddSingleton<IResponder, PullTheLeverResponder>()
                 .AddSingleton<IResponder, TranslationResponder>()
+                .AddSingleton<IResponder, NaturalLanguageResponder>()
                 .AddSingleton<IResponder, DogResponder>()
+                .AddSingleton<IResponder, RegionResponder>()
                 .BuildServiceProvider();
         }
 

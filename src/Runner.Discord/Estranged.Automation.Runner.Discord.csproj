@@ -5,10 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Translate" Version="3.3.1.2" />
+    <PackageReference Include="Google.Cloud.Language.V1" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
     <PackageReference Include="Discord.Net.WebSocket" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.1" />
+    <PackageReference Include="Google.Cloud.Translation.V2" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>

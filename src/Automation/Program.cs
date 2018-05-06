@@ -1,9 +1,10 @@
 ﻿using Amazon;
 using Amazon.DynamoDBv2;
-using Amazon.Translate;
 using Estranged.Automation.Runner.Reviews;
 using Estranged.Automation.Runner.Syndication;
 using Estranged.Automation.Shared;
+using Google.Cloud.Language.V1;
+using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Narochno.Steam;
@@ -30,7 +31,8 @@ namespace Estranged.Automation
                 .AddTransient<IRunner, DiscordRunner>()
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
-                .AddSingleton<IAmazonTranslate>(x => new AmazonTranslateClient(RegionEndpoint.EUWest1))
+                .AddSingleton(TranslationClient.Create())
+                .AddSingleton(LanguageServiceClient.Create())
                 .BuildServiceProvider();
 
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
