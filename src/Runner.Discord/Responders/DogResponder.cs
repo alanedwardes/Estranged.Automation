@@ -30,7 +30,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var intersections = words.Intersect(allBreeds).ToArray();
+            var intersections = allBreeds.Intersect(words).ToArray();
             if (intersections.Any())
             {
                 await SendPhoto(intersections.First(), message.Channel, token);
