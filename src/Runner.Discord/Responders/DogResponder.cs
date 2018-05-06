@@ -25,11 +25,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
             IList<string> words = message.Content.ToLower().Split(' ');
-            if (!words.Contains("dog"))
-            {
-                return;
-            }
-
             var intersections = allBreeds.Intersect(words).ToArray();
             if (intersections.Any())
             {
@@ -37,8 +32,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            // Send random breed
-            await SendPhoto(breeds.OrderBy(x => Guid.NewGuid()).First(), message.Channel, token);
+            if (words.Contains("dog"))
+            {
+                await SendPhoto(breeds.OrderBy(x => Guid.NewGuid()).First(), message.Channel, token);
+            }
         }
 
         private async Task SendPhoto(string breed, IMessageChannel channel, CancellationToken token)
