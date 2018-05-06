@@ -16,7 +16,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessSentiment(IMessage message, CancellationToken token)
         {
-            if (message.Content.StartsWith("!sentiment"))
+            if (!message.Content.StartsWith("!sentiment"))
             {
                 return;
             }
