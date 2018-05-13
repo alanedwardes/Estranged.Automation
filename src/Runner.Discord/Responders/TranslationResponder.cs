@@ -1,4 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Google.Cloud.Translation.V2;
@@ -10,7 +13,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly ILogger<EnglishTranslationResponder> logger;
         private readonly TranslationClient translation;
-        private const string InvocationCommand = "!to";
+        private readonly IEnumerable<string> InvocationCommands = new[] { "!to", "!до", "!au" };
 
         public TranslationResponder(ILogger<EnglishTranslationResponder> logger, TranslationClient translation)
         {
@@ -20,27 +23,24 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (!message.Content.ToLower().StartsWith(InvocationCommand))
+            string[] words = message.Content.Split(' ');
+            if (!InvocationCommands.Contains(words[0], StringComparer.InvariantCultureIgnoreCase))
             {
                 return;
             }
 
-            string messageContent = message.Content.Substring(InvocationCommand.Length).Trim();
-
-            string[] words = messageContent.Split(' ');
-
-            string targetLanguage = words[0];
-            string phrase = messageContent.Substring(targetLanguage.Length).Trim();
+            string target = words[1].ToLower();
+            string phrase = message.Content.Substring(words[0].Length).Trim().Substring(target.Length).Trim();
 
             using (message.Channel.EnterTypingState(token.ToRequestOptions()))
             {
-                var translated = await translation.TranslateTextAsync(phrase, targetLanguage, null, cancellationToken: token);
+                var translated = await translation.TranslateTextAsync(phrase, target, null, cancellationToken: token);
                 if (translated.TranslatedText == translated.OriginalText)
                 {
                     return;
                 }
 
-                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.DetectedSourceLanguage.ToUpper()}```{translated.TranslatedText}```";
+                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.DetectedSourceLanguage.ToUpper()} to {translated.TargetLanguage.ToUpper()}```{translated.TranslatedText}```";
                 await message.Channel.SendMessageAsync(responseMessage, options: token.ToRequestOptions());
             }
         }
