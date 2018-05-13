@@ -38,6 +38,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, HoistedRoleResponder>()
                 .AddSingleton<IResponder, DadJokeResponder>()
                 .AddSingleton<IResponder, PullTheLeverResponder>()
+                .AddSingleton<IResponder, EnglishTranslationResponder>()
                 .AddSingleton<IResponder, TranslationResponder>()
                 .AddSingleton<IResponder, NaturalLanguageResponder>()
                 .AddSingleton<IResponder, DogResponder>()

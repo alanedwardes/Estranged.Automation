@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Google.Cloud.Translation.V2;
@@ -9,11 +8,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class TranslationResponder : IResponder
     {
-        private readonly ILogger<TranslationResponder> logger;
+        private readonly ILogger<EnglishTranslationResponder> logger;
         private readonly TranslationClient translation;
-        private const string InvocationCommand = "!translate";
+        private const string InvocationCommand = "!to";
 
-        public TranslationResponder(ILogger<TranslationResponder> logger, TranslationClient translation)
+        public TranslationResponder(ILogger<EnglishTranslationResponder> logger, TranslationClient translation)
         {
             this.logger = logger;
             this.translation = translation;
@@ -26,26 +25,16 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            string messageContent = message.Content.Replace(InvocationCommand, string.Empty).Trim();
+            string messageContent = message.Content.Substring(InvocationCommand.Length).Trim();
 
-            if (Uri.TryCreate(messageContent, UriKind.Absolute, out var uri))
-            {
-                logger.LogInformation("Ignoring message {0} due to it being a URL", message.Content);
-                return;
-            }
+            string[] words = messageContent.Split(' ');
 
-            var detection = await translation.DetectLanguageAsync(messageContent, token);
-            if (detection.Language == "en" || detection.Language == "und")
-            {
-                logger.LogInformation("Ignoring message {0} due to it being in {1}", message.Content, detection.Language);
-                return;
-            }
-
-            logger.LogInformation("Message is written in {0} with {1} confidence", detection.Language, detection.Confidence);
+            string targetLanguage = words[0];
+            string phrase = messageContent.Substring(targetLanguage.Length).Trim();
 
             using (message.Channel.EnterTypingState(token.ToRequestOptions()))
             {
-                var translated = await translation.TranslateTextAsync(messageContent, "en", detection.Language, cancellationToken: token);
+                var translated = await translation.TranslateTextAsync(messageContent, targetLanguage, null, cancellationToken: token);
                 if (translated.TranslatedText == translated.OriginalText)
                 {
                     return;
