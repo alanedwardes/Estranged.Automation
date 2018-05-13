@@ -13,7 +13,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly ILogger<EnglishTranslationResponder> logger;
         private readonly TranslationClient translation;
-        private readonly IEnumerable<string> InvocationCommands = new[] { "!to", "!до", "!au" };
+        private readonly IEnumerable<string> InvocationCommands = new[] { "!to", "!на", "!au" };
 
         public TranslationResponder(ILogger<EnglishTranslationResponder> logger, TranslationClient translation)
         {
