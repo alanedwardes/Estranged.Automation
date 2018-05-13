@@ -43,7 +43,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 if (translated.DetectedSourceLanguage != "en")
                 {
                     var english = await translation.TranslateTextAsync(phrase, "en", translated.DetectedSourceLanguage, cancellationToken: token);
-                    string response = $"Translated \"{translated.OriginalText}\" from {translated.DetectedSourceLanguage.ToUpper()}```{translated.TargetLanguage.ToUpper()}: {translated.TranslatedText}``` ```EN: {english.TranslatedText}```";
+                    string response = $"Translated \"{translated.OriginalText}\" from {translated.DetectedSourceLanguage.ToUpper()}```{translated.TargetLanguage.ToUpper()}: {translated.TranslatedText}\nEN: {english.TranslatedText}```";
                     await message.Channel.SendMessageAsync(response, options: token.ToRequestOptions());
                     return;
                 }
