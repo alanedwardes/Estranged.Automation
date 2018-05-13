@@ -34,7 +34,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using (message.Channel.EnterTypingState(token.ToRequestOptions()))
             {
-                var translated = await translation.TranslateTextAsync(messageContent, targetLanguage, null, cancellationToken: token);
+                var translated = await translation.TranslateTextAsync(phrase, targetLanguage, null, cancellationToken: token);
                 if (translated.TranslatedText == translated.OriginalText)
                 {
                     return;
