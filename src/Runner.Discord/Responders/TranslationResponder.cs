@@ -40,7 +40,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     return;
                 }
 
-                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.SpecifiedSourceLanguage.ToUpper()}```{translated.TranslatedText}```";
+                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.DetectedSourceLanguage.ToUpper()}```{translated.TranslatedText}```";
                 await message.Channel.SendMessageAsync(responseMessage, options: token.ToRequestOptions());
             }
         }
