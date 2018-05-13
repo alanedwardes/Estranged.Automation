@@ -40,9 +40,15 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     return;
                 }
 
-                var english = await translation.TranslateTextAsync(phrase, "en", translated.DetectedSourceLanguage, cancellationToken: token);
+                if (translated.DetectedSourceLanguage != "en")
+                {
+                    var english = await translation.TranslateTextAsync(phrase, "en", translated.DetectedSourceLanguage, cancellationToken: token);
+                    string response = $"Translated \"{translated.OriginalText}\" from {translated.DetectedSourceLanguage.ToUpper()}```{translated.TargetLanguage.ToUpper()}: {translated.TranslatedText}``` ```EN: {english.TranslatedText}```";
+                    await message.Channel.SendMessageAsync(response, options: token.ToRequestOptions());
+                    return;
+                }
 
-                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.DetectedSourceLanguage.ToUpper()}```{translated.TargetLanguage.ToUpper()}: {translated.TranslatedText}``` ```EN: {english.TranslatedText}```";
+                string responseMessage = $"Translated \"{translated.OriginalText}\" from {translated.DetectedSourceLanguage.ToUpper()} to {translated.TargetLanguage.ToUpper()}```{translated.TranslatedText}```";
                 await message.Channel.SendMessageAsync(responseMessage, options: token.ToRequestOptions());
             }
         }
