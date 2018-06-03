@@ -87,7 +87,7 @@ namespace Estranged.Automation.Runner.Syndication
 
             var welcome = $"Welcome to the Estranged Discord server {user}! See #rules for the server rules, you might also be interested in these channels:\n{string.Join("\n", interestingChannels)}";
 
-            await welcomeChannel.SendMessageAsync(welcome, options: token.ToRequestOptions());
+            await welcomeChannel.SendMessageAsync("```" + welcome + "```", options: token.ToRequestOptions());
         }
 
         private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
