@@ -51,26 +51,56 @@ namespace Estranged.Automation.Runner.Syndication
             var socketClient = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
 
             socketClient.Log += ClientLog;
-            socketClient.MessageReceived += message => ClientMessageReceived(message, token);
+            socketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
+            socketClient.UserJoined += user => WrapTask(UserJoined(user, socketClient, token));
 
             await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await socketClient.StartAsync();
             await Task.Delay(-1, token);
         }
 
-        private Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
+        private async Task WrapTask(Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception e)
+            {
+                logger.LogCritical(e, "Exception from event handler task");
+            }
+        }
+
+        private async Task UserJoined(SocketGuildUser user, DiscordSocketClient client, CancellationToken token)
+        {
+            logger.LogInformation("User joined: {0}", user);
+
+            var general = client.GroupChannels.Single(x => x.Name == "general");
+
+            var interestingChannels = new[]
+            {
+                "* #act-i - Estranged: Act I discussion",
+                "* #act-ii - Estranged: Act II discussion",
+                "* #screenshots - work in progress development screenshots"
+            };
+
+            var welcome = $"Welcome to the Estranged Discord server {user}! See #rules for the server rules, you might also be interested in these channels:\n{string.Join("\n", interestingChannels)}";
+
+            await general.SendMessageAsync(welcome, options: token.ToRequestOptions());
+        }
+
+        private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
             logger.LogTrace("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             logger.LogTrace("Finding responder services");
             var responders = responderProvider.GetServices<IResponder>().ToArray();
             logger.LogTrace("Invoking {0} responders", responders.Length);
-            Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
-            return Task.CompletedTask;
+            await Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
