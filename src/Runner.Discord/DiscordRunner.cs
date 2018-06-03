@@ -76,13 +76,13 @@ namespace Estranged.Automation.Runner.Syndication
             logger.LogInformation("User joined: {0}", user);
 
             // #general channel ID
-            var welcomeChannel = await client.GetGroupChannelAsync(368117881000427540);
+            var welcomeChannel = (IMessageChannel)client.GetChannel(368117881000427540);
 
             var interestingChannels = new[]
             {
                 "* #act-i - Estranged: Act I discussion",
                 "* #act-ii - Estranged: Act II discussion",
-                "* #screenshots - work in progress development screenshots"
+                "* #screenshots - Work in progress development screenshots"
             };
 
             var welcome = $"Welcome to the Estranged Discord server {user}! See #rules for the server rules, you might also be interested in these channels:\n{string.Join("\n", interestingChannels)}";
