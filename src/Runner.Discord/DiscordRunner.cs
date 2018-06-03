@@ -75,7 +75,8 @@ namespace Estranged.Automation.Runner.Syndication
         {
             logger.LogInformation("User joined: {0}", user);
 
-            var general = client.GroupChannels.Single(x => x.Name == "general");
+            // #general channel ID
+            var welcomeChannel = await client.GetGroupChannelAsync(368117881000427540);
 
             var interestingChannels = new[]
             {
@@ -86,7 +87,7 @@ namespace Estranged.Automation.Runner.Syndication
 
             var welcome = $"Welcome to the Estranged Discord server {user}! See #rules for the server rules, you might also be interested in these channels:\n{string.Join("\n", interestingChannels)}";
 
-            await general.SendMessageAsync(welcome, options: token.ToRequestOptions());
+            await welcomeChannel.SendMessageAsync(welcome, options: token.ToRequestOptions());
         }
 
         private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
