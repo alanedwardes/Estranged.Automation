@@ -75,19 +75,24 @@ namespace Estranged.Automation.Runner.Syndication
         {
             logger.LogInformation("User joined: {0}", user);
 
+            const ulong rulesChannel = 437393028513136640;
+            const ulong act1Channel = 437311972917248022;
+            const ulong act2Channel = 437312012603752458;
+            const ulong screenshotsChannel = 439742315016486922;
+
             // #welcome channel ID
-            var welcomeChannel = (IMessageChannel)client.GetChannel(453209462438887435);
+            var channel = (IMessageChannel)client.GetChannel(453209462438887435);
 
             var interestingChannels = new[]
             {
-                "* #act-i - Estranged: Act I discussion",
-                "* #act-ii - Estranged: Act II discussion",
-                "* #screenshots - Work in progress development screenshots"
+                $"* <#{act1Channel}> - Estranged: Act I discussion",
+                $"* <#{act2Channel}> - Estranged: Act II discussion",
+                $"* <#{screenshotsChannel}> - Work in progress development screenshots"
             };
 
-            var welcome = $"Welcome to the Estranged Discord server {user}! See #rules for the server rules, you might also be interested in these channels:\n{string.Join("\n", interestingChannels)}";
+            var welcome = $"Welcome to the Estranged Discord server <@{user.Id}>! See <#{rulesChannel}> for the server rules, you might also be interested in these channels:\n{string.Join("\n", interestingChannels)}";
 
-            await welcomeChannel.SendMessageAsync("```" + welcome + "```", options: token.ToRequestOptions());
+            await channel.SendMessageAsync(welcome, options: token.ToRequestOptions());
         }
 
         private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
