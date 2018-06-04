@@ -75,24 +75,29 @@ namespace Estranged.Automation.Runner.Syndication
         {
             logger.LogInformation("User joined: {0}", user);
 
-            const ulong rulesChannel = 437393028513136640;
-            const ulong act1Channel = 437311972917248022;
-            const ulong act2Channel = 437312012603752458;
-            const ulong screenshotsChannel = 439742315016486922;
+            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
 
-            // #welcome channel ID
-            var channel = (IMessageChannel)client.GetChannel(453209462438887435);
+            var welcomeChannel = guild.Channels.Cast<IMessageChannel>().Single(x => x.Name == "welcome");
+            var rulesChannel = guild.Channels.Single(x => x.Name == "rules");
+            var act1Channel = guild.Channels.Single(x => x.Name == "act-i");
+            var act2Channel = guild.Channels.Single(x => x.Name == "act-ii");
+            var screenshotsChannel = guild.Channels.Single(x => x.Name == "screenshots");
 
-            var interestingChannels = new[]
+            var welcome = $"Welcome to the Estranged Discord server <@{user.Id}>!" +
+                           "See <#{rulesChannel.Id}> for the server rules, you might also be interested in these channels:";
+
+            var interestingChannels = string.Join("\n", new[]
             {
-                $"* <#{act1Channel}> - Estranged: Act I discussion",
-                $"* <#{act2Channel}> - Estranged: Act II discussion",
-                $"* <#{screenshotsChannel}> - Work in progress development screenshots"
-            };
+                $"* <#{act1Channel.Id}> - Estranged: Act I discussion",
+                $"* <#{act2Channel.Id}> - Estranged: Act II discussion",
+                $"* <#{screenshotsChannel.Id}> - Work in progress development screenshots"
+            });
 
-            var welcome = $"Welcome to the Estranged Discord server <@{user.Id}>! See <#{rulesChannel}> for the server rules, you might also be interested in these channels:\n{string.Join("\n", interestingChannels)}";
+            var moderators = guild.Roles.Single(x => x.Name == "moderators").Members.OrderBy(x => x.Nickname).Select(x => $"<@{x.Id}>");
 
-            await channel.SendMessageAsync(welcome, options: token.ToRequestOptions());
+            var moderatorList = $"Your moderators are {string.Join(", ", moderators)}.";
+
+            await welcomeChannel.SendMessageAsync($"{welcome}\n{interestingChannels}\n{moderatorList}", options: token.ToRequestOptions());
         }
 
         private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
