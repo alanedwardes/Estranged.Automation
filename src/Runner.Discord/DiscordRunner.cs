@@ -84,7 +84,7 @@ namespace Estranged.Automation.Runner.Syndication
             var screenshotsChannel = guild.TextChannels.Single(x => x.Name == "screenshots");
 
             var welcome = $"Welcome to the Estranged Discord server <@{user.Id}>!" +
-                           "See <#{rulesChannel.Id}> for the server rules, you might also be interested in these channels:";
+                          $"See <#{rulesChannel.Id}> for the server rules, you might also be interested in these channels:";
 
             var interestingChannels = string.Join("\n", new[]
             {
