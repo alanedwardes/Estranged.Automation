@@ -77,11 +77,11 @@ namespace Estranged.Automation.Runner.Syndication
 
             var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
 
-            var welcomeChannel = guild.Channels.Cast<IMessageChannel>().Single(x => x.Name == "welcome");
-            var rulesChannel = guild.Channels.Single(x => x.Name == "rules");
-            var act1Channel = guild.Channels.Single(x => x.Name == "act-i");
-            var act2Channel = guild.Channels.Single(x => x.Name == "act-ii");
-            var screenshotsChannel = guild.Channels.Single(x => x.Name == "screenshots");
+            var welcomeChannel = guild.TextChannels.Single(x => x.Name == "welcome");
+            var rulesChannel = guild.TextChannels.Single(x => x.Name == "rules");
+            var act1Channel = guild.TextChannels.Single(x => x.Name == "act-i");
+            var act2Channel = guild.TextChannels.Single(x => x.Name == "act-ii");
+            var screenshotsChannel = guild.TextChannels.Single(x => x.Name == "screenshots");
 
             var welcome = $"Welcome to the Estranged Discord server <@{user.Id}>!" +
                            "See <#{rulesChannel.Id}> for the server rules, you might also be interested in these channels:";
