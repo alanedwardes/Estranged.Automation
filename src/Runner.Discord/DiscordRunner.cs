@@ -93,7 +93,10 @@ namespace Estranged.Automation.Runner.Syndication
                 $"* <#{screenshotsChannel.Id}> - Work in progress development screenshots"
             });
 
-            var moderators = guild.Roles.Single(x => x.Name == "moderators").Members.OrderBy(x => x.Nickname).Select(x => $"<@{x.Id}>");
+            var moderators = guild.Roles.Single(x => x.Name == "moderators")
+                                        .Members.Where(x => !x.IsBot)
+                                        .OrderBy(x => x.Nickname)
+                                        .Select(x => $"<@{x.Id}>");
 
             var moderatorList = $"Your moderators are {string.Join(", ", moderators)}.";
 
