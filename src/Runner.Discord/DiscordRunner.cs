@@ -75,8 +75,8 @@ namespace Estranged.Automation.Runner.Syndication
         {
             logger.LogInformation("User joined: {0}", user);
 
-            // #general channel ID
-            var welcomeChannel = (IMessageChannel)client.GetChannel(368117881000427540);
+            // #welcome channel ID
+            var welcomeChannel = (IMessageChannel)client.GetChannel(453209462438887435);
 
             var interestingChannels = new[]
             {
