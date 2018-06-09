@@ -27,10 +27,10 @@ namespace Estranged.Automation.Runner.Community
             this.httpClient = httpClient;
         }
 
-        public async Task GatherScreenshots(uint appId, CancellationToken token)
+        public async Task GatherUrls(string pattern, string url, CancellationToken token)
         {
-            var fileUrlRegex = new Regex(@"https://steamcommunity.com/sharedfiles/filedetails/\?id=([0-9]*)");
-            var html = await httpClient.GetStringAsync($"https://steamcommunity.com/app/{appId}/screenshots/?browsefilter=mostrecent");
+            var fileUrlRegex = new Regex(pattern);
+            var html = await httpClient.GetStringAsync(url);
 
             var screenshotUrls = fileUrlRegex.Matches(html).OfType<Match>().Select(x => x.Value).Distinct().ToArray();
             var seenUrls = await seenItemRepository.GetSeenItems(screenshotUrls, token);
@@ -50,8 +50,17 @@ namespace Estranged.Automation.Runner.Community
 
         public async override Task RunPeriodically(CancellationToken token)
         {
-            await GatherScreenshots(582890, token);
-            await GatherScreenshots(261820, token);
+            var screenshotPattern = @"https://steamcommunity.com/sharedfiles/filedetails/\?id=([0-9]*)";
+            string screenshotUrl(uint appId) => $"https://steamcommunity.com/app/{appId}/screenshots/?browsefilter=mostrecent";
+
+            await GatherUrls(screenshotPattern, screenshotUrl(582890), token);
+            await GatherUrls(screenshotPattern, screenshotUrl(261820), token);
+
+            var discussionsPattern = @"https://steamcommunity.com/app/([0-9]*)/discussions/([0-9]*)/([0-9]*)/";
+            string discussionsUrl(uint appId) => $"https://steamcommunity.com/app/{appId}/discussions/";
+
+            await GatherUrls(discussionsPattern, discussionsUrl(582890), token);
+            await GatherUrls(discussionsPattern, discussionsUrl(261820), token);
         }
     }
 }
