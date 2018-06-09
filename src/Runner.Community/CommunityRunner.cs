@@ -32,7 +32,7 @@ namespace Estranged.Automation.Runner.Community
             var fileUrlRegex = new Regex(@"https://steamcommunity.com/sharedfiles/filedetails/\?id=([0-9]*)");
             var html = await httpClient.GetStringAsync($"https://steamcommunity.com/app/{appId}/screenshots/?browsefilter=mostrecent");
 
-            var screenshotUrls = fileUrlRegex.Matches(html).OfType<Match>().Select(x => x.Value).ToArray();
+            var screenshotUrls = fileUrlRegex.Matches(html).OfType<Match>().Select(x => x.Value).Distinct().ToArray();
             var seenUrls = await seenItemRepository.GetSeenItems(screenshotUrls, token);
 
             foreach (string screenshotUrl in screenshotUrls)
