@@ -51,6 +51,7 @@ namespace Estranged.Automation.Runner.Community
         public async override Task RunPeriodically(CancellationToken token)
         {
             await GatherScreenshots(582890, token);
+            await GatherScreenshots(261820, token);
         }
     }
 }
