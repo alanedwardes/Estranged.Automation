@@ -17,7 +17,7 @@ namespace Estranged.Automation.Runner.Community
         private readonly ISeenItemRepository seenItemRepository;
         private readonly HttpClient httpClient;
 
-        public override TimeSpan Period => TimeSpan.FromMinutes(15);
+        public override TimeSpan Period => TimeSpan.FromMinutes(30);
 
         public CommunityRunner(ILogger<CommunityRunner> logger, ISeenItemRepository seenItemRepository, HttpClient httpClient)
         {
@@ -42,7 +42,7 @@ namespace Estranged.Automation.Runner.Community
                     continue;
                 }
 
-                logger.LogInformation("Posting screenshot {0} to Slack", screenshotUrl);
+                logger.LogInformation("Posting community content {0} to Slack", screenshotUrl);
                 await slack.PostText(screenshotUrl, token);
                 await seenItemRepository.SetItemSeen(screenshotUrl, token);
             }
