@@ -43,8 +43,8 @@ namespace Estranged.Automation.Runner.Community
                 }
 
                 logger.LogInformation("Posting screenshot {0} to Slack", screenshotUrl);
-                //await slack.PostText(screenshotUrl, token);
-                //await seenItemRepository.SetItemSeen(screenshotUrl, token);
+                await slack.PostText(screenshotUrl, token);
+                await seenItemRepository.SetItemSeen(screenshotUrl, token);
             }
         }
 
