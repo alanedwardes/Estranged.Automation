@@ -19,6 +19,7 @@ node("linux") {
 
 		stage ("Run") {
 			withCredentials([
+				string(credentialsId: 'CommunityWebHookUrl', variable: 'COMMUNITY_WEB_HOOK_URL'),
 				string(credentialsId: 'SlackWebHookUrl', variable: 'SLACK_WEB_HOOK_URL'),
 				string(credentialsId: 'SyndicationWebHookUrl', variable: 'SYNDICATION_WEB_HOOK_URL'),
 				string(credentialsId: 'ReviewsWebHookUrl', variable: 'REVIEWS_WEB_HOOK_URL'),

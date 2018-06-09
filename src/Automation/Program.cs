@@ -1,5 +1,6 @@
 ﻿using Amazon;
 using Amazon.DynamoDBv2;
+using Estranged.Automation.Runner.Community;
 using Estranged.Automation.Runner.Reviews;
 using Estranged.Automation.Runner.Syndication;
 using Estranged.Automation.Shared;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Narochno.Steam;
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +23,9 @@ namespace Estranged.Automation
         {
             var httpClient = new HttpClient();
 
+            var productHeader = new ProductInfoHeaderValue("Estranged.Automation (https://github.com/alanedwardes/Estranged.Automation)", "1.0.0");
+            httpClient.DefaultRequestHeaders.UserAgent.Add(productHeader);
+
             var provider = new ServiceCollection()
                 .AddSteam()
                 .AddLogging()
@@ -29,6 +34,7 @@ namespace Estranged.Automation
                 .AddTransient<IRunner, ReviewsRunner>()
                 .AddTransient<IRunner, SyndicationRunner>()
                 .AddTransient<IRunner, DiscordRunner>()
+                .AddTransient<IRunner, CommunityRunner>()
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
                 .AddSingleton(TranslationClient.Create())

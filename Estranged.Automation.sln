@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Runners", "Runners", "{8900
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Estranged.Automation.Runner.Discord", "src\Runner.Discord\Estranged.Automation.Runner.Discord.csproj", "{DE5E3911-0336-448E-998F-CFED64236939}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Estranged.Automation.Runner.Community", "src\Runner.Community\Estranged.Automation.Runner.Community.csproj", "{62B18AB1-82EF-4A11-A878-C80D2EA82A41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{DE5E3911-0336-448E-998F-CFED64236939}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE5E3911-0336-448E-998F-CFED64236939}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE5E3911-0336-448E-998F-CFED64236939}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62B18AB1-82EF-4A11-A878-C80D2EA82A41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62B18AB1-82EF-4A11-A878-C80D2EA82A41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62B18AB1-82EF-4A11-A878-C80D2EA82A41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62B18AB1-82EF-4A11-A878-C80D2EA82A41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +68,7 @@ Global
 		{D75C4865-11DE-4DA2-9283-DD34B252EA4C} = {B690B076-CBB7-408E-8FB2-FFF13863AA2C}
 		{8900AB3C-373E-4CA5-BC8B-C245FFF86F7C} = {B690B076-CBB7-408E-8FB2-FFF13863AA2C}
 		{DE5E3911-0336-448E-998F-CFED64236939} = {8900AB3C-373E-4CA5-BC8B-C245FFF86F7C}
+		{62B18AB1-82EF-4A11-A878-C80D2EA82A41} = {8900AB3C-373E-4CA5-BC8B-C245FFF86F7C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0C871391-E647-4431-8C32-5EA45E93BED8}

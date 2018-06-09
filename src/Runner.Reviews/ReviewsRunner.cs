@@ -26,8 +26,6 @@ namespace Estranged.Automation.Runner.Reviews
         private readonly ISlackClient slack;
         private readonly ISeenItemRepository seenItemRepository;
         private readonly TranslationClient translation;
-        private const string StateTableName = "EstrangedAutomationState";
-        private const string ItemIdKey = "ItemId";
         private const string EnglishLanguage = "en";
 
         public override TimeSpan Period => TimeSpan.FromMinutes(30);
