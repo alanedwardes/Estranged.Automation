@@ -23,7 +23,7 @@ namespace Estranged.Automation
         {
             var httpClient = new HttpClient();
 
-            var productHeader = new ProductInfoHeaderValue("github.com/alanedwardes/Estranged.Automation", "1.0.0");
+            var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");
             httpClient.DefaultRequestHeaders.UserAgent.Add(productHeader);
 
             var provider = new ServiceCollection()
