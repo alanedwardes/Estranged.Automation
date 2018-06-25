@@ -10,6 +10,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (!message.Content.ToLowerInvariant().Contains("hello"))
+            {
+                return;
+            }
+
             if (!message.MentionedUserIds.Contains(437014310078906378ul))
             {
                 return;
