@@ -18,7 +18,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var channelMembers = (await message.Channel.GetUsersAsync(options: token.ToRequestOptions()).Flatten()).ToArray();
 
             var chosenUser = channelMembers.OrderBy(x => Guid.NewGuid())
-                                           .Where(x => x.Id != message.Author.Id)
+                                           .Where(x => x.Id != message.Author.Id && x.Status == UserStatus.Online)
                                            .FirstOrDefault();
 
             if (chosenUser == null)
