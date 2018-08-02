@@ -29,12 +29,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
             ulong messageId = ulong.Parse(message.Content.Substring(ActivationPhrase.Length).Trim());
 
             var quotedMessage = await message.Channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
-            if (!(quotedMessage.Author is SocketGuildUser guildUser))
-            {
-                return;
-            }
 
-            var userColor = guildUser.Roles.LastOrDefault()?.Color ?? Color.LighterGrey;
+            var userColor = Color.LighterGrey;//guildUser.Roles.LastOrDefault()?.Color ?? Color.LighterGrey;
 
             var boldFont = SystemFonts.CreateFont("Arial", 18, FontStyle.Bold);
             var regularFont = SystemFonts.CreateFont("Arial", 18, FontStyle.Regular);
