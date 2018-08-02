@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Runner.Community\Estranged.Automation.Runner.Community.csproj" />
     <ProjectReference Include="..\Runner.Discord\Estranged.Automation.Runner.Discord.csproj" />
     <ProjectReference Include="..\Runner.Reviews\Estranged.Automation.Runner.Reviews.csproj" />
     <ProjectReference Include="..\Runner.Syndication\Estranged.Automation.Runner.Syndication.csproj" />

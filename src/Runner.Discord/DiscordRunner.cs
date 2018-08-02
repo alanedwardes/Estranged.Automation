@@ -43,7 +43,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, NaturalLanguageResponder>()
                 .AddSingleton<IResponder, DogResponder>()
                 .AddSingleton<IResponder, RegionResponder>()
-                .AddSingleton<IResponder, QuoteResponder>()
+                .AddSingleton<IResponder, HelloResponder>()
                 .BuildServiceProvider();
         }
 
@@ -52,26 +52,70 @@ namespace Estranged.Automation.Runner.Syndication
             var socketClient = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
 
             socketClient.Log += ClientLog;
-            socketClient.MessageReceived += message => ClientMessageReceived(message, token);
+            socketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
+            socketClient.UserJoined += user => WrapTask(UserJoined(user, socketClient, token));
 
             await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await socketClient.StartAsync();
             await Task.Delay(-1, token);
         }
 
-        private Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
+        private async Task WrapTask(Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception e)
+            {
+                logger.LogCritical(e, "Exception from event handler task");
+            }
+        }
+
+        private async Task UserJoined(SocketGuildUser user, DiscordSocketClient client, CancellationToken token)
+        {
+            logger.LogInformation("User joined: {0}", user);
+
+            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
+
+            var welcomeChannel = guild.TextChannels.Single(x => x.Name == "welcome");
+            var rulesChannel = guild.TextChannels.Single(x => x.Name == "rules");
+            var act1Channel = guild.TextChannels.Single(x => x.Name == "act-i");
+            var act2Channel = guild.TextChannels.Single(x => x.Name == "act-ii");
+            var screenshotsChannel = guild.TextChannels.Single(x => x.Name == "screenshots");
+
+            var welcome = $"Welcome to the Estranged Discord server <@{user.Id}>! " +
+                          $"See <#{rulesChannel.Id}> for the server rules, you might also be interested in these channels:";
+
+            var interestingChannels = string.Join("\n", new[]
+            {
+                $"* <#{act1Channel.Id}> - Estranged: Act I discussion",
+                $"* <#{act2Channel.Id}> - Estranged: Act II discussion",
+                $"* <#{screenshotsChannel.Id}> - Work in progress development screenshots"
+            });
+
+            var moderators = guild.Roles.Single(x => x.Name == "moderators")
+                                        .Members.Where(x => !x.IsBot)
+                                        .OrderBy(x => x.Nickname)
+                                        .Select(x => $"<@{x.Id}>");
+
+            var moderatorList = $"Your moderators are {string.Join(", ", moderators)}.";
+
+            await welcomeChannel.SendMessageAsync($"{welcome}\n{interestingChannels}\n{moderatorList}", options: token.ToRequestOptions());
+        }
+
+        private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
             logger.LogTrace("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
             {
-                return Task.CompletedTask;
+                return;
             }
 
             logger.LogTrace("Finding responder services");
             var responders = responderProvider.GetServices<IResponder>().ToArray();
             logger.LogTrace("Invoking {0} responders", responders.Length);
-            Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
-            return Task.CompletedTask;
+            await Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
