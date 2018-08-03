@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -72,7 +73,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var boldFont = new Font(boldFontFamily, 18f, FontStyle.Bold);
 
             var userName = quotedMessage.Author.Username;
-            var quotedMessageText = string.Join("\n", Batch(quotedMessage.Content.Split(' '), 10));
+            var sb = new StringBuilder();
+            foreach (var line in Batch(quotedMessage.Content.Split(' '), 10))
+            {
+                sb.AppendLine(string.Join(" ", line));
+            }
+            var quotedMessageText = sb.ToString();
 
             var usernameSize = TextMeasurer.Measure(userName, new RendererOptions(boldFont));
             var messageSize = TextMeasurer.Measure(quotedMessageText, new RendererOptions(regularFont));
