@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -44,7 +43,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 logger.LogInformation("Downloading fonts");
 
                 var regularFontTask = httpClient.GetStreamAsync("https://github.com/google/fonts/raw/master/apache/opensans/OpenSans-Regular.ttf");
-                var boldFontTask = httpClient.GetStreamAsync("https://github.com/google/fonts/raw/master/apache/opensans/OpenSans-Bold.ttf");
+                var boldFontTask = httpClient.GetStreamAsync("https://github.com/google/fonts/raw/master/apache/opensans/OpenSans-SemiBold.ttf");
                 await regularFontTask;
                 await boldFontTask;
 
@@ -80,7 +79,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             image.Mutate(x => {
                 x.Fill(new Rgba32(54, 57, 63));
                 x.DrawText(quotedMessage.Author.Username, boldFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(5f, 5f));
-                x.DrawText(quotedMessage.Content, regularFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(usernameSize.Width + 5f, 5f));
+                x.DrawText(quotedMessage.Content, regularFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(usernameSize.Width + 10f, 5f));
             });
 
             var ms = new MemoryStream();
