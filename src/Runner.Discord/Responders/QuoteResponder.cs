@@ -70,15 +70,15 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var userColor = Color.LighterGrey;//guildUser.Roles.LastOrDefault()?.Color ?? Color.LighterGrey;
 
-            var regularFont = new Font(regularFontFamily, 18f);
-            var boldFont = new Font(boldFontFamily, 18f);
+            var regularFont = new Font(regularFontFamily, 18f, FontStyle.Regular);
+            var boldFont = new Font(boldFontFamily, 18f, FontStyle.Bold);
 
             var usernameSize = TextMeasurer.Measure(quotedMessage.Author.Username, new RendererOptions(boldFont));
             var messageSize = TextMeasurer.Measure(quotedMessage.Content, new RendererOptions(regularFont));
 
             var image = new Image<Rgba32>((int)(usernameSize.Width + messageSize.Width) + 15, (int)Math.Max(usernameSize.Height, messageSize.Height) + 10);
             image.Mutate(x => {
-                x.Fill(new Rgba32(51, 51, 51));
+                x.Fill(new Rgba32(54, 57, 63));
                 x.DrawText(quotedMessage.Author.Username, boldFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(5f, 5f));
                 x.DrawText(quotedMessage.Content, regularFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(usernameSize.Width + 5f, 5f));
             });
