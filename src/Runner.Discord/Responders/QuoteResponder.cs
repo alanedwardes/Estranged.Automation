@@ -91,7 +91,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             await message.Channel.SendFileAsync(ms, messageId + ".png");
         }
 
-        public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> items, int maxItems)
+        public static IEnumerable<IEnumerable<T>> Batch<T>(IEnumerable<T> items, int maxItems)
         {
             return items.Select((item, inx) => new { item, inx })
                         .GroupBy(x => x.inx / maxItems)
