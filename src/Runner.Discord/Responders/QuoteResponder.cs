@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -18,12 +19,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class QuoteResponder : IResponder
     {
-        public QuoteResponder(HttpClient httpClient)
+        public QuoteResponder(ILogger<QuoteResponder> logger, HttpClient httpClient)
         {
+            this.logger = logger;
             this.httpClient = httpClient;
         }
 
         private const string ActivationPhrase = "!quote";
+        private readonly ILogger<QuoteResponder> logger;
         private readonly HttpClient httpClient;
         private FontFamily regularFontFamily;
         private FontFamily boldFontFamily;
@@ -38,10 +41,23 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (!fontCollection.Families.Any())
             {
+                logger.LogInformation("Downloading fonts");
+
                 var regularFontTask = httpClient.GetStreamAsync("https://github.com/google/fonts/raw/master/apache/opensans/OpenSans-Regular.ttf");
                 var boldFontTask = httpClient.GetStreamAsync("https://github.com/google/fonts/raw/master/apache/opensans/OpenSans-Bold.ttf");
-                regularFontFamily = fontCollection.Install(await regularFontTask);
-                boldFontFamily = fontCollection.Install(await boldFontTask);
+                await regularFontTask;
+                await boldFontTask;
+
+                var regularFontStream = new MemoryStream();
+                var regularCopyTask = regularFontTask.Result.CopyToAsync(regularFontStream);
+                var boldFontStream = new MemoryStream();
+                var boldCopyTask = boldFontTask.Result.CopyToAsync(boldFontStream);
+
+                await regularCopyTask;
+                await boldCopyTask;
+
+                regularFontFamily = fontCollection.Install(regularFontStream);
+                boldFontFamily = fontCollection.Install(boldFontStream);
             }
 
             ulong messageId = ulong.Parse(message.Content.Substring(ActivationPhrase.Length).Trim());
