@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -17,7 +18,16 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class QuoteResponder : IResponder
     {
+        public QuoteResponder(HttpClient httpClient)
+        {
+            this.httpClient = httpClient;
+        }
+
         private const string ActivationPhrase = "!quote";
+        private readonly HttpClient httpClient;
+        private FontFamily regularFontFamily;
+        private FontFamily boldFontFamily;
+        private readonly FontCollection fontCollection = new FontCollection();
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
@@ -26,14 +36,22 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
+            if (!fontCollection.Families.Any())
+            {
+                var regularFontTask = httpClient.GetStreamAsync("https://github.com/google/fonts/raw/master/apache/opensans/OpenSans-Regular.ttf");
+                var boldFontTask = httpClient.GetStreamAsync("https://github.com/google/fonts/raw/master/apache/opensans/OpenSans-Bold.ttf");
+                regularFontFamily = fontCollection.Install(await regularFontTask);
+                boldFontFamily = fontCollection.Install(await boldFontTask);
+            }
+
             ulong messageId = ulong.Parse(message.Content.Substring(ActivationPhrase.Length).Trim());
 
             var quotedMessage = await message.Channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 
             var userColor = Color.LighterGrey;//guildUser.Roles.LastOrDefault()?.Color ?? Color.LighterGrey;
 
-            var boldFont = SystemFonts.CreateFont("Arial", 18, FontStyle.Bold);
-            var regularFont = SystemFonts.CreateFont("Arial", 18, FontStyle.Regular);
+            var regularFont = new Font(regularFontFamily, 18f);
+            var boldFont = new Font(boldFontFamily, 18f);
 
             var usernameSize = TextMeasurer.Measure(quotedMessage.Author.Username, new RendererOptions(boldFont));
             var messageSize = TextMeasurer.Measure(quotedMessage.Content, new RendererOptions(regularFont));
