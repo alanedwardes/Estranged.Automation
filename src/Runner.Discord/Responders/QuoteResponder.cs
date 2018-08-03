@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -67,19 +68,20 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var quotedMessage = await message.Channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 
-            var userColor = Color.LighterGrey;//guildUser.Roles.LastOrDefault()?.Color ?? Color.LighterGrey;
-
             var regularFont = new Font(regularFontFamily, 18f, FontStyle.Regular);
             var boldFont = new Font(boldFontFamily, 18f, FontStyle.Bold);
 
-            var usernameSize = TextMeasurer.Measure(quotedMessage.Author.Username, new RendererOptions(boldFont));
-            var messageSize = TextMeasurer.Measure(quotedMessage.Content, new RendererOptions(regularFont));
+            var userName = quotedMessage.Author.Username;
+            var quotedMessageText = string.Join("\n", Batch(quotedMessage.Content.Split(' '), 10));
+
+            var usernameSize = TextMeasurer.Measure(userName, new RendererOptions(boldFont));
+            var messageSize = TextMeasurer.Measure(quotedMessageText, new RendererOptions(regularFont));
 
             var image = new Image<Rgba32>((int)(usernameSize.Width + messageSize.Width) + 15, (int)Math.Max(usernameSize.Height, messageSize.Height) + 10);
             image.Mutate(x => {
                 x.Fill(new Rgba32(54, 57, 63));
-                x.DrawText(quotedMessage.Author.Username, boldFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(5f, 5f));
-                x.DrawText(quotedMessage.Content, regularFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(usernameSize.Width + 10f, 5f));
+                x.DrawText(userName, boldFont, Rgba32.White, new PointF(5f, 5f));
+                x.DrawText(quotedMessageText, regularFont, Rgba32.White, new PointF(usernameSize.Width + 10f, 5f));
             });
 
             var ms = new MemoryStream();
@@ -87,6 +89,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             ms.Seek(0, SeekOrigin.Begin);
 
             await message.Channel.SendFileAsync(ms, messageId + ".png");
+        }
+
+        public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> items, int maxItems)
+        {
+            return items.Select((item, inx) => new { item, inx })
+                        .GroupBy(x => x.inx / maxItems)
+                        .Select(g => g.Select(x => x.item));
         }
     }
 }
