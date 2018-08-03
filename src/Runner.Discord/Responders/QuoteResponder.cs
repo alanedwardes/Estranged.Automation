@@ -50,11 +50,15 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 var regularFontStream = new MemoryStream();
                 var regularCopyTask = regularFontTask.Result.CopyToAsync(regularFontStream);
+
                 var boldFontStream = new MemoryStream();
                 var boldCopyTask = boldFontTask.Result.CopyToAsync(boldFontStream);
 
                 await regularCopyTask;
+                regularFontStream.Seek(0, SeekOrigin.Begin);
+
                 await boldCopyTask;
+                boldFontStream.Seek(0, SeekOrigin.Begin);
 
                 regularFontFamily = fontCollection.Install(regularFontStream);
                 boldFontFamily = fontCollection.Install(boldFontStream);
