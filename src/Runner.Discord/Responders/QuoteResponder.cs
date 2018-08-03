@@ -85,6 +85,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var ms = new MemoryStream();
             image.SaveAsPng(ms);
+            ms.Seek(0, SeekOrigin.Begin);
 
             await message.Channel.SendFileAsync(ms, messageId + ".png");
         }
