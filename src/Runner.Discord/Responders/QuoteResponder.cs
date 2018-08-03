@@ -79,8 +79,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var image = new Image<Rgba32>((int)(usernameSize.Width + messageSize.Width) + 15, (int)Math.Max(usernameSize.Height, messageSize.Height) + 10);
             image.Mutate(x => {
                 x.Fill(new Rgba32(51, 51, 51));
-                x.DrawText(quotedMessage.Content, boldFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(5f, 5f));
-                x.DrawText(quotedMessage.Content, boldFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(usernameSize.Width + 5f, 5f));
+                x.DrawText(quotedMessage.Author.Username, boldFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(5f, 5f));
+                x.DrawText(quotedMessage.Content, regularFont, new Rgba32(userColor.R, userColor.G, userColor.G), new PointF(usernameSize.Width + 5f, 5f));
             });
 
             var ms = new MemoryStream();
