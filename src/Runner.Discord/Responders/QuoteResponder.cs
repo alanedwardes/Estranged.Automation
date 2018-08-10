@@ -20,15 +20,17 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class QuoteResponder : IResponder
     {
-        public QuoteResponder(ILogger<QuoteResponder> logger, HttpClient httpClient)
+        public QuoteResponder(ILogger<QuoteResponder> logger, HttpClient httpClient, IDiscordClient discordClient)
         {
             this.logger = logger;
             this.httpClient = httpClient;
+            this.discordClient = discordClient;
         }
 
         private const string ActivationPhrase = "!quote";
         private readonly ILogger<QuoteResponder> logger;
         private readonly HttpClient httpClient;
+        private readonly IDiscordClient discordClient;
         private FontFamily regularFontFamily;
         private FontFamily boldFontFamily;
         private readonly FontCollection fontCollection = new FontCollection();
@@ -94,7 +96,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             image.SaveAsPng(ms);
             ms.Seek(0, SeekOrigin.Begin);
 
-            await message.Channel.SendFileAsync(ms, messageId + ".png");
+            await message.Channel.SendFileAsync(ms, messageId + ".png", $"https://discordapp.com/channels/{((ITextChannel)message.Channel).Guild.Id}/{message.Channel.Id}/{message.Id}");
         }
 
         public static IEnumerable<IEnumerable<T>> Batch<T>(IEnumerable<T> items, int maxItems)
