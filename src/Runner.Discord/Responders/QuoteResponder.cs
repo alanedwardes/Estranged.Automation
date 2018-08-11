@@ -96,7 +96,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
             image.SaveAsPng(ms);
             ms.Seek(0, SeekOrigin.Begin);
 
-            await message.Channel.SendFileAsync(ms, messageId + ".png", $"https://discordapp.com/channels/{((ITextChannel)message.Channel).Guild.Id}/{message.Channel.Id}/{message.Id}");
+            var guildChannel = (IGuildChannel)quotedMessage.Channel;
+
+            await message.Channel.SendFileAsync(ms, messageId + ".png", $"https://discordapp.com/channels/{guildChannel.Guild.Id}/{guildChannel.Id}/{quotedMessage.Id}");
         }
 
         public static IEnumerable<IEnumerable<T>> Batch<T>(IEnumerable<T> items, int maxItems)
