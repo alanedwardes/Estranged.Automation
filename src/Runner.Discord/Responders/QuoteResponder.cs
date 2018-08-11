@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -27,7 +28,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
             this.discordClient = discordClient;
         }
 
-        private const string ActivationPhrase = "!quote";
         private readonly ILogger<QuoteResponder> logger;
         private readonly HttpClient httpClient;
         private readonly IDiscordClient discordClient;
@@ -37,10 +37,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (!message.Content.StartsWith(ActivationPhrase))
+            const string MessageLinkRegex = "https://discordapp.com/channels/(?<guildId>[0-9]*)/(?<channelId>[0-9]*)/(?<messageId>[0-9]*)";
+
+            var regex = new Regex(MessageLinkRegex);
+
+            var match = regex.Match(message.Content);
+            if (!match.Success)
             {
                 return;
             }
+
+            var guildId = ulong.Parse(match.Groups["guildId"].Value);
+            var channelId = ulong.Parse(match.Groups["channelId"].Value);
+            var messageId = ulong.Parse(match.Groups["messageId"].Value);
 
             if (!fontCollection.Families.Any())
             {
@@ -67,14 +76,24 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 boldFontFamily = fontCollection.Install(boldFontStream);
             }
 
-            ulong messageId = ulong.Parse(message.Content.Substring(ActivationPhrase.Length).Trim());
+            var guild = await discordClient.GetGuildAsync(guildId, options: token.ToRequestOptions());
+            var channel = await guild.GetTextChannelAsync(channelId, options: token.ToRequestOptions());
+            var quotedMessage = await channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 
-            var quotedMessage = await message.Channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
+            var ms = CreateQuoteImage(quotedMessage);
 
+            var guildChannel = (IGuildChannel)quotedMessage.Channel;
+
+            await message.Channel.SendFileAsync(ms, messageId + ".png");
+        }
+
+        public MemoryStream CreateQuoteImage(IMessage quotedMessage)
+        {
             var regularFont = new Font(regularFontFamily, 18f, FontStyle.Regular);
             var boldFont = new Font(boldFontFamily, 18f, FontStyle.Bold);
 
             var userName = quotedMessage.Author.Username;
+
             var sb = new StringBuilder();
             foreach (var line in Batch(quotedMessage.Content.Split(' '), 10))
             {
@@ -96,12 +115,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
             image.SaveAsPng(ms);
             ms.Seek(0, SeekOrigin.Begin);
 
-            var guildChannel = (IGuildChannel)quotedMessage.Channel;
-
-            await message.Channel.SendFileAsync(ms, messageId + ".png", $"https://discordapp.com/channels/{guildChannel.Guild.Id}/{guildChannel.Id}/{quotedMessage.Id}");
+            return ms;
         }
 
-        public static IEnumerable<IEnumerable<T>> Batch<T>(IEnumerable<T> items, int maxItems)
+        public IEnumerable<IEnumerable<T>> Batch<T>(IEnumerable<T> items, int maxItems)
         {
             return items.Select((item, inx) => new { item, inx })
                         .GroupBy(x => x.inx / maxItems)
