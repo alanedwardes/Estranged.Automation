@@ -48,7 +48,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var guildChannel = (IGuildChannel)quotedMessage.Channel;
 
-            await message.Channel.SendMessageAsync("Quote from #" + quotedMessage.Channel.Name + " " + (DateTimeOffset.UtcNow - quotedMessage.CreatedAt).Humanize() + " ago\n**" + quotedMessage.Author.Username + "** " + quotedMessage.Content);
+            await message.Channel.SendMessageAsync($"Quote from <#{channel.Id}>, originally posted ${(DateTimeOffset.UtcNow - quotedMessage.CreatedAt).Humanize()} ago\n**{quotedMessage.Author.Username}** {quotedMessage.Content}");
         }
     }
 }
