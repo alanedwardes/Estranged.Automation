@@ -55,7 +55,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 .WithDescription(quotedMessage.Content)
                 .WithTitle($"Quote from <#{channel.Id}>");
 
-            await message.Channel.SendMessageAsync(null, false, builder.Build(), token.ToRequestOptions());
+            await message.Channel.SendMessageAsync(string.Empty, false, builder.Build(), token.ToRequestOptions());
         }
     }
 }
