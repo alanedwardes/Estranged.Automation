@@ -52,7 +52,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 .WithTimestamp(quotedMessage.CreatedAt)
                 .WithAuthor(quotedMessage.Author)
                 .WithUrl(message.Content)
-                .WithDescription(quotedMessage.Content);
+                .WithDescription(quotedMessage.Content)
+                .WithFooter($"Quoted by {message.Author.Username}, originally posted in {channel.Name}");
 
             await message.DeleteAsync(token.ToRequestOptions());
             await message.Channel.SendMessageAsync(string.Empty, false, builder.Build(), token.ToRequestOptions());
