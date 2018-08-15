@@ -53,10 +53,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 .WithAuthor(quotedMessage.Author)
                 .WithUrl(message.Content)
                 .WithDescription(quotedMessage.Content)
-                .WithFooter($"Quoted by {message.Author.Username}, originally posted in {channel.Name}");
+                .WithFooter($"Quoted by <#{message.Author.Id}>, originally posted in <#{channel.Id}>");
 
-            await message.DeleteAsync(token.ToRequestOptions());
-            await message.Channel.SendMessageAsync(string.Empty, false, builder.Build(), token.ToRequestOptions());
+            var deleteTask = message.DeleteAsync(token.ToRequestOptions());
+            var sendMessageTask = message.Channel.SendMessageAsync(string.Empty, false, builder.Build(), token.ToRequestOptions());
+
+            await deleteTask;
+            await sendMessageTask;
         }
     }
 }
