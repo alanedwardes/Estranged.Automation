@@ -52,9 +52,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 .WithTimestamp(quotedMessage.CreatedAt)
                 .WithAuthor(quotedMessage.Author)
                 .WithUrl(message.Content)
-                .WithDescription(quotedMessage.Content)
-                .WithTitle($"Quote from <#{channel.Id}>");
+                .WithDescription(quotedMessage.Content);
 
+            await message.DeleteAsync(token.ToRequestOptions());
             await message.Channel.SendMessageAsync(string.Empty, false, builder.Build(), token.ToRequestOptions());
         }
     }
