@@ -48,7 +48,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var guildChannel = (IGuildChannel)quotedMessage.Channel;
 
-            await message.Channel.SendMessageAsync($"Quote from <#{channel.Id}>, originally posted {(DateTimeOffset.UtcNow - quotedMessage.CreatedAt).Humanize()} ago\n**{quotedMessage.Author.Username}** {quotedMessage.Content}");
+            var builder = new EmbedBuilder()
+                .WithTimestamp(quotedMessage.CreatedAt)
+                .WithAuthor(quotedMessage.Author)
+                .WithUrl(message.Content)
+                .WithDescription(quotedMessage.Content)
+                .WithTitle($"Quote from <#{channel.Id}>");
+
+            await message.Channel.SendMessageAsync(null, false, builder.Build(), token.ToRequestOptions());
         }
     }
 }
