@@ -9,6 +9,7 @@ using Narochno.Slack;
 using Narochno.Slack.Entities.Requests;
 using System;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -37,8 +38,12 @@ namespace Estranged.Automation.Runner.Syndication
 
             var response = await httpClient.GetAsync(feed, token);
 
+            var content = await response.Content.ReadAsStringAsync();
+
+            var contentCleaned = Regex.Replace(content, @"[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]", string.Empty);
+
             var document = new XmlDocument();
-            document.Load(await response.Content.ReadAsStreamAsync());
+            document.Load(contentCleaned);
 
             var channel = document["rss"]["channel"];
 
