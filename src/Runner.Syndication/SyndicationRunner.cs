@@ -43,7 +43,7 @@ namespace Estranged.Automation.Runner.Syndication
             var contentCleaned = Regex.Replace(content, @"[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]", string.Empty);
 
             var document = new XmlDocument();
-            document.Load(contentCleaned);
+            document.LoadXml(contentCleaned);
 
             var channel = document["rss"]["channel"];
 
