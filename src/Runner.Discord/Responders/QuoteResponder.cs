@@ -46,13 +46,26 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var channel = await guild.GetTextChannelAsync(channelId, options: token.ToRequestOptions());
             var quotedMessage = await channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 
+            string quoteContent = quotedMessage.Content;
+            foreach (var embed in quotedMessage.Embeds)
+            {
+                if (string.IsNullOrWhiteSpace(quoteContent))
+                {
+                    quoteContent = embed.Description;
+                }
+                else
+                {
+                    quoteContent = quoteContent + "\n" + embed.Description;
+                }
+            }
+
             var guildChannel = (IGuildChannel)quotedMessage.Channel;
 
             var builder = new EmbedBuilder()
                 .WithTimestamp(quotedMessage.CreatedAt)
                 .WithAuthor(quotedMessage.Author)
                 .WithUrl(message.Content)
-                .WithDescription(quotedMessage.Content)
+                .WithDescription(quoteContent)
                 .WithFooter($"Quoted by {message.Author.Username}, originally posted in #{channel.Name}");
 
             var deleteTask = message.DeleteAsync(token.ToRequestOptions());
