@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
+﻿using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Humanizer;
 using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders
@@ -50,8 +44,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var builder = new EmbedBuilder()
                 .WithTimestamp(quotedMessage.CreatedAt)
-                .WithAuthor(quotedMessage.Author)
-                .WithUrl(message.Content)
+                .WithAuthor(quotedMessage.Author.Username, quotedMessage.Author.GetAvatarUrl(), message.Content)
                 .WithDescription(quotedMessage.Content)
                 .WithFooter($"Quoted by {message.Author.Username}, originally posted in #{channel.Name}");
 
