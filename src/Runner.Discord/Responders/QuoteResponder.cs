@@ -46,40 +46,24 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var channel = await guild.GetTextChannelAsync(channelId, options: token.ToRequestOptions());
             var quotedMessage = await channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 
-            string quoteContent = quotedMessage.Content;
-
-            foreach (var embed in quotedMessage.Embeds)
-            {
-                if (string.IsNullOrWhiteSpace(quoteContent))
-                {
-                    quoteContent = embed.ToString();
-                }
-                else
-                {
-                    quoteContent = quoteContent + "\n" + embed.ToString();
-                }
-
-                foreach (var field in embed.Fields)
-                {
-                    if (string.IsNullOrWhiteSpace(quoteContent))
-                    {
-                        quoteContent = field.ToString();
-                    }
-                    else
-                    {
-                        quoteContent = quoteContent + "\n" + field.ToString();
-                    }
-                }
-            }
-
             var guildChannel = (IGuildChannel)quotedMessage.Channel;
 
             var builder = new EmbedBuilder()
                 .WithTimestamp(quotedMessage.CreatedAt)
                 .WithAuthor(quotedMessage.Author)
                 .WithUrl(message.Content)
-                .WithDescription(quoteContent)
+                .WithDescription(quotedMessage.Content)
                 .WithFooter($"Quoted by {message.Author.Username}, originally posted in #{channel.Name}");
+
+            foreach (var embed in quotedMessage.Embeds)
+            {
+                builder.AddField(embed.Title, embed.Description);
+
+                foreach (var field in embed.Fields)
+                {
+                    builder.AddField(field.Name, field.Value, field.Inline);
+                }
+            }
 
             var deleteTask = message.DeleteAsync(token.ToRequestOptions());
             var sendMessageTask = message.Channel.SendMessageAsync(string.Empty, false, builder.Build(), token.ToRequestOptions());
