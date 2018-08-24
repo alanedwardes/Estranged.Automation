@@ -47,15 +47,28 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var quotedMessage = await channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 
             string quoteContent = quotedMessage.Content;
+
             foreach (var embed in quotedMessage.Embeds)
             {
                 if (string.IsNullOrWhiteSpace(quoteContent))
                 {
-                    quoteContent = embed.Description;
+                    quoteContent = embed.ToString();
                 }
                 else
                 {
-                    quoteContent = quoteContent + "\n" + embed.Description;
+                    quoteContent = quoteContent + "\n" + embed.ToString();
+                }
+
+                foreach (var field in embed.Fields)
+                {
+                    if (string.IsNullOrWhiteSpace(quoteContent))
+                    {
+                        quoteContent = field.ToString();
+                    }
+                    else
+                    {
+                        quoteContent = quoteContent + "\n" + field.ToString();
+                    }
                 }
             }
 
