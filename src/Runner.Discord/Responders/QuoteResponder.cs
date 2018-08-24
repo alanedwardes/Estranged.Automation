@@ -50,9 +50,17 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             foreach (var embed in quotedMessage.Embeds)
             {
+                if (!string.IsNullOrWhiteSpace(embed.Title) && !string.IsNullOrWhiteSpace(embed.Description))
+                {
+                    builder.AddField(embed.Title, embed.Description);
+                }
+
                 foreach (var field in embed.Fields)
                 {
-                    builder.AddField(field.Name, field.Value, field.Inline);
+                    if (!string.IsNullOrWhiteSpace(field.Name) && !string.IsNullOrWhiteSpace(field.Value))
+                    {
+                        builder.AddField(field.Name, field.Value, field.Inline);
+                    }
                 }
             }
 
