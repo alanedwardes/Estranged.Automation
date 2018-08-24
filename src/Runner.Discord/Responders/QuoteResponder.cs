@@ -57,8 +57,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             foreach (var embed in quotedMessage.Embeds)
             {
-                builder.AddField(embed.Title, embed.Description);
-
                 foreach (var field in embed.Fields)
                 {
                     builder.AddField(field.Name, field.Value, field.Inline);
