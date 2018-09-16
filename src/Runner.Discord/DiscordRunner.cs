@@ -44,6 +44,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, DogResponder>()
                 .AddSingleton<IResponder, HelloResponder>()
                 .AddSingleton<IResponder, QuoteResponder>()
+                .AddSingleton<IResponder, RtxResponder>()
                 .BuildServiceProvider();
         }
 
