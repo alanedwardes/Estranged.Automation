@@ -179,6 +179,8 @@ namespace Estranged.Automation.Runner.Syndication
                     new MetricDatum
                     {
                         MetricName = "Users",
+                        Timestamp = DateTime.UtcNow,
+                        Unit = StandardUnit.Count,
                         Dimensions = new List<Dimension>
                         {
                             new Dimension
@@ -196,14 +198,16 @@ namespace Estranged.Automation.Runner.Syndication
                     metrics.Add(new MetricDatum
                     {
                         MetricName = "Users",
+                        Timestamp = DateTime.UtcNow,
+                        Unit = StandardUnit.Count,
                         Dimensions = new List<Dimension>
+                        {
+                            new Dimension
                             {
-                                new Dimension
-                                {
-                                    Name = "Type",
-                                    Value = "Online"
-                                }
-                            },
+                                Name = "Type",
+                                Value = "Online"
+                            }
+                        },
                         Value = guild.Users.Count(x => x.Status == status)
                     });
                 }
