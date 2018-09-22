@@ -9,14 +9,6 @@ node("linux") {
 			checkout scm
 		}
 
-		stage ("Restore") {
-			sh "dotnet restore"
-		}
-
-		stage ("Build") {
-			sh "dotnet build"
-		}
-
 		stage ("Run") {
 			withCredentials([
 				string(credentialsId: 'CommunityWebHookUrl', variable: 'COMMUNITY_WEB_HOOK_URL'),
