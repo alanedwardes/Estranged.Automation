@@ -190,7 +190,7 @@ namespace Estranged.Automation.Runner.Syndication
                                 Value = "Total"
                             }
                         },
-                        Value = guild.Users.Count()
+                        Value = guild.MemberCount
                     }
                 };
 
@@ -206,7 +206,7 @@ namespace Estranged.Automation.Runner.Syndication
                             new Dimension
                             {
                                 Name = "Type",
-                                Value = "Online"
+                                Value = status.ToString()
                             }
                         },
                         Value = guild.Users.Count(x => x.Status == status)
