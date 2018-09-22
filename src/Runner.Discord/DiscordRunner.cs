@@ -16,6 +16,7 @@ using Google.Cloud.Language.V1;
 using Amazon.CloudWatch;
 using Amazon.CloudWatch.Model;
 using System.Collections.Generic;
+using Amazon;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -38,7 +39,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton(httpClient)
                 .AddSingleton(translationClient)
                 .AddSingleton(languageServiceClient)
-                .AddSingleton<IAmazonCloudWatch, AmazonCloudWatchClient>()
+                .AddSingleton<IAmazonCloudWatch>(new AmazonCloudWatchClient(RegionEndpoint.EUWest1))
                 .AddSingleton<IDiscordClient, DiscordSocketClient>()
                 .AddSingleton<IResponder, TextResponder>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()

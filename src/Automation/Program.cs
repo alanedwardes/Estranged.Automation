@@ -21,6 +21,8 @@ namespace Estranged.Automation
     {
         public static int Main(string[] args)
         {
+            Console.WriteLine("Bootstrapping");
+
             var httpClient = new HttpClient();
 
             var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");
@@ -51,6 +53,7 @@ namespace Estranged.Automation
 
             try
             {
+                Console.WriteLine("Starting manager");
                 provider.GetRequiredService<RunnerManager>()
                         .Run(source.Token)
                         .GetAwaiter()
