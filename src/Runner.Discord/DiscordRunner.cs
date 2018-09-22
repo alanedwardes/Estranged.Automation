@@ -13,14 +13,19 @@ using System.Diagnostics;
 using System.Net.Http;
 using Google.Cloud.Translation.V2;
 using Google.Cloud.Language.V1;
+using Amazon.CloudWatch;
+using Amazon.CloudWatch.Model;
+using System.Collections.Generic;
 
 namespace Estranged.Automation.Runner.Syndication
 {
-    public class DiscordRunner : IRunner
+    public class DiscordRunner : PeriodicRunner
     {
         private readonly ILogger<DiscordRunner> logger;
         private readonly ILoggerFactory loggerFactory;
         private IServiceProvider responderProvider;
+
+        public override TimeSpan Period => TimeSpan.FromMinutes(1);
 
         public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, TranslationClient translationClient, LanguageServiceClient languageServiceClient)
         {
@@ -33,6 +38,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton(httpClient)
                 .AddSingleton(translationClient)
                 .AddSingleton(languageServiceClient)
+                .AddSingleton<IAmazonCloudWatch, AmazonCloudWatchClient>()
                 .AddSingleton<IDiscordClient, DiscordSocketClient>()
                 .AddSingleton<IResponder, TextResponder>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()
@@ -48,7 +54,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .BuildServiceProvider();
         }
 
-        public async Task Run(CancellationToken token)
+        public override async Task Run(CancellationToken token)
         {
             var socketClient = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
 
@@ -58,7 +64,7 @@ namespace Estranged.Automation.Runner.Syndication
 
             await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await socketClient.StartAsync();
-            await Task.Delay(-1, token);
+            await base.Run(token);
         }
 
         private async Task WrapTask(Task task)
@@ -159,6 +165,56 @@ namespace Estranged.Automation.Runner.Syndication
                     return LogLevel.Warning;
                 default:
                     throw new NotImplementedException();
+            }
+        }
+
+        public override async Task RunPeriodically(CancellationToken token)
+        {
+            var client = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
+
+            foreach (var guild in client.Guilds)
+            {
+                var metrics = new List<MetricDatum>
+                {
+                    new MetricDatum
+                    {
+                        MetricName = "Users",
+                        Dimensions = new List<Dimension>
+                        {
+                            new Dimension
+                            {
+                                Name = "Type",
+                                Value = "Total"
+                            }
+                        },
+                        Value = guild.Users.Count()
+                    }
+                };
+
+                foreach (UserStatus status in Enum.GetValues(typeof(UserStatus)))
+                {
+                    metrics.Add(new MetricDatum
+                    {
+                        MetricName = "Users",
+                        Dimensions = new List<Dimension>
+                            {
+                                new Dimension
+                                {
+                                    Name = "Type",
+                                    Value = "Online"
+                                }
+                            },
+                        Value = guild.Users.Count(x => x.Status == status)
+                    });
+                }
+
+                var request = new PutMetricDataRequest
+                {
+                    MetricData = metrics,
+                    Namespace = "Discord/" + guild.Name
+                };
+
+                await responderProvider.GetRequiredService<IAmazonCloudWatch>().PutMetricDataAsync(request);
             }
         }
     }

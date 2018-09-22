@@ -15,7 +15,7 @@ namespace Estranged.Automation.Shared
 
         public abstract Task RunPeriodically(CancellationToken token);
 
-        public async Task Run(CancellationToken token)
+        public virtual async Task Run(CancellationToken token)
         {
             await RunPeriodically(token);
             await Task.Delay(Period, token);
