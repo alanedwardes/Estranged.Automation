@@ -17,8 +17,11 @@ namespace Estranged.Automation.Shared
 
         public virtual async Task Run(CancellationToken token)
         {
-            await RunPeriodically(token);
-            await Task.Delay(Period, token);
+            while (!token.IsCancellationRequested)
+            {
+                await RunPeriodically(token);
+                await Task.Delay(Period, token);
+            }
         }
     }
 }
