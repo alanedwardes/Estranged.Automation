@@ -196,6 +196,11 @@ namespace Estranged.Automation.Runner.Syndication
 
                 foreach (UserStatus status in Enum.GetValues(typeof(UserStatus)))
                 {
+                    if (status == UserStatus.Invisible)
+                    {
+                        continue;
+                    }
+
                     metrics.Add(new MetricDatum
                     {
                         MetricName = "Users",
