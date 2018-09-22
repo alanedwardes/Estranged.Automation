@@ -112,8 +112,12 @@ namespace Estranged.Automation.Runner.Syndication
             await welcomeChannel.SendMessageAsync($"{welcome}\n{interestingChannels}\n{moderatorList}", options: token.ToRequestOptions());
         }
 
+        private int messageCount;
+
         private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
+            messageCount++;
+
             logger.LogTrace("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
             {
@@ -191,6 +195,13 @@ namespace Estranged.Automation.Runner.Syndication
                             }
                         },
                         Value = guild.MemberCount
+                    },
+                    new MetricDatum
+                    {
+                        MetricName = "Messages",
+                        Timestamp = DateTime.UtcNow,
+                        Unit = StandardUnit.Count,
+                        Value = messageCount
                     }
                 };
 
@@ -226,6 +237,8 @@ namespace Estranged.Automation.Runner.Syndication
 
                 await responderProvider.GetRequiredService<IAmazonCloudWatch>().PutMetricDataAsync(request);
             }
+
+            messageCount = 0;
         }
     }
 }
