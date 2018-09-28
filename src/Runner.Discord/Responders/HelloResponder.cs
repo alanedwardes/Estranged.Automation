@@ -22,18 +22,20 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var userIds = new ulong[] { 367376322684780544, 93842442498879488 };
 
-            var channelMembers = (await message.Channel.GetUsersAsync(options: token.ToRequestOptions()).Flatten()).ToArray();
+            await message.Channel.SendMessageAsync($"Hello <@{userIds.OrderBy(x => Guid.NewGuid()).First()}>", options: token.ToRequestOptions());
 
-            var chosenUser = channelMembers.OrderBy(x => Guid.NewGuid())
-                                           .Where(x => x.Id != message.Author.Id && x.Status == UserStatus.Online && userIds.Contains(x.Id))
-                                           .FirstOrDefault();
+            //var channelMembers = (await message.Channel.GetUsersAsync(options: token.ToRequestOptions()).Flatten()).ToArray();
 
-            if (chosenUser == null)
-            {
-                return;
-            }
+            //var chosenUser = channelMembers.OrderBy(x => Guid.NewGuid())
+            //                               .Where(x => x.Id != message.Author.Id && x.Status == UserStatus.Online && userIds.Contains(x.Id))
+            //                               .FirstOrDefault();
 
-            await message.Channel.SendMessageAsync($"Hello <@{chosenUser.Id}>", options: token.ToRequestOptions());
+            //if (chosenUser == null)
+            //{
+            //    return;
+            //}
+
+            //await message.Channel.SendMessageAsync($"Hello <@{chosenUser.Id}>", options: token.ToRequestOptions());
         }
     }
 }
