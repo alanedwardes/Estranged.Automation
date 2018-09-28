@@ -20,10 +20,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
+            var userIds = new ulong[] { 367376322684780544, 93842442498879488 };
+
             var channelMembers = (await message.Channel.GetUsersAsync(options: token.ToRequestOptions()).Flatten()).ToArray();
 
             var chosenUser = channelMembers.OrderBy(x => Guid.NewGuid())
-                                           .Where(x => x.Id != message.Author.Id && x.Status == UserStatus.Online)
+                                           .Where(x => x.Id != message.Author.Id && x.Status == UserStatus.Online && userIds.Contains(x.Id))
                                            .FirstOrDefault();
 
             if (chosenUser == null)
