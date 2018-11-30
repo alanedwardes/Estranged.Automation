@@ -12,4 +12,6 @@ ARG executable=$publish_root/src/Automation/bin/Release/netcoreapp2.1/linux-x64/
 
 RUN stat $executable
 
+VOLUME ["/data"]
+
 ENTRYPOINT [$executable]
