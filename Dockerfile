@@ -1,11 +1,15 @@
 FROM microsoft/dotnet:2.1-sdk
 
-RUN mkdir /opt/estbot
+ARG publish_root = /opt/estbot
 
-ADD . /opt/estbot
+RUN mkdir $publish_root
+
+ADD . $publish_root
 
 RUN dotnet publish /opt/estbot/src/Automation --configuration Release --runtime linux-x64
 
-RUN stat /opt/estbot/src/Automation/Release/netcoreapp2.0/publish/Estranged.Automation
+ARG executable = $publish_root/src/Automation/bin/Release/netcoreapp2.1/linux-x64/publish/Estranged.Automation
 
-ENTRYPOINT ["/opt/estbot/src/Automation/Release/netcoreapp2.0/publish/Estranged.Automation"]
+RUN stat $executable
+
+ENTRYPOINT [$executable]
