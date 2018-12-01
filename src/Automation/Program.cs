@@ -47,7 +47,7 @@ namespace Estranged.Automation
 
             loggerFactory.AddConsole(LogLevel.Trace);
 
-            var source = new CancellationTokenSource(TimeSpan.FromHours(1));
+            var source = new CancellationTokenSource();
 
             AppDomain.CurrentDomain.ProcessExit += (sender, ev) => source.Cancel();
 
