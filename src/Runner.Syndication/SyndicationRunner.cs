@@ -86,7 +86,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         public async override Task RunPeriodically(CancellationToken token)
         {
-            await GatherSyndication("http://feeds.feedburner.com/GamasutraNews", token);
+            await GatherSyndication("https://feeds.feedburner.com/GamasutraNews", token);
             await GatherSyndication("https://www.unrealengine.com/rss", token);
         }
     }
