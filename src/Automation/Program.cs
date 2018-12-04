@@ -30,7 +30,10 @@ namespace Estranged.Automation
 
             var provider = new ServiceCollection()
                 .AddSteam()
-                .AddLogging()
+                .AddLogging(options =>
+                {
+                    options.AddConsole();
+                })
                 .AddSingleton(httpClient)
                 .AddTransient<RunnerManager>()
                 .AddTransient<IRunner, ReviewsRunner>()
@@ -44,8 +47,6 @@ namespace Estranged.Automation
                 .BuildServiceProvider();
 
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-
-            loggerFactory.AddConsole(LogLevel.Trace);
 
             var source = new CancellationTokenSource();
 

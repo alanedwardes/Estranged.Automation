@@ -184,7 +184,7 @@ namespace Estranged.Automation.Runner.Syndication
                     new MetricDatum
                     {
                         MetricName = "Users",
-                        Timestamp = DateTime.UtcNow,
+                        TimestampUtc = DateTime.UtcNow,
                         Unit = StandardUnit.Count,
                         Dimensions = new List<Dimension>
                         {
@@ -199,7 +199,7 @@ namespace Estranged.Automation.Runner.Syndication
                     new MetricDatum
                     {
                         MetricName = "Messages",
-                        Timestamp = DateTime.UtcNow,
+                        TimestampUtc = DateTime.UtcNow,
                         Unit = StandardUnit.Count,
                         Value = messageCount
                     }
@@ -215,7 +215,7 @@ namespace Estranged.Automation.Runner.Syndication
                     metrics.Add(new MetricDatum
                     {
                         MetricName = "Users",
-                        Timestamp = DateTime.UtcNow,
+                        TimestampUtc = DateTime.UtcNow,
                         Unit = StandardUnit.Count,
                         Dimensions = new List<Dimension>
                         {
