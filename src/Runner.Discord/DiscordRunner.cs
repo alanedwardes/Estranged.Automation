@@ -41,7 +41,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton(languageServiceClient)
                 .AddSingleton<IAmazonCloudWatch>(new AmazonCloudWatchClient(RegionEndpoint.EUWest1))
                 .AddSingleton<IDiscordClient, DiscordSocketClient>()
-                .AddSingleton<IResponder, TextResponder>()
+                .AddSingleton<IResponder, LinuxResponder>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()
                 .AddSingleton<IResponder, DadJokeResponder>()
                 .AddSingleton<IResponder, PullTheLeverResponder>()
