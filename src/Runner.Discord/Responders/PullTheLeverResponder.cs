@@ -60,7 +60,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (!await rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + message.Author.Id, 5))
+            if (!await rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + message.Author.Id + DateTime.UtcNow.ToString("MM-dd-yyyy-H"), 2))
             {
                 logger.LogWarning($"Rate limiting {message.Author.Username} for pull the lever");
                 return;
