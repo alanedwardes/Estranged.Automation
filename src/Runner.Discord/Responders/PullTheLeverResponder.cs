@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Estranged.Automation.Shared;
+using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
@@ -14,7 +16,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             "lemon", "star", "gem", "moneybag"
         };
 
-        private readonly string[] shibEmoji = new[]
+        private readonly string[] allShibEmoji = new[]
         {
             "<:shibalert:436284164073979915>", "<:shibbandit:436284164896063489>",
             "<:shibbark:436284167307788299>", "<:shibbone:436284167471366156>",
@@ -38,18 +40,48 @@ namespace Estranged.Automation.Runner.Discord.Responders
             "<:shibwhine:436284167999848458>"
         };
 
+        private readonly string[] easyShibEmoji = new[]
+        {
+            "<:shibdazzled:436284167953842176>", "<:shibfacetouch:436284167987265542>",
+            "<:shibsmile:436284168004042766>", "<:shibbandit:436284164896063489>",
+            "<:shibhide:436284167802716171>", "<:shibshocked:436284168213626891>",
+            "<:shibchill:436284167051804673>"
+        };
+        private readonly ILogger<PullTheLeverResponder> logger;
+        private readonly IRateLimitingRepository rateLimiting;
+
+        public PullTheLeverResponder(ILogger<PullTheLeverResponder> logger, IRateLimitingRepository rateLimiting)
+        {
+            this.logger = logger;
+            this.rateLimiting = rateLimiting;
+        }
+
         private string RandomEmoji(string[] icons) => icons.OrderBy(x => Guid.NewGuid()).First();
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (await rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + message.Author.Id, 5))
+            {
+                logger.LogWarning($"Rate limiting {message.Author.Username} for pull the lever");
+                return;
+            }
+
             if (message.Content.ToLower().Contains("pull the lever"))
             {
                 await message.Channel.SendMessageAsync($":{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}:", options: token.ToRequestOptions());
+                return;
+            }
+
+            if (message.Content.ToLower().Contains("pull the shib hard"))
+            {
+                await message.Channel.SendMessageAsync($"{RandomEmoji(allShibEmoji)}{RandomEmoji(allShibEmoji)}{RandomEmoji(allShibEmoji)}", options: token.ToRequestOptions());
+                return;
             }
 
             if (message.Content.ToLower().Contains("pull the shib"))
             {
-                await message.Channel.SendMessageAsync($"{RandomEmoji(shibEmoji)}{RandomEmoji(shibEmoji)}{RandomEmoji(shibEmoji)}", options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync($"{RandomEmoji(easyShibEmoji)}{RandomEmoji(easyShibEmoji)}{RandomEmoji(easyShibEmoji)}", options: token.ToRequestOptions());
+                return;
             }
         }
     }

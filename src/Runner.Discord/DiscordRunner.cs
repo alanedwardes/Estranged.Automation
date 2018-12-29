@@ -17,6 +17,7 @@ using Amazon.CloudWatch;
 using Amazon.CloudWatch.Model;
 using System.Collections.Generic;
 using Amazon;
+using Amazon.DynamoDBv2;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -39,6 +40,8 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton(httpClient)
                 .AddSingleton(translationClient)
                 .AddSingleton(languageServiceClient)
+                .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
+                .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddSingleton<IAmazonCloudWatch>(new AmazonCloudWatchClient(RegionEndpoint.EUWest1))
                 .AddSingleton<IDiscordClient, DiscordSocketClient>()
                 .AddSingleton<IResponder, LinuxResponder>()
