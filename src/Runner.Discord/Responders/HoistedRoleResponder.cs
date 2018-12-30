@@ -54,17 +54,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             string command = message.Content.Substring(1).ToLower();
 
-            if (command.StartsWith("botname"))
-            {
-                string newName = message.Content.Substring(8).Trim();
-                await discordClient.CurrentUser.ModifyAsync(x => x.Username = newName, token.ToRequestOptions());
-                await message.Channel.SendMessageAsync($"{message.Author} changed my name to `{newName}`", options: token.ToRequestOptions());
-                return;
-            }
-
             if (command.StartsWith("help"))
             {
-                await message.Author.SendMessageAsync($"Available commands:\n* /mute @user1 @user2\n* /unmute @user1 @user2\n* /botname <newname>", options: token.ToRequestOptions());
+                await message.Author.SendMessageAsync($"Available commands:\n* /mute @user1 @user2\n* /unmute @user1 @user2\n*", options: token.ToRequestOptions());
                 return;
             }
 
