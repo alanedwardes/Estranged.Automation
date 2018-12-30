@@ -60,28 +60,33 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private const int LimitPerUserPerHour = 2;
 
-        public async Task ProcessMessage(IMessage message, CancellationToken token)
+        private async Task<bool> CheckWithinRateLimit(IUser user)
         {
-            if (!await rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + message.Author.Id + DateTime.UtcNow.ToString("MM-dd-yyyy-H"), LimitPerUserPerHour))
+            if (!await rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + user.Id + DateTime.UtcNow.ToString("MM-dd-yyyy-H"), LimitPerUserPerHour))
             {
-                await message.Author.SendMessageAsync($"Sorry, you've exceeded the maximum allowed pull the lever requests this hour ({LimitPerUserPerHour})");
-                logger.LogWarning($"Rate limiting {message.Author.Username} for pull the lever");
-                return;
+                await user.SendMessageAsync($"Sorry, you've exceeded the maximum allowed pull the lever requests this hour ({LimitPerUserPerHour})");
+                logger.LogWarning($"Rate limiting {user.Username} for pull the lever");
+                return false;
             }
 
-            if (message.Content.ToLower().Contains("pull the lever"))
+            return true;
+        }
+
+        public async Task ProcessMessage(IMessage message, CancellationToken token)
+        {
+            if (message.Content.ToLower().Contains("pull the lever") && await CheckWithinRateLimit(message.Author))
             {
                 await message.Channel.SendMessageAsync($":{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}:", options: token.ToRequestOptions());
                 return;
             }
 
-            if (message.Content.ToLower().Contains("pull the shib hard"))
+            if (message.Content.ToLower().Contains("pull the shib hard") && await CheckWithinRateLimit(message.Author))
             {
                 await message.Channel.SendMessageAsync($"{RandomEmoji(allShibEmoji)}{RandomEmoji(allShibEmoji)}{RandomEmoji(allShibEmoji)}", options: token.ToRequestOptions());
                 return;
             }
 
-            if (message.Content.ToLower().Contains("pull the shib"))
+            if (message.Content.ToLower().Contains("pull the shib") && await CheckWithinRateLimit(message.Author))
             {
                 await message.Channel.SendMessageAsync($"{RandomEmoji(easyShibEmoji)}{RandomEmoji(easyShibEmoji)}{RandomEmoji(easyShibEmoji)}", options: token.ToRequestOptions());
                 return;
