@@ -58,10 +58,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private string RandomEmoji(string[] icons) => icons.OrderBy(x => Guid.NewGuid()).First();
 
+        private const int LimitPerUserPerHour = 2;
+
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (!await rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + message.Author.Id + DateTime.UtcNow.ToString("MM-dd-yyyy-H"), 2))
+            if (!await rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + message.Author.Id + DateTime.UtcNow.ToString("MM-dd-yyyy-H"), LimitPerUserPerHour))
             {
+                await message.Author.SendMessageAsync($"Sorry, you've exceeded the maximum allowed pull the lever requests this hour ({LimitPerUserPerHour})");
                 logger.LogWarning($"Rate limiting {message.Author.Username} for pull the lever");
                 return;
             }

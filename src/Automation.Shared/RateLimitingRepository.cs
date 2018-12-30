@@ -28,7 +28,7 @@ namespace Estranged.Automation.Shared
                 { LimitKey, new AttributeValueUpdate { Action = "ADD", Value = new AttributeValue { N = "1" } } }
             }, ReturnValue.ALL_NEW));
 
-            return int.Parse(response.Attributes[LimitKey].N) <= limit + 1;
+            return int.Parse(response.Attributes[LimitKey].N) <= limit;
         }
     }
 }
