@@ -74,6 +74,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (message.Channel.Name != "bots")
+            {
+                return;
+            }
+
             if (message.Content.ToLower().Contains("pull the lever") && await CheckWithinRateLimit(message.Author))
             {
                 await message.Channel.SendMessageAsync($":{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}:", options: token.ToRequestOptions());
