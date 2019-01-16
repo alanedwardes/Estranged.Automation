@@ -33,6 +33,7 @@ namespace Estranged.Automation
                 .AddLogging(options =>
                 {
                     options.AddConsole();
+                    options.SetMinimumLevel(LogLevel.Warning);
                 })
                 .AddSingleton(httpClient)
                 .AddTransient<RunnerManager>()
