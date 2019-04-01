@@ -39,6 +39,7 @@ namespace Estranged.Automation.Runner.Community
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToArray();
 
+            Console.WriteLine("'" + string.Join("', '", screenshotUrls) + "'");
             var seenUrls = await seenItemRepository.GetSeenItems(screenshotUrls, token);
 
             foreach (string screenshotUrl in screenshotUrls)
