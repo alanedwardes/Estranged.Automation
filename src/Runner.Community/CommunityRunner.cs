@@ -32,7 +32,13 @@ namespace Estranged.Automation.Runner.Community
             var fileUrlRegex = new Regex(pattern);
             var html = await httpClient.GetStringAsync(url);
 
-            var screenshotUrls = fileUrlRegex.Matches(html).OfType<Match>().Select(x => x.Value).Distinct().ToArray();
+            var screenshotUrls = fileUrlRegex.Matches(html)
+                .OfType<Match>()
+                .Select(x => x.Value)
+                .Distinct()
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToArray();
+
             var seenUrls = await seenItemRepository.GetSeenItems(screenshotUrls, token);
 
             foreach (string screenshotUrl in screenshotUrls)
