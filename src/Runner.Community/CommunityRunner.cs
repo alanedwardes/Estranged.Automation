@@ -36,10 +36,13 @@ namespace Estranged.Automation.Runner.Community
                 .OfType<Match>()
                 .Select(x => x.Value)
                 .Distinct()
-                .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToArray();
 
-            Console.WriteLine("'" + string.Join("', '", screenshotUrls) + "'");
+            if (screenshotUrls.Length == 0)
+            {
+                return;
+            }
+
             var seenUrls = await seenItemRepository.GetSeenItems(screenshotUrls, token);
 
             foreach (string screenshotUrl in screenshotUrls)
@@ -58,11 +61,11 @@ namespace Estranged.Automation.Runner.Community
         public async override Task RunPeriodically(CancellationToken token)
         {
             // Screenshots
-            var screenshotPattern = @"https://steamcommunity.com/sharedfiles/filedetails/\?id=([0-9]*)";
+            var sharedFilesPattern = @"https://steamcommunity.com/sharedfiles/filedetails/\?id=([0-9]*)";
             string screenshotUrl(uint appId) => $"https://steamcommunity.com/app/{appId}/screenshots/?browsefilter=mostrecent";
 
-            await GatherUrls(screenshotPattern, screenshotUrl(582890), token);
-            await GatherUrls(screenshotPattern, screenshotUrl(261820), token);
+            await GatherUrls(sharedFilesPattern, screenshotUrl(582890), token);
+            await GatherUrls(sharedFilesPattern, screenshotUrl(261820), token);
 
             // Discussions
             var discussionsPattern = @"https://steamcommunity.com/app/([0-9]*)/discussions/([0-9]*)/([0-9]*)/";
@@ -72,10 +75,9 @@ namespace Estranged.Automation.Runner.Community
             await GatherUrls(discussionsPattern, discussionsUrl(261820), token);
 
             // Workshop
-            var workshopPattern = @"https://steamcommunity.com/workshop/filedetails/\?id=([0-9]*)";
             string workshopUrl(uint appId) => $"https://steamcommunity.com/workshop/browse/?appid={appId}&browsesort=mostrecent";
 
-            await GatherUrls(workshopPattern, workshopUrl(261820), token);
+            await GatherUrls(sharedFilesPattern, workshopUrl(261820), token);
         }
     }
 }
