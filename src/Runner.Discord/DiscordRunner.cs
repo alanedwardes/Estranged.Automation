@@ -91,18 +91,15 @@ namespace Estranged.Automation.Runner.Syndication
 
             var welcomeChannel = guild.TextChannels.Single(x => x.Name == "welcome");
             var rulesChannel = guild.TextChannels.Single(x => x.Name == "rules");
-            var act1Channel = guild.TextChannels.Single(x => x.Name == "act-i");
-            var act2Channel = guild.TextChannels.Single(x => x.Name == "act-ii");
-            var screenshotsChannel = guild.TextChannels.Single(x => x.Name == "screenshots");
 
             var welcome = $"Welcome to the Estranged Discord server <@{user.Id}>! " +
                           $"See <#{rulesChannel.Id}> for the server rules, you might also be interested in these channels:";
 
             var interestingChannels = string.Join("\n", new[]
             {
-                $"* <#{act1Channel.Id}> - Estranged: Act I discussion",
-                $"* <#{act2Channel.Id}> - Estranged: Act II discussion",
-                $"* <#{screenshotsChannel.Id}> - Work in progress development screenshots"
+                $"* <#437311972917248022> - Estranged: Act I discussion",
+                $"* <#437312012603752458> - Estranged: Act II discussion",
+                $"* <#439742315016486922> - Work in progress development screenshots"
             });
 
             var moderators = guild.Roles.Single(x => x.Name == "moderators")
