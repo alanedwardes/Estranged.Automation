@@ -9,6 +9,7 @@ using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Narochno.Steam;
+using Octokit;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -28,6 +29,11 @@ namespace Estranged.Automation
             var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");
             httpClient.DefaultRequestHeaders.UserAgent.Add(productHeader);
 
+            var gitHubClient = new GitHubClient(new Octokit.ProductHeaderValue(productHeader.Product.Name, productHeader.Product.Version))
+            {
+                Credentials = new Credentials("estranged-automation", Environment.GetEnvironmentVariable("GITHUB_PASSWORD"))
+            };
+
             var provider = new ServiceCollection()
                 .AddSteam()
                 .AddLogging(options =>
@@ -41,6 +47,7 @@ namespace Estranged.Automation
                 .AddTransient<IRunner, SyndicationRunner>()
                 .AddTransient<IRunner, DiscordRunner>()
                 .AddTransient<IRunner, CommunityRunner>()
+                .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
                 .AddSingleton(TranslationClient.Create())
