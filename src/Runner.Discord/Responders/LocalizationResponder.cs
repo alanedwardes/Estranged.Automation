@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Newtonsoft.Json;
 using Octokit;
 
 namespace Estranged.Automation.Runner.Discord.Responders
@@ -26,28 +27,21 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string repository = "Insulam.Localization";
             const string masterReference = "heads/master";
 
-            var userLocaleMapping = new Dictionary<ulong, string>
-            {
-                { 269883106792701952, "en" }, // For test purposes
-                { 178765255441121280, "sk" },
-                { 231511791228682242, "nl" },
-                { 556512268402294825, "de" },
-                { 536004191886376960, "km" },
-                { 367376322684780544, "tr" },
-                { 386296200225226752, "hu" },
-                { 352608170268688384, "pt-BR" },
-                { 245630696595390466, "pr-PT" }
-            };
-
-            // Try to match the user ID to a locale
-            if (!userLocaleMapping.TryGetValue(message.Author.Id, out string localeId))
+            // Find the attachment called "Game.po"
+            var translationAttachment = message.Attachments.FirstOrDefault(x => x.Filename == "Game.po");
+            if (translationAttachment == null)
             {
                 return;
             }
 
-            // Find the attachment called "Game.po"
-            var translationAttachment = message.Attachments.FirstOrDefault(x => x.Filename == "Game.po");
-            if (translationAttachment == null)
+            // Get the permissions manifest from GitHub
+            var permissions = (await gitHubClient.Repository.Content.GetAllContentsByRef(owner, repository, "permissions.json", "refs/" + masterReference)).SingleOrDefault();
+
+            // Deserialize to JSON
+            var userLocaleMapping = JsonConvert.DeserializeObject<IDictionary<ulong, string>>(permissions.Content);
+
+            // Try to match the user ID to a locale
+            if (!userLocaleMapping.TryGetValue(message.Author.Id, out string localeId))
             {
                 return;
             }
@@ -74,10 +68,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var pullRequest = await gitHubClient.PullRequest.Create(owner, repository, new NewPullRequest($"Updates {localeId} Localization", newBranch.Ref, "refs/" + masterReference));
 
             // Send a message with PR link
-            await message.Channel.SendMessageAsync($"Opened PR on behalf of <@{message.Author.Id}>: {pullRequest.Url} (CC <@269883106792701952>)");
-
-            // Delete original message
-            await message.DeleteAsync();
+            await message.Channel.SendMessageAsync($"Opened PR on behalf of <@{message.Author.Id}>: {pullRequest.HtmlUrl} (CC <@269883106792701952>)");
         }
     }
 }
