@@ -18,6 +18,7 @@ using Amazon.CloudWatch.Model;
 using System.Collections.Generic;
 using Amazon;
 using Amazon.DynamoDBv2;
+using Octokit;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -29,7 +30,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         public override TimeSpan Period => TimeSpan.FromMinutes(1);
 
-        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, TranslationClient translationClient, LanguageServiceClient languageServiceClient)
+        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, TranslationClient translationClient, LanguageServiceClient languageServiceClient, IGitHubClient gitHubClient)
         {
             this.logger = logger;
             this.loggerFactory = loggerFactory;
@@ -40,6 +41,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton(httpClient)
                 .AddSingleton(translationClient)
                 .AddSingleton(languageServiceClient)
+                .AddSingleton(gitHubClient)
                 .AddSingleton<IResponder, LocalizationResponder>()
                 .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
                 .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
