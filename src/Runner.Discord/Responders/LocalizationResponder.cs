@@ -30,7 +30,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 { 269883106792701952, "en" }, // For test purposes
                 { 178765255441121280, "sk" },
-                { 231511791228682242, "nl" }
+                { 231511791228682242, "nl" },
+                { 556512268402294825, "de" },
+                { 536004191886376960, "km" },
+                { 367376322684780544, "tr" },
+                { 386296200225226752, "hu" },
+                { 352608170268688384, "pt-BR" },
+                { 245630696595390466, "pr-PT" }
             };
 
             // Try to match the user ID to a locale
@@ -65,7 +71,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             await gitHubClient.Repository.Content.UpdateFile(owner, repository, translationPath, new UpdateFileRequest($"Updates Game.po for {localeId}", translation, existingFile.Sha, newBranch.Ref));
 
             // Create a pull request
-            await gitHubClient.PullRequest.Create(owner, repository, new NewPullRequest($"Updates {localeId} Localization", newBranch.Ref, "refs/" + masterReference));
+            var pullRequest = await gitHubClient.PullRequest.Create(owner, repository, new NewPullRequest($"Updates {localeId} Localization", newBranch.Ref, "refs/" + masterReference));
+
+            // Send a message with PR link
+            await message.Channel.SendMessageAsync($"Opened PR on behalf of <@{message.Author.Id}>: {pullRequest.Url} (CC <@269883106792701952>)");
+
+            // Delete original message
+            await message.DeleteAsync();
         }
     }
 }
