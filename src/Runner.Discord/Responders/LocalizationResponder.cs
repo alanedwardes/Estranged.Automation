@@ -28,6 +28,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var userLocaleMapping = new Dictionary<ulong, string>
             {
+                { 269883106792701952, "en" }, // For test purposes
                 { 178765255441121280, "sk" },
                 { 231511791228682242, "nl" }
             };
