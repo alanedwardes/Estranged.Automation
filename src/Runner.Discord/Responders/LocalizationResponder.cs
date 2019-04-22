@@ -46,8 +46,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            // Download the attachment
-            var translation = await httpClient.GetStringAsync(translationAttachment.Url);
+            // Download the attachment and normalise line endings
+            var translation = (await httpClient.GetStringAsync(translationAttachment.Url)).Replace("\r\n", "\n");
 
             // Figure out the path
             var translationPath = $"Game/{localeId}/Game.po";
