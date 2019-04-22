@@ -122,7 +122,7 @@ namespace Estranged.Automation.Runner.Syndication
             messageCount++;
 
             logger.LogTrace("Message received: {0}", socketMessage);
-            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook || string.IsNullOrWhiteSpace(socketMessage.Content))
+            if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
                 return;
             }
@@ -151,7 +151,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         private Task ClientLog(LogMessage logMessage)
         {
-            logger.Log(GetLogLevel(logMessage.Severity), -1, logMessage.Message, logMessage.Exception, null);
+            logger.Log(GetLogLevel(logMessage.Severity), -1, logMessage.Message, logMessage.Exception);
             return null;
         }
 

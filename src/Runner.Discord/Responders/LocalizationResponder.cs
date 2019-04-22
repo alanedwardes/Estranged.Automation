@@ -24,7 +24,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
         {
             const string owner = "alanedwardes";
             const string repository = "Insulam.Localization";
-            const string defaultBranch = "master";
+            const string masterReference = "heads/master";
 
             var userLocaleMapping = new Dictionary<ulong, string>
             {
@@ -53,19 +53,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var translationPath = $"Game/{localeId}/Game.po";
 
             // Get the current master reference
-            var master = await gitHubClient.Git.Reference.Get(owner, repository, defaultBranch);
+            var master = await gitHubClient.Git.Reference.Get(owner, repository, masterReference);
 
             // Create a new branch
-            var newBranch = await gitHubClient.Git.Reference.Create(owner, repository, new NewReference(Guid.NewGuid().ToString(), master.Object.Sha));
+            var newBranch = await gitHubClient.Git.Reference.Create(owner, repository, new NewReference("refs/heads/" + Guid.NewGuid(), master.Object.Sha));
 
             // Get the existing file reference
             var existingFile = (await gitHubClient.Repository.Content.GetAllContentsByRef(owner, repository, translationPath, newBranch.Ref)).SingleOrDefault();
 
             // Update the existing file
-            await gitHubClient.Repository.Content.UpdateFile(owner, repository, translationPath, new UpdateFileRequest($"Updates Game.po for {localeId}", translation, existingFile.Sha));
+            await gitHubClient.Repository.Content.UpdateFile(owner, repository, translationPath, new UpdateFileRequest($"Updates Game.po for {localeId}", translation, existingFile.Sha, newBranch.Ref));
 
             // Create a pull request
-            await gitHubClient.PullRequest.Create(owner, repository, new NewPullRequest($"Updates {localeId} Localization", newBranch.Ref, defaultBranch));
+            await gitHubClient.PullRequest.Create(owner, repository, new NewPullRequest($"Updates {localeId} Localization", newBranch.Ref, "refs/" + masterReference));
         }
     }
 }
