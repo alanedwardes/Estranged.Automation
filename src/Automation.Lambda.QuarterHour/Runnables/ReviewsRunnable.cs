@@ -1,4 +1,6 @@
-﻿using Google.Cloud.Translation.V2;
+﻿using Estranged.Automation.Shared;
+using Google;
+using Google.Cloud.Translation.V2;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Narochno.Slack;
@@ -8,35 +10,38 @@ using Narochno.Steam;
 using Narochno.Steam.Entities;
 using Narochno.Steam.Entities.Requests;
 using Narochno.Steam.Entities.Responses;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Estranged.Automation.Shared;
-using System.Threading;
 using System.Net.Http;
-using System;
-using Google;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Estranged.Automation.Runner.Reviews
+namespace Estranged.Automation.Lambda.QuarterHour.Runnables
 {
-    public class ReviewsRunner : PeriodicRunner
+    public class ReviewsRunnable : IRunnable
     {
-        private readonly ILogger<ReviewsRunner> logger;
-        private readonly ISteamClient steam;
+        private readonly ILogger<CommunityRunnable> logger;
         private readonly ISlackClient slack;
         private readonly ISeenItemRepository seenItemRepository;
+        private readonly HttpClient httpClient;
         private readonly TranslationClient translation;
-        private const string EnglishLanguage = "en";
+        private readonly ISteamClient steam;
 
-        public override TimeSpan Period => TimeSpan.FromMinutes(30);
-
-        public ReviewsRunner(ILogger<ReviewsRunner> logger, ISteamClient steam, ISeenItemRepository seenItemRepository, TranslationClient translation, HttpClient httpClient)
+        public ReviewsRunnable(ILogger<CommunityRunnable> logger, ISeenItemRepository seenItemRepository, HttpClient httpClient, Function.FunctionConfig config, TranslationClient translation, ISteamClient steam)
         {
             this.logger = logger;
-            this.steam = steam;
-            this.slack = new SlackClient(new SlackConfig { WebHookUrl = Environment.GetEnvironmentVariable("REVIEWS_WEB_HOOK_URL"), HttpClient = httpClient });
+            this.slack = new SlackClient(new SlackConfig { WebHookUrl = config.EstrangedDiscordReviewsWebhook, HttpClient = httpClient });
             this.seenItemRepository = seenItemRepository;
+            this.httpClient = httpClient;
             this.translation = translation;
+            this.steam = steam;
+        }
+
+        public async Task RunAsync(CancellationToken token)
+        {
+            await GatherReviews("Estranged: Act I", 261820, token);
+            await GatherReviews("Estranged: Act II", 582890, token);
         }
 
         public async Task GatherReviews(string product, uint appId, CancellationToken token)
@@ -71,7 +76,7 @@ namespace Estranged.Automation.Runner.Reviews
                 TranslationResult translationResponse = null;
                 try
                 {
-                    translationResponse = await translation.TranslateTextAsync(reviewContent, EnglishLanguage, null, null, token);
+                    translationResponse = await translation.TranslateTextAsync(reviewContent, "en", null, null, token);
                 }
                 catch (GoogleApiException e)
                 {
@@ -100,7 +105,7 @@ namespace Estranged.Automation.Runner.Reviews
                     }
                 };
 
-                if (translationResponse != null && translationResponse.DetectedSourceLanguage != EnglishLanguage)
+                if (translationResponse != null && translationResponse.DetectedSourceLanguage != "en")
                 {
                     fields.Insert(1, new Field
                     {
@@ -130,12 +135,6 @@ namespace Estranged.Automation.Runner.Reviews
             }
 
             logger.LogInformation("Finished posting reviews.");
-        }
-
-        public async override Task RunPeriodically(CancellationToken token)
-        {
-            await GatherReviews("Estranged: Act I", 261820, token);
-            await GatherReviews("Estranged: Act II", 582890, token);
         }
     }
 }

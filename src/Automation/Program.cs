@@ -1,14 +1,11 @@
 ﻿using Amazon;
 using Amazon.DynamoDBv2;
-using Estranged.Automation.Runner.Community;
-using Estranged.Automation.Runner.Reviews;
 using Estranged.Automation.Runner.Syndication;
 using Estranged.Automation.Shared;
 using Google.Cloud.Language.V1;
 using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Narochno.Steam;
 using Octokit;
 using System;
 using System.Net.Http;
@@ -35,7 +32,6 @@ namespace Estranged.Automation
             };
 
             var provider = new ServiceCollection()
-                .AddSteam()
                 .AddLogging(options =>
                 {
                     options.AddConsole();
