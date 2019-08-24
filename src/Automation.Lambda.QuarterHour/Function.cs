@@ -48,6 +48,13 @@ namespace Estranged.Automation.Lambda.QuarterHour
                 }
             })).Parameters.ToDictionary(x => x.Name, x => x.Value);
 
+            var config = new FunctionConfig
+            {
+                EstrangedDiscordCommunityWebhook = parameters[communityWebhookParameter],
+                EstrangedDiscordReviewsWebhook = parameters[reviewsWebhookParameter],
+                EstrangedDiscordGamingWebhook = parameters[gamingWebhookParameter]
+            };
+
             var httpClient = new HttpClient();
 
             var services = new ServiceCollection()
@@ -60,26 +67,15 @@ namespace Estranged.Automation.Lambda.QuarterHour
                 .AddSingleton<IRunnable, ReviewsRunnable>()
                 .AddSingleton<IRunnable, SyndicationRunnable>()
                 .AddSingleton<IRunnable, RedditRunnable>()
+                .AddSingleton(TranslationClient.Create(GoogleCredential.FromJson(parameters[googleComputeParameter])))
+                .AddSteam(new SteamConfig { HttpClient = httpClient })
+                .AddSingleton<ISeenItemRepository, SeenItemRepository>()
+                .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>()
                 .AddSingleton<Scraper>()
                 .AddSingleton(httpClient)
-                .AddSingleton(TranslationClient.Create(GoogleCredential.FromJson(parameters[googleComputeParameter])))
-                .AddSteam(new SteamConfig
-                {
-                    HttpClient = httpClient
-                })
-                .AddSingleton<ISeenItemRepository, SeenItemRepository>()
-                .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>();
-
-            services.AddSingleton(new FunctionConfig
-            {
-                EstrangedDiscordCommunityWebhook = parameters[communityWebhookParameter],
-                EstrangedDiscordReviewsWebhook = parameters[reviewsWebhookParameter],
-                EstrangedDiscordGamingWebhook = parameters[gamingWebhookParameter]
-            });
+                .AddSingleton(config);
 
             var provider = services.BuildServiceProvider();
-
-            var t = provider.GetRequiredService<TranslationClient>();
 
             await Task.WhenAll(provider.GetServices<IRunnable>().Select(x => x.RunAsync(CancellationToken.None)));
 

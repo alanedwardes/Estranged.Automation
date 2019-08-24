@@ -19,7 +19,7 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
         public async Task RunAsync(CancellationToken token)
         {
             // r/gaming
-            await scraper.GatherUnseenUrls("https://www.reddit.com/r/gaming/comments/[a-z0-9]+/[a-z_0-9]+/", "https://www.reddit.com/r/gaming/top/", x => slack.PostText(x), token);
+            await scraper.GatherUnseenUrls("https://www.reddit.com/r/gaming/comments/[a-z0-9]+/[a-z_0-9]+/", "https://www.reddit.com/r/gaming/top/?t=day", x => slack.PostText(x), token);
         }
     }
 }
