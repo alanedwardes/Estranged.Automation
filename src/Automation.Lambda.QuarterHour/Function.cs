@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -16,9 +17,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Narochno.Steam;
 
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
-
 namespace Estranged.Automation.Lambda.QuarterHour
 {
     public class Function
@@ -30,7 +28,7 @@ namespace Estranged.Automation.Lambda.QuarterHour
             public string EstrangedDiscordGamingWebhook { get; set; }
         }
 
-        public async Task<string> FunctionHandler(string input, ILambdaContext context)
+        public async Task<Stream> FunctionHandler(Stream input, ILambdaContext context)
         {
             var ssm = new AmazonSimpleSystemsManagementClient();
 
@@ -85,7 +83,7 @@ namespace Estranged.Automation.Lambda.QuarterHour
 
             await Task.WhenAll(provider.GetServices<IRunnable>().Select(x => x.RunAsync(CancellationToken.None)));
 
-            return "Done";
+            return input;
         }
     }
 }
