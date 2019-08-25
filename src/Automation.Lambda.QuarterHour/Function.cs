@@ -70,7 +70,6 @@ namespace Estranged.Automation.Lambda.QuarterHour
                 .AddSingleton<IRunnable, CommunityRunnable>()
                 .AddSingleton<IRunnable, ReviewsRunnable>()
                 .AddSingleton<IRunnable, SyndicationRunnable>()
-                .AddSingleton<IRunnable, RedditRunnable>()
                 .AddSingleton(TranslationClient.Create(GoogleCredential.FromJson(parameters[googleComputeParameter])))
                 .AddSteam(new SteamConfig { HttpClient = httpClient })
                 .AddSingleton<ISeenItemRepository, SeenItemRepository>()
