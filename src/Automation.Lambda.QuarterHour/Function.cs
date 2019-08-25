@@ -26,6 +26,7 @@ namespace Estranged.Automation.Lambda.QuarterHour
             public string EstrangedDiscordCommunityWebhook { get; set; }
             public string EstrangedDiscordReviewsWebhook { get; set; }
             public string EstrangedDiscordGamingWebhook { get; set; }
+            public string EstrangedDiscordSyndicationWebhook { get; set; }
         }
 
         public async Task<Stream> FunctionHandler(Stream input, ILambdaContext context)
@@ -36,6 +37,7 @@ namespace Estranged.Automation.Lambda.QuarterHour
             const string communityWebhookParameter = "/estranged/discord/webhooks/community";
             const string reviewsWebhookParameter = "/estranged/discord/webhooks/reviews";
             const string gamingWebhookParameter = "/estranged/discord/webhooks/gaming";
+            const string syndicationWebhookParameter = "/estranged/discord/webhooks/syndication";
 
             var parameters = (await ssm.GetParametersAsync(new GetParametersRequest
             {
@@ -44,7 +46,8 @@ namespace Estranged.Automation.Lambda.QuarterHour
                     googleComputeParameter,
                     communityWebhookParameter,
                     reviewsWebhookParameter,
-                    gamingWebhookParameter
+                    gamingWebhookParameter,
+                    syndicationWebhookParameter
                 }
             })).Parameters.ToDictionary(x => x.Name, x => x.Value);
 
@@ -52,7 +55,8 @@ namespace Estranged.Automation.Lambda.QuarterHour
             {
                 EstrangedDiscordCommunityWebhook = parameters[communityWebhookParameter],
                 EstrangedDiscordReviewsWebhook = parameters[reviewsWebhookParameter],
-                EstrangedDiscordGamingWebhook = parameters[gamingWebhookParameter]
+                EstrangedDiscordGamingWebhook = parameters[gamingWebhookParameter],
+                EstrangedDiscordSyndicationWebhook = parameters[syndicationWebhookParameter]
             };
 
             var httpClient = new HttpClient();
@@ -77,7 +81,7 @@ namespace Estranged.Automation.Lambda.QuarterHour
 
             var provider = services.BuildServiceProvider();
 
-            await Task.WhenAll(provider.GetServices<IRunnable>().Select(x => x.RunAsync(CancellationToken.None)));
+            await Task.WhenAll(provider.GetServices<IRunnable>().SelectMany(x => x.RunAsync(CancellationToken.None)));
 
             return input;
         }

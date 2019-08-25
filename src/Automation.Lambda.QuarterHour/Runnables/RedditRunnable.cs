@@ -1,4 +1,5 @@
 ﻿using Narochno.Slack;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,10 +17,10 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
             this.scraper = scraper;
         }
 
-        public async Task RunAsync(CancellationToken token)
+        public IEnumerable<Task> RunAsync(CancellationToken token)
         {
             // r/gaming
-            await scraper.GatherUnseenUrls("https://www.reddit.com/r/gaming/comments/[a-z0-9]+/[a-z_0-9]+/", "https://www.reddit.com/r/gaming/top/?t=day", x => slack.PostText(x), token);
+            yield return scraper.GatherUnseenUrls("https://www.reddit.com/r/gaming/comments/[a-z0-9]+/[a-z_0-9]+/", "https://www.reddit.com/r/gaming/top/?t=day", x => slack.PostText(x), token);
         }
     }
 }
