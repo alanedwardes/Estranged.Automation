@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,24 +74,26 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            string storedMessage = message.Content.ToLower();
+
             if (message.Channel.Name != "bots")
             {
                 return;
             }
 
-            if (message.Content.ToLower().Contains("pull the lever") && await CheckWithinRateLimit(message.Author))
+            if (storedMessage.Contains("pull") && storedMessage.Contains("the") && storedMessage.Contains("lever") && await CheckWithinRateLimit(message.Author))
             {
                 await message.Channel.SendMessageAsync($":{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}::{RandomEmoji(normalEmoji)}:", options: token.ToRequestOptions());
                 return;
             }
 
-            if (message.Content.ToLower().Contains("pull the shib hard") && await CheckWithinRateLimit(message.Author))
+            if (storedMessage.Contains("pull the shib hard") && await CheckWithinRateLimit(message.Author))
             {
                 await message.Channel.SendMessageAsync($"{RandomEmoji(allShibEmoji)}{RandomEmoji(allShibEmoji)}{RandomEmoji(allShibEmoji)}", options: token.ToRequestOptions());
                 return;
             }
 
-            if (message.Content.ToLower().Contains("pull the shib") && await CheckWithinRateLimit(message.Author))
+            if (storedMessage.Contains("pull the shib") && await CheckWithinRateLimit(message.Author))
             {
                 await message.Channel.SendMessageAsync($"{RandomEmoji(easyShibEmoji)}{RandomEmoji(easyShibEmoji)}{RandomEmoji(easyShibEmoji)}", options: token.ToRequestOptions());
                 return;
