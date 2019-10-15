@@ -42,30 +42,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var guildChannel = (IGuildChannel)quotedMessage.Channel;
 
-            var builder = new EmbedBuilder()
-                .WithTimestamp(quotedMessage.CreatedAt)
-                .WithAuthor(quotedMessage.Author.Username, quotedMessage.Author.GetAvatarUrl(), message.Content)
-                .WithDescription(quotedMessage.Content)
-                .WithFooter($"Quoted by {message.Author.Username}, originally posted in #{channel.Name}");
-
-            foreach (var embed in quotedMessage.Embeds)
-            {
-                if (!string.IsNullOrWhiteSpace(embed.Title) && !string.IsNullOrWhiteSpace(embed.Description))
-                {
-                    builder.AddField(embed.Title, embed.Description);
-                }
-
-                foreach (var field in embed.Fields)
-                {
-                    if (!string.IsNullOrWhiteSpace(field.Name) && !string.IsNullOrWhiteSpace(field.Value))
-                    {
-                        builder.AddField(field.Name, field.Value, field.Inline);
-                    }
-                }
-            }
-
             var deleteTask = message.DeleteAsync(token.ToRequestOptions());
-            var sendMessageTask = message.Channel.SendMessageAsync(string.Empty, false, builder.Build(), token.ToRequestOptions());
+            var sendMessageTask = message.Channel.SendMessageAsync(string.Empty, false, quotedMessage.QuoteMessage(message.Author), token.ToRequestOptions());
 
             await deleteTask;
             await sendMessageTask;

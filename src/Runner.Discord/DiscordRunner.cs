@@ -66,7 +66,9 @@ namespace Estranged.Automation.Runner.Syndication
 
             socketClient.Log += ClientLog;
             socketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
+            socketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Value, channel, socketClient, token));
             socketClient.UserJoined += user => WrapTask(UserJoined(user, socketClient, token));
+            socketClient.UserLeft += user => WrapTask(UserLeft(user, socketClient, token));
 
             await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await socketClient.StartAsync();
@@ -112,6 +114,30 @@ namespace Estranged.Automation.Runner.Syndication
             var moderatorList = $"Your moderators are {string.Join(", ", moderators)}.";
 
             await welcomeChannel.SendMessageAsync($"{welcome}\n{interestingChannels}\n{moderatorList}", options: token.ToRequestOptions());
+        }
+
+        private async Task UserLeft(SocketGuildUser user, DiscordSocketClient client, CancellationToken token)
+        {
+            logger.LogInformation("User left: {0}", user);
+
+            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
+
+            var goodbyeChannel = guild.TextChannels.Single(x => x.Name == "goodbyes");
+
+            var goodbye = $"User <@{user.Id}> left the server!";
+
+            await goodbyeChannel.SendMessageAsync(goodbye, options: token.ToRequestOptions());
+        }
+
+        private async Task ClientMessageDeleted(IMessage message, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
+        {
+            logger.LogInformation("Message deleted: {0}", message);
+
+            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
+
+            var deletionsChannel = guild.TextChannels.Single(x => x.Name == "deletions");
+
+            await deletionsChannel.SendMessageAsync(message.Content, false, message.QuoteMessage(), token.ToRequestOptions());
         }
 
         private int messageCount;
