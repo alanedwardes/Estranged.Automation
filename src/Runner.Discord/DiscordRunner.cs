@@ -133,6 +133,11 @@ namespace Estranged.Automation.Runner.Syndication
         {
             logger.LogInformation("Message deleted: {0}", message);
 
+            if (!channel.IsPublicChannel())
+            {
+                return;
+            }
+
             var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
 
             var deletionsChannel = guild.TextChannels.Single(x => x.Name == "deletions");

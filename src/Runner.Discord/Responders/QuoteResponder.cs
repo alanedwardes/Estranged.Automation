@@ -40,6 +40,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var channel = await guild.GetTextChannelAsync(channelId, options: token.ToRequestOptions());
             var quotedMessage = await channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 
+            if (message.Channel.Id != quotedMessage.Channel.Id && !quotedMessage.Channel.IsPublicChannel())
+            {
+                return;
+            }
+
             var guildChannel = (IGuildChannel)quotedMessage.Channel;
 
             var deleteTask = message.DeleteAsync(token.ToRequestOptions());
