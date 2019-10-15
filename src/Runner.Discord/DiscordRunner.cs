@@ -127,31 +127,33 @@ namespace Estranged.Automation.Runner.Syndication
 
         private async Task ClientMessageDeleted(ulong messageId, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
         {
-            var message = _messageHistory.Single(x => x.Id == messageId);
-
-            logger.LogInformation("Message deleted: {0}", message);
+            logger.LogInformation("Message deleted: {0}", messageId);
 
             if (!channel.IsPublicChannel())
             {
                 return;
             }
 
+            var message = _publicMessageHistory.Single(x => x.Id == messageId);
             await client.GetChannelByName("deletions").SendMessageAsync("Deleted:", false, message.QuoteMessage(), token.ToRequestOptions());
         }
 
         private int messageCount;
 
-        private IList<IMessage> _messageHistory = new List<IMessage>();
+        private IList<IMessage> _publicMessageHistory = new List<IMessage>();
 
         private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
             messageCount++;
 
-            _messageHistory.Add(socketMessage);
-
-            if (_messageHistory.Count > 100)
+            if (socketMessage.Channel.IsPublicChannel())
             {
-                _messageHistory.RemoveAt(0);
+                _publicMessageHistory.Add(socketMessage);
+
+                if (_publicMessageHistory.Count > 100)
+                {
+                    _publicMessageHistory.RemoveAt(0);
+                }
             }
 
             logger.LogTrace("Message received: {0}", socketMessage);
