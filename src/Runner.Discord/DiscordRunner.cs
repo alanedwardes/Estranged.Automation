@@ -66,7 +66,7 @@ namespace Estranged.Automation.Runner.Syndication
 
             socketClient.Log += ClientLog;
             socketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
-            socketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Value, channel, socketClient, token));
+            socketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Id, channel, socketClient, token));
             socketClient.UserJoined += user => WrapTask(UserJoined(user, socketClient, token));
             socketClient.UserLeft += user => WrapTask(UserLeft(user, socketClient, token));
 
@@ -125,8 +125,10 @@ namespace Estranged.Automation.Runner.Syndication
             await client.GetChannelByName("goodbyes").SendMessageAsync(goodbye, options: token.ToRequestOptions());
         }
 
-        private async Task ClientMessageDeleted(IMessage message, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
+        private async Task ClientMessageDeleted(ulong messageId, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
         {
+            var message = _messageHistory.Single(x => x.Id == messageId);
+
             logger.LogInformation("Message deleted: {0}", message);
 
             if (!channel.IsPublicChannel())
@@ -134,14 +136,23 @@ namespace Estranged.Automation.Runner.Syndication
                 return;
             }
 
-            await client.GetChannelByName("deletions").SendMessageAsync(message.Content, false, message.QuoteMessage(), token.ToRequestOptions());
+            await client.GetChannelByName("deletions").SendMessageAsync("Deleted:", false, message.QuoteMessage(), token.ToRequestOptions());
         }
 
         private int messageCount;
 
+        private IList<IMessage> _messageHistory = new List<IMessage>();
+
         private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
             messageCount++;
+
+            _messageHistory.Add(socketMessage);
+
+            if (_messageHistory.Count > 100)
+            {
+                _messageHistory.RemoveAt(0);
+            }
 
             logger.LogTrace("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
