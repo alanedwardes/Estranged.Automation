@@ -120,13 +120,9 @@ namespace Estranged.Automation.Runner.Syndication
         {
             logger.LogInformation("User left: {0}", user);
 
-            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
-
-            var goodbyeChannel = guild.TextChannels.Single(x => x.Name == "goodbyes");
-
             var goodbye = $"User <@{user.Id}> left the server!";
 
-            await goodbyeChannel.SendMessageAsync(goodbye, options: token.ToRequestOptions());
+            await client.GetChannelByName("goodbyes").SendMessageAsync(goodbye, options: token.ToRequestOptions());
         }
 
         private async Task ClientMessageDeleted(IMessage message, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
@@ -138,11 +134,7 @@ namespace Estranged.Automation.Runner.Syndication
                 return;
             }
 
-            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
-
-            var deletionsChannel = guild.TextChannels.Single(x => x.Name == "deletions");
-
-            await deletionsChannel.SendMessageAsync(message.Content, false, message.QuoteMessage(), token.ToRequestOptions());
+            await client.GetChannelByName("deletions").SendMessageAsync(message.Content, false, message.QuoteMessage(), token.ToRequestOptions());
         }
 
         private int messageCount;

@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -57,6 +58,13 @@ namespace Estranged.Automation.Runner.Discord
             };
 
             return publicChannels.Contains(channel.Id);
+        }
+
+        public static SocketTextChannel GetChannelByName(this DiscordSocketClient client, string channelName)
+        {
+            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
+
+            return guild.TextChannels.Single(x => x.Name == channelName);
         }
     }
 }
