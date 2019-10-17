@@ -32,7 +32,7 @@ namespace Estranged.Automation.Runner.Discord
             {
                 if (!string.IsNullOrWhiteSpace(embed.Description))
                 {
-                    builder.AddField(embed.Title ?? embed.Author.Value.Name, embed.Description);
+                    builder.AddField(embed.Title ?? embed.Author.Value.Name, embed.Description.Length > 1024 ? embed.Description.Substring(0, 1024) : embed.Description);
                 }
 
                 if (embed.Image.HasValue)
