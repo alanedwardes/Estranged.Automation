@@ -45,13 +45,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var guildChannel = (IGuildChannel)quotedMessage.Channel;
-
-            var deleteTask = message.DeleteAsync(token.ToRequestOptions());
-            var sendMessageTask = message.Channel.SendMessageAsync(string.Empty, false, quotedMessage.QuoteMessage(message.Author), token.ToRequestOptions());
-
-            await deleteTask;
-            await sendMessageTask;
+            await message.Channel.SendMessageAsync(string.Empty, false, quotedMessage.QuoteMessage(message.Author), token.ToRequestOptions());
         }
     }
 }
