@@ -23,11 +23,21 @@ namespace Estranged.Automation.Runner.Discord
                 builder.WithFooter($"Quoted by {quoter.Username}, originally posted in #{quotedMessage.Channel.Name}");
             }
 
+            foreach (var attachment in quotedMessage.Attachments)
+            {
+                builder.WithImageUrl(attachment.Url);
+            }
+
             foreach (var embed in quotedMessage.Embeds)
             {
-                if (!string.IsNullOrWhiteSpace(embed.Title) && !string.IsNullOrWhiteSpace(embed.Description))
+                if (!string.IsNullOrWhiteSpace(embed.Description))
                 {
-                    builder.AddField(embed.Title, embed.Description);
+                    builder.AddField(embed.Title ?? embed.Author.Value.Name, embed.Description);
+                }
+
+                if (embed.Image.HasValue)
+                {
+                    builder.WithImageUrl(embed.Image.Value.Url);
                 }
 
                 foreach (var field in embed.Fields)
@@ -46,6 +56,16 @@ namespace Estranged.Automation.Runner.Discord
         {
             IEnumerable<ulong> publicChannels = new ulong[]
             {
+                435094509953744907, // #announcements
+                453209462438887435, // #welcome
+                633724305871470593, // #goodbyes
+                633725420285591571, // #deletions
+                435152590209286145, // #reviews
+                470513916393291777, // #feedback
+                435913619662831616, // #syndication
+                455012497775132673, // #community
+                435097044433240065, // #git
+
                 368117881000427540, // #general
                 479405352207777795, // #gaming
                 437311972917248022, // #act-i
