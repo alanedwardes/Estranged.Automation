@@ -37,7 +37,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var messageId = ulong.Parse(match.Groups["messageId"].Value);
 
             var guild = await discordClient.GetGuildAsync(guildId, options: token.ToRequestOptions());
-            var channel = await guild.GetTextChannelAsync(channelId, options: token.ToRequestOptions());
+            var channel = (IMessageChannel)await guild.GetChannelAsync(channelId, options: token.ToRequestOptions());
             var quotedMessage = await channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 
             if (message.Channel.Id != quotedMessage.Channel.Id && !quotedMessage.Channel.IsPublicChannel())
