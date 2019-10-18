@@ -75,6 +75,8 @@ namespace Estranged.Automation.Runner.Discord
                 457813004889751553, // #ideas
                 535160312320753664, // #bots
                 549182701630914561, // #aaaaaaaaaaaaaaaaaaaa
+
+                435131444931723264, // #friends
             };
 
             return publicChannels.Contains(channel.Id);
