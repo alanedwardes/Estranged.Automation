@@ -129,13 +129,14 @@ namespace Estranged.Automation.Runner.Syndication
         {
             logger.LogInformation("Message deleted: {0}", messageId);
 
-            if (!channel.IsPublicChannel())
+            const string deletionsChannel = "deletions";
+            if (!channel.IsPublicChannel() && channel.Name != deletionsChannel)
             {
                 return;
             }
 
             var message = _publicMessageHistory.Single(x => x.Id == messageId);
-            await client.GetChannelByName("deletions").SendMessageAsync("Deleted:", false, message.QuoteMessage(), token.ToRequestOptions());
+            await client.GetChannelByName(deletionsChannel).SendMessageAsync("Deleted:", false, message.QuoteMessage(), token.ToRequestOptions());
         }
 
         private int messageCount;
