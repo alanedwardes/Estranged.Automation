@@ -31,7 +31,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string masterReference = "heads/master";
 
             // Find the attachment called "Game.po"
-            var translationAttachment = message.Attachments.FirstOrDefault(x => x.Filename == "Game.po");
+            var translationAttachment = message.Attachments.FirstOrDefault(x => x.Filename.Contains("Game.po"));
             if (translationAttachment == null)
             {
                 return;
