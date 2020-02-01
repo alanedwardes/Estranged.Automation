@@ -120,7 +120,7 @@ namespace Estranged.Automation.Runner.Syndication
         {
             logger.LogInformation("User left: {0}", user);
 
-            var goodbye = $"User <@{user.Id}> left the server!";
+            var goodbye = $"User <@{user.Id}> ({user.Nickname}) left the server!";
 
             await client.GetChannelByName("goodbyes").SendMessageAsync(goodbye, options: token.ToRequestOptions());
         }
