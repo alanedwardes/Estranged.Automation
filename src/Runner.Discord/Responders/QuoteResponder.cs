@@ -1,28 +1,22 @@
-﻿using System.Net.Http;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class QuoteResponder : IResponder
     {
-        public QuoteResponder(ILogger<QuoteResponder> logger, HttpClient httpClient, IDiscordClient discordClient)
+        public QuoteResponder(IDiscordClient discordClient)
         {
-            this.logger = logger;
-            this.httpClient = httpClient;
             this.discordClient = discordClient;
         }
 
-        private readonly ILogger<QuoteResponder> logger;
-        private readonly HttpClient httpClient;
         private readonly IDiscordClient discordClient;
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            const string MessageLinkRegex = "https://discordapp.com/channels/(?<guildId>[0-9]*)/(?<channelId>[0-9]*)/(?<messageId>[0-9]*)";
+            const string MessageLinkRegex = "/channels/(?<guildId>[0-9]*)/(?<channelId>[0-9]*)/(?<messageId>[0-9]*)";
 
             var regex = new Regex(MessageLinkRegex);
 
