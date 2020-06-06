@@ -24,7 +24,6 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
         private readonly ILogger<CommunityRunnable> logger;
         private readonly ISlackClient slack;
         private readonly ISeenItemRepository seenItemRepository;
-        private readonly HttpClient httpClient;
         private readonly TranslationClient translation;
         private readonly ISteamClient steam;
 
@@ -33,7 +32,6 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
             this.logger = logger;
             this.slack = new SlackClient(new SlackConfig { WebHookUrl = config.EstrangedDiscordReviewsWebhook, HttpClient = httpClient });
             this.seenItemRepository = seenItemRepository;
-            this.httpClient = httpClient;
             this.translation = translation;
             this.steam = steam;
         }
@@ -83,6 +81,17 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
                     logger.LogError(e, "Encountered error translating review.");
                 }
 
+                var reviewFlags = new List<string>
+                {
+                    unseenReview.SteamPurchase ? "Steam Activation" : "Key Activation",
+                    unseenReview.WrittenDuringEarlyAccess ? "Early Access" : "Released"
+                };
+
+                if (unseenReview.ReceivedForFree)
+                {
+                    reviewFlags.Add("Received for Free");
+                }
+
                 var fields = new List<Field>
                 {
                     new Field
@@ -102,6 +111,17 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
                         Title = "Play Time Last 2 Weeks",
                         Value = unseenReview.Author.PlayTimeLastTwoWeeks.Humanize(),
                         Short = true
+                    },
+                    new Field
+                    {
+                        Title = "Games Owned",
+                        Value = unseenReview.Author.NumGamesOwned.ToString("N"),
+                        Short = true
+                    },
+                    new Field
+                    {
+                        Title = "Type",
+                        Value = string.Join(", ", reviewFlags)
                     }
                 };
 
