@@ -43,7 +43,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             using (channel.EnterTypingState(token.ToRequestOptions()))
             {
                 var dog = JObject.Parse(await httpClient.GetStringAsync($"https://dog.ceo/api/breed/{breed}/images/random"));
-                await channel.SendMessageAsync(dog.Value<string>("message"));
+                await channel.SendMessageAsync(System.Uri.EscapeUriString(dog.Value<string>("message")));
             }
         }
     }
