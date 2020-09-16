@@ -102,7 +102,7 @@ namespace Estranged.Automation.Runner.Syndication
             var interestingChannels = string.Join("\n", new[]
             {
                 $"* <#437311972917248022> - Estranged: Act I discussion",
-                $"* <#437312012603752458> - Estranged: Act II discussion",
+                $"* <#437312012603752458> - Estranged: The Departure discussion",
                 $"* <#439742315016486922> - Work in progress development screenshots"
             });
 
@@ -187,7 +187,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         private Task ClientLog(LogMessage logMessage)
         {
-            logger.Log(GetLogLevel(logMessage.Severity), -1, logMessage.Message, logMessage.Exception);
+            logger.Log(GetLogLevel(logMessage.Severity), logMessage.Exception, logMessage.Message);
             return null;
         }
 

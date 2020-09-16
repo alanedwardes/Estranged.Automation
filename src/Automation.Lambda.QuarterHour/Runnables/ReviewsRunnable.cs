@@ -39,7 +39,7 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
         public IEnumerable<Task> RunAsync(CancellationToken token)
         {
             yield return GatherReviews("Estranged: Act I", 261820, token);
-            yield return GatherReviews("Estranged: Act II", 582890, token);
+            yield return GatherReviews("Estranged: The Departure", 582890, token);
         }
 
         public async Task GatherReviews(string product, uint appId, CancellationToken token)
