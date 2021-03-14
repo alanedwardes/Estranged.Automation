@@ -64,10 +64,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     var steamApps = await steamList.Value;
                     var randomApp = steamApps.Applist.Apps[RandomNumberGenerator.GetInt32(0, steamApps.Applist.Apps.Count)];
                     var randomFloat = RandomNumberGenerator.GetInt32(0, int.MaxValue) / (double)int.MaxValue;                   
-                    randomGame = randomFloat > 0.95 ? $"You should try {randomApp.Name}\nFind it here: {steamStoreUrl}{randomApp.Appid}" : "Hmm, read a book?";
+                    randomGame = randomFloat < 0.95 ? $"You should try {randomApp.Name}\nFind it here: {steamStoreUrl}{randomApp.Appid}" : "Hmm, read a book?";
 
                     await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
                 }
+
             }
         }
     }
