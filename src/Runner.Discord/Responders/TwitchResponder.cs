@@ -49,7 +49,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var emoji = (await emojiTask.Value).OrderBy(x => Guid.NewGuid()).First();
 
-            await message.Channel.SendMessageAsync(emoji.Uri.ToString());
+            await Task.Delay(TimeSpan.FromSeconds(1), token);
+
+            using (message.Channel.EnterTypingState())
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), token);
+                await message.Channel.SendMessageAsync(emoji.Uri.ToString(), options: token.ToRequestOptions());
+            }
         }
     }
 }
