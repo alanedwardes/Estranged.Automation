@@ -56,7 +56,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     string randomGame;
                     if (message.Author.Id == 269883106792701952)
                     {
-                        int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 1) == 0 ? 261820 : 582890;
+                        int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 2) == 0 ? 261820 : 582890;
                         randomGame = $"You should try this: {steamStoreUrl}{totallyRandomAppId}";
                         await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
                         return;
