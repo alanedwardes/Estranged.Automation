@@ -13,8 +13,6 @@ using System.Diagnostics;
 using System.Net.Http;
 using Google.Cloud.Translation.V2;
 using Google.Cloud.Language.V1;
-using Amazon.CloudWatch;
-using Amazon.CloudWatch.Model;
 using System.Collections.Generic;
 using Amazon;
 using Amazon.DynamoDBv2;
@@ -22,18 +20,14 @@ using Octokit;
 
 namespace Estranged.Automation.Runner.Syndication
 {
-    public class DiscordRunner : PeriodicRunner
+    public class DiscordRunner : IRunner
     {
         private readonly ILogger<DiscordRunner> logger;
-        private readonly ILoggerFactory loggerFactory;
         private IServiceProvider responderProvider;
-
-        public override TimeSpan Period => TimeSpan.FromMinutes(1);
 
         public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, TranslationClient translationClient, LanguageServiceClient languageServiceClient, IGitHubClient gitHubClient)
         {
             this.logger = logger;
-            this.loggerFactory = loggerFactory;
 
             responderProvider = new ServiceCollection()
                 .AddSingleton(loggerFactory)
@@ -45,7 +39,6 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, LocalizationResponder>()
                 .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
                 .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
-                .AddSingleton<IAmazonCloudWatch>(new AmazonCloudWatchClient(RegionEndpoint.EUWest1))
                 .AddSingleton<IDiscordClient, DiscordSocketClient>()
                 .AddSingleton<IResponder, HoistedRoleResponder>()
                 .AddSingleton<IResponder, DadJokeResponder>()
@@ -57,20 +50,23 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, HelloResponder>()
                 .AddSingleton<IResponder, QuoteResponder>()
                 .AddSingleton<IResponder, RtxResponder>()
+                .AddSingleton<IResponder, TwitchResponder>()
                 .BuildServiceProvider();
         }
 
-        public override async Task Run(CancellationToken token)
+        public async Task Run(CancellationToken token)
         {
             var socketClient = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
 
             socketClient.Log += ClientLog;
             socketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
+            socketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Id, channel, socketClient, token));
             socketClient.UserJoined += user => WrapTask(UserJoined(user, socketClient, token));
+            socketClient.UserLeft += user => WrapTask(UserLeft(user, socketClient, token));
 
             await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await socketClient.StartAsync();
-            await base.Run(token);
+            await Task.Delay(-1);
         }
 
         private async Task WrapTask(Task task)
@@ -100,7 +96,7 @@ namespace Estranged.Automation.Runner.Syndication
             var interestingChannels = string.Join("\n", new[]
             {
                 $"* <#437311972917248022> - Estranged: Act I discussion",
-                $"* <#437312012603752458> - Estranged: Act II discussion",
+                $"* <#437312012603752458> - Estranged: The Departure discussion",
                 $"* <#439742315016486922> - Work in progress development screenshots"
             });
 
@@ -114,11 +110,46 @@ namespace Estranged.Automation.Runner.Syndication
             await welcomeChannel.SendMessageAsync($"{welcome}\n{interestingChannels}\n{moderatorList}", options: token.ToRequestOptions());
         }
 
+        private async Task UserLeft(SocketGuildUser user, DiscordSocketClient client, CancellationToken token)
+        {
+            logger.LogInformation("User left: {0}", user);
+
+            var goodbye = $"User {user} left the server!";
+
+            await client.GetChannelByName("goodbyes").SendMessageAsync(goodbye, options: token.ToRequestOptions());
+        }
+
+        private async Task ClientMessageDeleted(ulong messageId, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
+        {
+            logger.LogInformation("Message deleted: {0}", messageId);
+
+            const string deletionsChannel = "deletions";
+            if (!channel.IsPublicChannel() && channel.Name != deletionsChannel)
+            {
+                return;
+            }
+
+            var message = _publicMessageHistory.Single(x => x.Id == messageId);
+            await client.GetChannelByName(deletionsChannel).SendMessageAsync("Deleted:", false, message.QuoteMessage(), token.ToRequestOptions());
+        }
+
         private int messageCount;
+
+        private IList<IMessage> _publicMessageHistory = new List<IMessage>();
 
         private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
             messageCount++;
+
+            if (socketMessage.Channel.IsPublicChannel())
+            {
+                _publicMessageHistory.Add(socketMessage);
+
+                if (_publicMessageHistory.Count > 100)
+                {
+                    _publicMessageHistory.RemoveAt(0);
+                }
+            }
 
             logger.LogTrace("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
@@ -150,97 +181,22 @@ namespace Estranged.Automation.Runner.Syndication
 
         private Task ClientLog(LogMessage logMessage)
         {
-            logger.Log(GetLogLevel(logMessage.Severity), -1, logMessage.Message, logMessage.Exception);
+            logger.Log(GetLogLevel(logMessage.Severity), logMessage.Exception, logMessage.Message);
             return null;
         }
 
         private LogLevel GetLogLevel(LogSeverity severity)
         {
-            switch (severity)
+            return severity switch
             {
-                case LogSeverity.Critical:
-                    return LogLevel.Critical;
-                case LogSeverity.Debug:
-                    return LogLevel.Debug;
-                case LogSeverity.Error:
-                    return LogLevel.Error;
-                case LogSeverity.Info:
-                    return LogLevel.Information;
-                case LogSeverity.Verbose:
-                    return LogLevel.Trace;
-                case LogSeverity.Warning:
-                    return LogLevel.Warning;
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        public override async Task RunPeriodically(CancellationToken token)
-        {
-            var client = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
-
-            foreach (var guild in client.Guilds)
-            {
-                var metrics = new List<MetricDatum>
-                {
-                    new MetricDatum
-                    {
-                        MetricName = "Users",
-                        TimestampUtc = DateTime.UtcNow,
-                        Unit = StandardUnit.Count,
-                        Dimensions = new List<Dimension>
-                        {
-                            new Dimension
-                            {
-                                Name = "Type",
-                                Value = "Total"
-                            }
-                        },
-                        Value = guild.MemberCount
-                    },
-                    new MetricDatum
-                    {
-                        MetricName = "Messages",
-                        TimestampUtc = DateTime.UtcNow,
-                        Unit = StandardUnit.Count,
-                        Value = messageCount
-                    }
-                };
-
-                foreach (UserStatus status in Enum.GetValues(typeof(UserStatus)))
-                {
-                    if (status == UserStatus.Invisible)
-                    {
-                        continue;
-                    }
-
-                    metrics.Add(new MetricDatum
-                    {
-                        MetricName = "Users",
-                        TimestampUtc = DateTime.UtcNow,
-                        Unit = StandardUnit.Count,
-                        Dimensions = new List<Dimension>
-                        {
-                            new Dimension
-                            {
-                                Name = "Type",
-                                Value = status.ToString()
-                            }
-                        },
-                        Value = guild.Users.Count(x => x.Status == status)
-                    });
-                }
-
-                var request = new PutMetricDataRequest
-                {
-                    MetricData = metrics,
-                    Namespace = "Discord/" + guild.Name
-                };
-
-                await responderProvider.GetRequiredService<IAmazonCloudWatch>().PutMetricDataAsync(request);
-            }
-
-            messageCount = 0;
+                LogSeverity.Critical => LogLevel.Critical,
+                LogSeverity.Debug => LogLevel.Debug,
+                LogSeverity.Error => LogLevel.Error,
+                LogSeverity.Info => LogLevel.Information,
+                LogSeverity.Verbose => LogLevel.Trace,
+                LogSeverity.Warning => LogLevel.Warning,
+                _ => throw new NotImplementedException(),
+            };
         }
     }
 }

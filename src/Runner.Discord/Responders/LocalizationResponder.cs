@@ -4,8 +4,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
 using Discord;
-using Newtonsoft.Json;
 using Octokit;
 
 namespace Estranged.Automation.Runner.Discord.Responders
@@ -14,11 +15,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly IGitHubClient gitHubClient;
         private readonly HttpClient httpClient;
+        private readonly IAmazonDynamoDB dynamoDb;
 
-        public LocalizationResponder(IGitHubClient gitHubClient, HttpClient httpClient)
+        public LocalizationResponder(IGitHubClient gitHubClient, IAmazonDynamoDB dynamoDb, HttpClient httpClient)
         {
             this.gitHubClient = gitHubClient;
             this.httpClient = httpClient;
+            this.dynamoDb = dynamoDb;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
@@ -28,23 +31,21 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string masterReference = "heads/master";
 
             // Find the attachment called "Game.po"
-            var translationAttachment = message.Attachments.FirstOrDefault(x => x.Filename == "Game.po");
+            var translationAttachment = message.Attachments.FirstOrDefault(x => x.Filename.Contains("Game.po"));
             if (translationAttachment == null)
             {
                 return;
             }
 
-            // Get the permissions manifest from GitHub
-            var permissions = (await gitHubClient.Repository.Content.GetAllContentsByRef(owner, repository, "permissions.json", "refs/" + masterReference)).SingleOrDefault();
-
-            // Deserialize to JSON
-            var userLocaleMapping = JsonConvert.DeserializeObject<IDictionary<ulong, string>>(permissions.Content);
-
-            // Try to match the user ID to a locale
-            if (!userLocaleMapping.TryGetValue(message.Author.Id, out string localeId))
+            // Validate permissions against the DynamoDB table
+            var permissionItem = await dynamoDb.GetItemAsync("EstrangedAutomationTranslators", new Dictionary<string, AttributeValue> {{"UserId", new AttributeValue(message.Author.Id.ToString())}}, token);
+            if (permissionItem.Item == null)
             {
                 return;
             }
+
+            // Pull the locale ID from the row
+            var localeId = permissionItem.Item["LanguageId"].S;
 
             // Download the attachment and normalise line endings
             var translation = (await httpClient.GetStringAsync(translationAttachment.Url)).Replace("\r\n", "\n");
