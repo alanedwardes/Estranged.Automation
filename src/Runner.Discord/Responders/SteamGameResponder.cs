@@ -42,7 +42,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 SteamAppListRoot appList = JsonConvert.DeserializeObject<SteamAppListRoot>(responseBody);
-                //probably add null check here /shrug
                 return appList;
             });
         }
@@ -52,7 +51,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             string randomGame;
             if (message.Author.Id == 269883106792701952)
             {
-                int totallyRandomAppId = new Random().Next(0, 2) == 0 ? 261820 : 582890;
+                int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 1) == 0 ? 261820 : 582890;
                 randomGame = $"You should try this: {steamStoreUrl}{totallyRandomAppId}";
                 await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
                 return;
@@ -62,8 +61,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 if (trimmed.Contains(commands[i]))
                 {
-                    App randomApp = steamList.Value.Result.Applist.Apps[new Random().Next(steamList.Value.Result.Applist.Apps.Count)];
-                    randomGame = randomApp != null ? $"You should try {randomApp.Name}\nFind it here: {steamStoreUrl}{randomApp.Appid}" : "Hmm, read a book?";
+                    var steamApps = await steamList.Value;
+                    var randomApp = steamApps.Applist.Apps[RandomNumberGenerator.GetInt32(0, steamApps.Applist.Apps.Count)];
+                    var randomFloat = RandomNumberGenerator.GetInt32(0, int.MaxValue) / (double)int.MaxValue;                   
+                    randomGame = randomFloat > 0.95 ? $"You should try {randomApp.Name}\nFind it here: {steamStoreUrl}{randomApp.Appid}" : "Hmm, read a book?";
 
                     await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
                 }
