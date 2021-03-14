@@ -50,7 +50,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, HelloResponder>()
                 .AddSingleton<IResponder, QuoteResponder>()
                 .AddSingleton<IResponder, RtxResponder>()
-                //.AddSingleton<IResponder, TwitchResponder>()
+                .AddSingleton<IResponder, TwitchResponder>()
                 .BuildServiceProvider();
         }
 
@@ -66,6 +66,7 @@ namespace Estranged.Automation.Runner.Syndication
 
             await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await socketClient.StartAsync();
+            await Task.Delay(-1);
         }
 
         private async Task WrapTask(Task task)
