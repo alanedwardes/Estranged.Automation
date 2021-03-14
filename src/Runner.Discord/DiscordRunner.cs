@@ -51,6 +51,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, QuoteResponder>()
                 .AddSingleton<IResponder, RtxResponder>()
                 .AddSingleton<IResponder, TwitchResponder>()
+                .AddSingleton<IResponder, SteamGameResponder>()
                 .BuildServiceProvider();
         }
 
