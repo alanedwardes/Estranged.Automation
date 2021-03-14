@@ -47,20 +47,20 @@ namespace Estranged.Automation.Runner.Discord.Responders
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
-        {
-            string randomGame;
-            if (message.Author.Id == 269883106792701952)
-            {
-                int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 1) == 0 ? 261820 : 582890;
-                randomGame = $"You should try this: {steamStoreUrl}{totallyRandomAppId}";
-                await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
-                return;
-            }
+        {            
             var trimmed = message.Content.ToLower().Trim();
             for (int i = 0; i < commands.Length; i++)
             {
                 if (trimmed.Contains(commands[i]))
                 {
+                    string randomGame;
+                    if (message.Author.Id == 269883106792701952)
+                    {
+                        int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 1) == 0 ? 261820 : 582890;
+                        randomGame = $"You should try this: {steamStoreUrl}{totallyRandomAppId}";
+                        await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
+                        return;
+                    }
                     var steamApps = await steamList.Value;
                     var randomApp = steamApps.Applist.Apps[RandomNumberGenerator.GetInt32(0, steamApps.Applist.Apps.Count)];
                     var randomFloat = RandomNumberGenerator.GetInt32(0, int.MaxValue) / (double)int.MaxValue;                   
