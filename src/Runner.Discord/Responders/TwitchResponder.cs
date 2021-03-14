@@ -23,7 +23,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
         {
             emojiTask = new Lazy<Task<TwitchEmoji[]>>(async () =>
             {
-                var emojiList = await httpClient.GetStringAsync("https://www.twitch.tv/creatorcamp/en/learn-the-basics/emotes/");
+                var emojiListResponse = await httpClient.GetAsync("https://www.twitch.tv/creatorcamp/en/learn-the-basics/emotes/");
+
+                emojiListResponse.EnsureSuccessStatusCode();
+
+                var emojiList = await emojiListResponse.Content.ReadAsStringAsync();
 
                 var matches = Regex.Matches(emojiList, "src=\"(?<url>/creatorcamp/assets/uploads/(?<name>.*?).png)\"");
 
