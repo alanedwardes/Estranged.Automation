@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -29,10 +28,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
             public Applist Applist { get; set; }
         }
 
-        private string[] commands = new string[] { "what to play", "recommend me a game", "what to buy", "oh man it sure it annoying I don't have anything to play" };
+        private readonly string[] commands = new string[] { "what to play", "recommend me a game", "what to buy", "oh man it sure it annoying I don't have anything to play" };
         private const string steamStoreUrl = "https://store.steampowered.com/app/";
 
-        private Lazy<Task<SteamAppListRoot>> steamList;
+        private readonly Lazy<Task<SteamAppListRoot>> steamList;
 
         public SteamGameResponder(HttpClient httpClient)
         {
@@ -41,35 +40,34 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 HttpResponseMessage response = await httpClient.GetAsync("https://api.steampowered.com/ISteamApps/GetAppList/v2/");
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
-                SteamAppListRoot appList = JsonConvert.DeserializeObject<SteamAppListRoot>(responseBody);
-                return appList;
+                return JsonConvert.DeserializeObject<SteamAppListRoot>(responseBody);
             });
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {            
-            var trimmed = message.Content.ToLower().Trim();
-            for (int i = 0; i < commands.Length; i++)
+            if (!commands.Any(x => message.Content.Contains(x, StringComparison.InvariantCultureIgnoreCase)))
             {
-                if (trimmed.Contains(commands[i]))
-                {
-                    string randomGame;
-                    if (message.Author.Id == 269883106792701952)
-                    {
-                        int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 2) == 0 ? 261820 : 582890;
-                        randomGame = $"You should try this: {steamStoreUrl}{totallyRandomAppId}";
-                        await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
-                        return;
-                    }
-                    var steamApps = await steamList.Value;
-                    var randomApp = steamApps.Applist.Apps[RandomNumberGenerator.GetInt32(0, steamApps.Applist.Apps.Count)];
-                    var randomFloat = RandomNumberGenerator.GetInt32(0, int.MaxValue) / (double)int.MaxValue;                   
-                    randomGame = randomFloat < 0.95 ? $"You should try {randomApp.Name}\nFind it here: {steamStoreUrl}{randomApp.Appid}" : "Hmm, read a book?";
-
-                    await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
-                }
-
+                return;
             }
+
+            if (message.Author.Id == 269883106792701952)
+            {
+                int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 2) == 0 ? 261820 : 582890;
+                await message.Channel.SendMessageAsync($"You should try this: {steamStoreUrl}{totallyRandomAppId}", options: token.ToRequestOptions());
+                return;
+            }
+
+            if (RandomNumberGenerator.GetInt32(0, 101) >= 95)
+            {
+                await message.Channel.SendMessageAsync("Hmm, read a book?", options: token.ToRequestOptions());
+                return;
+            }
+
+            var steamApps = await steamList.Value;
+            var randomApp = steamApps.Applist.Apps[RandomNumberGenerator.GetInt32(0, steamApps.Applist.Apps.Count)];
+            var randomGame = $"You should try {randomApp.Name}\nFind it here: {steamStoreUrl}{randomApp.Appid}";
+            await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
         }
     }
 }

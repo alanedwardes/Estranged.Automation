@@ -17,7 +17,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             public string Name { get; set; }
         }
 
-        private Lazy<Task<TwitchEmoji[]>> emojiTask;
+        private readonly Lazy<Task<TwitchEmoji[]>> emojiTask;
 
         public TwitchResponder(HttpClient httpClient)
         {
