@@ -40,7 +40,6 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
                 .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddSingleton<IDiscordClient, DiscordSocketClient>()
-                .AddSingleton<IResponder, HoistedRoleResponder>()
                 .AddSingleton<IResponder, DadJokeResponder>()
                 .AddSingleton<IResponder, PullTheLeverResponder>()
                 .AddSingleton<IResponder, EnglishTranslationResponder>()
@@ -52,6 +51,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton<IResponder, RtxResponder>()
                 .AddSingleton<IResponder, TwitchResponder>()
                 .AddSingleton<IResponder, SteamGameResponder>()
+                .AddSingleton<IResponder, SobResponder>()
                 .BuildServiceProvider();
         }
 
