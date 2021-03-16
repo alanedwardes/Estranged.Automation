@@ -1,4 +1,5 @@
 ﻿using Discord;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,7 +24,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (message.Content == _lastMessage.Message && message.Author.Id != _lastMessage.Author)
             {
-                await message.Channel.SendMessageAsync(message.Content, options: token.ToRequestOptions());
+                if (RandomNumberGenerator.GetInt32(100) > 50)
+                {
+                    await message.Channel.SendMessageAsync(message.Content, options: token.ToRequestOptions());
+                }
             }
 
             _lastMessage = new LastPhrase{Author = message.Author.Id,Message = message.Content};
