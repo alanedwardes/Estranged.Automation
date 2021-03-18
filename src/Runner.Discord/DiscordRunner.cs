@@ -130,7 +130,7 @@ namespace Estranged.Automation.Runner.Syndication
             _logger.LogTrace("Finding responder services");
             var responders = _serviceProvider.GetServices<IResponder>().ToArray();
             _logger.LogTrace("Invoking {0} responders", responders.Length);
-            await Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
+            _ = Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
