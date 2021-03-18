@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ae.Steam.Client;
 using Ae.Steam.Client.Entities;
+using Ae.Steam.Client.Exceptions;
 using Discord;
 
 namespace Estranged.Automation.Runner.Discord.Responders
@@ -22,6 +23,27 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _steamClient = steamClient;
         }
 
+        private async Task<SteamAppDetails> GetRandomGame(CancellationToken token)
+        {
+            var steamApps = await _steamList.Value;
+            var randomApp = steamApps[RandomNumberGenerator.GetInt32(0, steamApps.Count)];
+            var appId = randomApp.AppId;
+
+            SteamAppDetails steamAppDetails = await _steamClient.GetAppDetails(appId, token);
+            
+            if (steamAppDetails.Type != "game")
+            {
+                return null;
+            }
+
+            if (steamAppDetails.RequiredAge >= 18)
+            {
+                return null;
+            }
+
+            return steamAppDetails;
+        }
+
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {            
             if (!commands.Any(x => message.Content.Contains(x, StringComparison.InvariantCultureIgnoreCase)))
@@ -31,22 +53,21 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (message.Author.Id == 269883106792701952)
             {
-                const string steamStoreUrl = "https://store.steampowered.com/app/";
                 int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 2) == 0 ? 261820 : 582890;
-                await message.Channel.SendMessageAsync($"You should try this: {steamStoreUrl}{totallyRandomAppId}", options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync($"You should try this: https://store.steampowered.com/app/{totallyRandomAppId}", options: token.ToRequestOptions());
                 return;
             }
 
-            if (RandomNumberGenerator.GetInt32(0, 101) >= 95)
+            // Try 3 times to get something
+            var randomGame = await GetRandomGame(token) ?? await GetRandomGame(token) ?? await GetRandomGame(token);
+
+            if (randomGame == null)
             {
                 await message.Channel.SendMessageAsync("Hmm, read a book?", options: token.ToRequestOptions());
                 return;
             }
-
-            var steamApps = await _steamList.Value;
-            var randomApp = steamApps[RandomNumberGenerator.GetInt32(0, steamApps.Count)];
-            var randomGame = $"You should try {randomApp.Name}\nFind it here: {randomApp.StorePage}";
-            await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
+            
+            await message.Channel.SendMessageAsync($"You should try {randomGame.Name}\nFind it here: https://store.steampowered.com/app/{randomGame.SteamAppId}", options: token.ToRequestOptions());
         }
     }
 }

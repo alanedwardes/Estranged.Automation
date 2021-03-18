@@ -31,7 +31,7 @@ namespace Estranged.Automation
                 Credentials = new Credentials("estranged-automation", Environment.GetEnvironmentVariable("GITHUB_PASSWORD"))
             };
 
-            var discordSocketClient = new DiscordSocketClient();
+            var discordSocketClient = new DiscordSocketClient(new DiscordSocketConfig { HandlerTimeout = null });
 
             var services = new ServiceCollection()
                 .AddLogging(options => options.AddConsole().SetMinimumLevel(LogLevel.Warning))
