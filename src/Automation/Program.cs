@@ -1,6 +1,7 @@
 ﻿using Ae.Steam.Client;
 using Amazon;
 using Amazon.DynamoDBv2;
+using Discord;
 using Discord.WebSocket;
 using Estranged.Automation.Runner.Discord;
 using Estranged.Automation.Runner.Syndication;
@@ -30,12 +31,15 @@ namespace Estranged.Automation
                 Credentials = new Credentials("estranged-automation", Environment.GetEnvironmentVariable("GITHUB_PASSWORD"))
             };
 
+            var discordSocketClient = new DiscordSocketClient();
+
             var services = new ServiceCollection()
                 .AddLogging(options => options.AddConsole().SetMinimumLevel(LogLevel.Warning))
                 .AddTransient<RunnerManager>()
                 .AddTransient<IRunner, DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
-                .AddSingleton<DiscordSocketClient, DiscordSocketClient>()
+                .AddSingleton(discordSocketClient)
+                .AddSingleton<IDiscordClient>(discordSocketClient)
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
                 .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()

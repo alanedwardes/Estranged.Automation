@@ -28,8 +28,6 @@ namespace Estranged.Automation.Runner.Syndication
 
         public async Task Run(CancellationToken token)
         {
-            var socketClient = (DiscordSocketClient)_serviceProvider.GetRequiredService<IDiscordClient>();
-
             _discordSocketClient.Log += ClientLog;
             _discordSocketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
             _discordSocketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Id, channel, socketClient, token));
