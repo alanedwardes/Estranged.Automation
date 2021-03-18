@@ -9,14 +9,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class EnglishTranslationResponder : IResponder
     {
-        private readonly ILogger<EnglishTranslationResponder> logger;
-        private readonly TranslationClient translation;
+        private readonly ILogger<EnglishTranslationResponder> _logger;
+        private readonly TranslationClient _translation;
         private const string InvocationCommand = "!translate";
 
         public EnglishTranslationResponder(ILogger<EnglishTranslationResponder> logger, TranslationClient translation)
         {
-            this.logger = logger;
-            this.translation = translation;
+            _logger = logger;
+            _translation = translation;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
@@ -30,22 +30,22 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (Uri.TryCreate(messageContent, UriKind.Absolute, out var uri))
             {
-                logger.LogInformation("Ignoring message {0} due to it being a URL", message.Content);
+                _logger.LogInformation("Ignoring message {0} due to it being a URL", message.Content);
                 return;
             }
 
-            var detection = await translation.DetectLanguageAsync(messageContent, token);
+            var detection = await _translation.DetectLanguageAsync(messageContent, token);
             if (detection.Language == "en" || detection.Language == "und")
             {
-                logger.LogInformation("Ignoring message {0} due to it being in {1}", message.Content, detection.Language);
+                _logger.LogInformation("Ignoring message {0} due to it being in {1}", message.Content, detection.Language);
                 return;
             }
 
-            logger.LogInformation("Message is written in {0} with {1} confidence", detection.Language, detection.Confidence);
+            _logger.LogInformation("Message is written in {0} with {1} confidence", detection.Language, detection.Confidence);
 
             using (message.Channel.EnterTypingState(token.ToRequestOptions()))
             {
-                var translated = await translation.TranslateTextAsync(messageContent, "en", detection.Language, cancellationToken: token);
+                var translated = await _translation.TranslateTextAsync(messageContent, "en", detection.Language, cancellationToken: token);
                 if (translated.TranslatedText == translated.OriginalText)
                 {
                     return;

@@ -13,15 +13,15 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class LocalizationResponder : IResponder
     {
-        private readonly IGitHubClient gitHubClient;
-        private readonly HttpClient httpClient;
-        private readonly IAmazonDynamoDB dynamoDb;
+        private readonly IGitHubClient _gitHubClient;
+        private readonly IAmazonDynamoDB _dynamoDb;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public LocalizationResponder(IGitHubClient gitHubClient, IAmazonDynamoDB dynamoDb, HttpClient httpClient)
+        public LocalizationResponder(IGitHubClient gitHubClient, IAmazonDynamoDB dynamoDb, IHttpClientFactory httpClientFactory)
         {
-            this.gitHubClient = gitHubClient;
-            this.httpClient = httpClient;
-            this.dynamoDb = dynamoDb;
+            _gitHubClient = gitHubClient;
+            _dynamoDb = dynamoDb;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
@@ -38,11 +38,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
 
             // Validate permissions against the DynamoDB table
-            var permissionItem = await dynamoDb.GetItemAsync("EstrangedAutomationTranslators", new Dictionary<string, AttributeValue> {{"UserId", new AttributeValue(message.Author.Id.ToString())}}, token);
+            var permissionItem = await _dynamoDb.GetItemAsync("EstrangedAutomationTranslators", new Dictionary<string, AttributeValue> {{"UserId", new AttributeValue(message.Author.Id.ToString())}}, token);
             if (permissionItem.Item == null)
             {
                 return;
             }
+
+            using var httpClient = _httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
 
             // Pull the locale ID from the row
             var localeId = permissionItem.Item["LanguageId"].S;
@@ -54,19 +56,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var translationPath = $"Game/{localeId}/Game.po";
 
             // Get the current master reference
-            var master = await gitHubClient.Git.Reference.Get(owner, repository, masterReference);
+            var master = await _gitHubClient.Git.Reference.Get(owner, repository, masterReference);
 
             // Create a new branch
-            var newBranch = await gitHubClient.Git.Reference.Create(owner, repository, new NewReference("refs/heads/" + Guid.NewGuid(), master.Object.Sha));
+            var newBranch = await _gitHubClient.Git.Reference.Create(owner, repository, new NewReference("refs/heads/" + Guid.NewGuid(), master.Object.Sha));
 
             // Get the existing file reference
-            var existingFile = (await gitHubClient.Repository.Content.GetAllContentsByRef(owner, repository, translationPath, newBranch.Ref)).SingleOrDefault();
+            var existingFile = (await _gitHubClient.Repository.Content.GetAllContentsByRef(owner, repository, translationPath, newBranch.Ref)).SingleOrDefault();
 
             // Update the existing file
-            await gitHubClient.Repository.Content.UpdateFile(owner, repository, translationPath, new UpdateFileRequest($"Updates Game.po for {localeId}", translation, existingFile.Sha, newBranch.Ref));
+            await _gitHubClient.Repository.Content.UpdateFile(owner, repository, translationPath, new UpdateFileRequest($"Updates Game.po for {localeId}", translation, existingFile.Sha, newBranch.Ref));
 
             // Create a pull request
-            var pullRequest = await gitHubClient.PullRequest.Create(owner, repository, new NewPullRequest($"Updates {localeId} Localization", newBranch.Ref, "refs/" + masterReference));
+            var pullRequest = await _gitHubClient.PullRequest.Create(owner, repository, new NewPullRequest($"Updates {localeId} Localization", newBranch.Ref, "refs/" + masterReference));
 
             // Send a message with PR link
             await message.Channel.SendMessageAsync($"Opened PR on behalf of <@{message.Author.Id}>: {pullRequest.HtmlUrl} (CC <@269883106792701952>)");

@@ -9,10 +9,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         public QuoteResponder(IDiscordClient discordClient)
         {
-            this.discordClient = discordClient;
+            _discordClient = discordClient;
         }
 
-        private readonly IDiscordClient discordClient;
+        private readonly IDiscordClient _discordClient;
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
@@ -30,7 +30,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var channelId = ulong.Parse(match.Groups["channelId"].Value);
             var messageId = ulong.Parse(match.Groups["messageId"].Value);
 
-            var guild = await discordClient.GetGuildAsync(guildId, options: token.ToRequestOptions());
+            var guild = await _discordClient.GetGuildAsync(guildId, options: token.ToRequestOptions());
             var channel = (IMessageChannel)await guild.GetChannelAsync(channelId, options: token.ToRequestOptions());
             var quotedMessage = await channel.GetMessageAsync(messageId, options: token.ToRequestOptions());
 

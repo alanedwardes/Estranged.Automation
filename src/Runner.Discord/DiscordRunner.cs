@@ -7,75 +7,37 @@ using Discord;
 using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Estranged.Automation.Runner.Discord.Responders;
 using Estranged.Automation.Runner.Discord;
 using System.Diagnostics;
-using System.Net.Http;
-using Google.Cloud.Translation.V2;
-using Google.Cloud.Language.V1;
 using System.Collections.Generic;
-using Amazon;
-using Amazon.DynamoDBv2;
-using Octokit;
-using Ae.Steam.Client;
 
 namespace Estranged.Automation.Runner.Syndication
 {
     public class DiscordRunner : IRunner
     {
-        private readonly ILogger<DiscordRunner> logger;
-        private readonly IServiceProvider responderProvider;
+        private readonly ILogger<DiscordRunner> _logger;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly DiscordSocketClient _discordSocketClient;
 
-        public DiscordRunner(ILogger<DiscordRunner> logger,
-            ILoggerFactory loggerFactory,
-            HttpClient httpClient,
-            TranslationClient translationClient,
-            LanguageServiceClient languageServiceClient,
-            IGitHubClient gitHubClient,
-            ISteamClient steamClient)
+        public DiscordRunner(ILogger<DiscordRunner> logger, IServiceProvider serviceProvider, DiscordSocketClient discordSocketClient)
         {
-            this.logger = logger;
-
-            responderProvider = new ServiceCollection()
-                .AddSingleton(loggerFactory)
-                .AddLogging()
-                .AddSingleton(httpClient)
-                .AddSingleton(translationClient)
-                .AddSingleton(languageServiceClient)
-                .AddSingleton(gitHubClient)
-                .AddSingleton(steamClient)
-                .AddSingleton<IResponder, LocalizationResponder>()
-                .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
-                .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
-                .AddSingleton<IDiscordClient, DiscordSocketClient>()
-                .AddSingleton<IResponder, DadJokeResponder>()
-                .AddSingleton<IResponder, PullTheLeverResponder>()
-                .AddSingleton<IResponder, EnglishTranslationResponder>()
-                .AddSingleton<IResponder, TranslationResponder>()
-                .AddSingleton<IResponder, NaturalLanguageResponder>()
-                .AddSingleton<IResponder, DogResponder>()
-                .AddSingleton<IResponder, HelloResponder>()
-                .AddSingleton<IResponder, QuoteResponder>()
-                .AddSingleton<IResponder, RtxResponder>()
-                .AddSingleton<IResponder, TwitchResponder>()
-                .AddSingleton<IResponder, SteamGameResponder>()
-                .AddSingleton<IResponder, SobResponder>()
-                .AddSingleton<IResponder, RepeatPhraseResponder>()
-                .BuildServiceProvider();
+            _logger = logger;
+            _serviceProvider = serviceProvider;
+            _discordSocketClient = discordSocketClient;
         }
 
         public async Task Run(CancellationToken token)
         {
-            var socketClient = (DiscordSocketClient)responderProvider.GetRequiredService<IDiscordClient>();
+            var socketClient = (DiscordSocketClient)_serviceProvider.GetRequiredService<IDiscordClient>();
 
-            socketClient.Log += ClientLog;
-            socketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
-            socketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Id, channel, socketClient, token));
-            socketClient.UserJoined += user => WrapTask(UserJoined(user, socketClient, token));
-            socketClient.UserLeft += user => WrapTask(UserLeft(user, socketClient, token));
+            _discordSocketClient.Log += ClientLog;
+            _discordSocketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
+            _discordSocketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Id, channel, socketClient, token));
+            _discordSocketClient.UserJoined += user => WrapTask(UserJoined(user, socketClient, token));
+            _discordSocketClient.UserLeft += user => WrapTask(UserLeft(user, socketClient, token));
 
-            await socketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
-            await socketClient.StartAsync();
+            await _discordSocketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
+            await _discordSocketClient.StartAsync();
             await Task.Delay(-1);
         }
 
@@ -87,13 +49,13 @@ namespace Estranged.Automation.Runner.Syndication
             }
             catch (Exception e)
             {
-                logger.LogCritical(e, "Exception from event handler task");
+                _logger.LogCritical(e, "Exception from event handler task");
             }
         }
 
         private async Task UserJoined(SocketGuildUser user, DiscordSocketClient client, CancellationToken token)
         {
-            logger.LogInformation("User joined: {0}", user);
+            _logger.LogInformation("User joined: {0}", user);
 
             var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
 
@@ -122,7 +84,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         private async Task UserLeft(SocketGuildUser user, DiscordSocketClient client, CancellationToken token)
         {
-            logger.LogInformation("User left: {0}", user);
+            _logger.LogInformation("User left: {0}", user);
 
             var goodbye = $"User {user} left the server!";
 
@@ -131,7 +93,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         private async Task ClientMessageDeleted(ulong messageId, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
         {
-            logger.LogInformation("Message deleted: {0}", messageId);
+            _logger.LogInformation("Message deleted: {0}", messageId);
 
             const string deletionsChannel = "deletions";
             if (!channel.IsPublicChannel() && channel.Name != deletionsChannel)
@@ -161,22 +123,22 @@ namespace Estranged.Automation.Runner.Syndication
                 }
             }
 
-            logger.LogTrace("Message received: {0}", socketMessage);
+            _logger.LogTrace("Message received: {0}", socketMessage);
             if (socketMessage.Author.IsBot || socketMessage.Author.IsWebhook)
             {
                 return;
             }
 
-            logger.LogTrace("Finding responder services");
-            var responders = responderProvider.GetServices<IResponder>().ToArray();
-            logger.LogTrace("Invoking {0} responders", responders.Length);
+            _logger.LogTrace("Finding responder services");
+            var responders = _serviceProvider.GetServices<IResponder>().ToArray();
+            _logger.LogTrace("Invoking {0} responders", responders.Length);
             await Task.WhenAll(responders.Select(x => RunResponder(x, socketMessage, token)));
         }
 
         private async Task RunResponder(IResponder responder, IMessage message, CancellationToken token)
         {
             var stopwatch = new Stopwatch();
-            logger.LogTrace("Running responder {0} for message {1}", responder.GetType().Name, message);
+            _logger.LogTrace("Running responder {0} for message {1}", responder.GetType().Name, message);
             stopwatch.Start();
             try
             {
@@ -184,14 +146,14 @@ namespace Estranged.Automation.Runner.Syndication
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Got exception from responder caused by message \"{0}\"", message);
+                _logger.LogError(e, "Got exception from responder caused by message \"{0}\"", message);
             }
-            logger.LogTrace("Completed responder {0} in {1} for message: {2}", responder.GetType().Name, stopwatch.Elapsed, message);
+            _logger.LogTrace("Completed responder {0} in {1} for message: {2}", responder.GetType().Name, stopwatch.Elapsed, message);
         }
 
         private Task ClientLog(LogMessage logMessage)
         {
-            logger.Log(GetLogLevel(logMessage.Severity), logMessage.Exception, logMessage.Message);
+            _logger.Log(GetLogLevel(logMessage.Severity), logMessage.Exception, logMessage.Message);
             return null;
         }
 

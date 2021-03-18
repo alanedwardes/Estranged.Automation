@@ -10,18 +10,18 @@ namespace Estranged.Automation
 {
     public class RunnerManager
     {
-        private readonly ILogger<RunnerManager> logger;
-        private readonly IServiceProvider serviceProvider;
+        private readonly ILogger<RunnerManager> _logger;
+        private readonly IServiceProvider _serviceProvider;
 
         public RunnerManager(ILogger<RunnerManager> logger, IServiceProvider serviceProvider)
         {
-            this.logger = logger;
-            this.serviceProvider = serviceProvider;
+            _logger = logger;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task Run(CancellationToken token)
         {
-            var tasks = serviceProvider.GetServices<IRunner>()
+            var tasks = _serviceProvider.GetServices<IRunner>()
                                        .Select(x => RunForever(x, token));
 
             await Task.WhenAll(tasks);
@@ -41,7 +41,7 @@ namespace Estranged.Automation
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Exception from task");
+                    _logger.LogError(e, "Exception from task");
                     await Task.Delay(TimeSpan.FromMinutes(1), token);
                 }
             }

@@ -10,13 +10,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     public class DadJokeResponder : IResponder
     {
-        private readonly ILogger<DadJokeResponder> logger;
-        private readonly HttpClient httpClient;
+        private readonly ILogger<DadJokeResponder> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public DadJokeResponder(ILogger<DadJokeResponder> logger, HttpClient httpClient)
+        public DadJokeResponder(ILogger<DadJokeResponder> logger, IHttpClientFactory httpClientFactory)
         {
-            this.logger = logger;
-            this.httpClient = httpClient;
+            _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
@@ -27,7 +27,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            logger.LogInformation("Fetching dad joke.");
+            _logger.LogInformation("Fetching dad joke.");
 
             var request = new HttpRequestMessage
             {
@@ -39,11 +39,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
 
             using (message.Channel.EnterTypingState(token.ToRequestOptions()))
+            using (var httpClient = _httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT))
             {
                 var response = await httpClient.SendAsync(request, token);
                 var joke = await response.Content.ReadAsStringAsync();
 
-                logger.LogInformation("Sending dad joke: {0}", joke);
+                _logger.LogInformation("Sending dad joke: {0}", joke);
                 await message.Channel.SendMessageAsync(joke, options: token.ToRequestOptions());
             }
         }

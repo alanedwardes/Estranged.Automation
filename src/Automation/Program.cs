@@ -1,6 +1,8 @@
 ﻿using Ae.Steam.Client;
 using Amazon;
 using Amazon.DynamoDBv2;
+using Discord.WebSocket;
+using Estranged.Automation.Runner.Discord;
 using Estranged.Automation.Runner.Syndication;
 using Estranged.Automation.Shared;
 using Google.Cloud.Language.V1;
@@ -9,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using System;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,10 +23,7 @@ namespace Estranged.Automation
         {
             Console.WriteLine("Bootstrapping");
 
-            var httpClient = new HttpClient();
-
             var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");
-            httpClient.DefaultRequestHeaders.UserAgent.Add(productHeader);
 
             var gitHubClient = new GitHubClient(new Octokit.ProductHeaderValue(productHeader.Product.Name, productHeader.Product.Version))
             {
@@ -37,13 +35,16 @@ namespace Estranged.Automation
                 .AddTransient<RunnerManager>()
                 .AddTransient<IRunner, DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
+                .AddSingleton<DiscordSocketClient, DiscordSocketClient>()
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
+                .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
                 .AddSingleton(TranslationClient.Create())
-                .AddSingleton(LanguageServiceClient.Create());
+                .AddSingleton(LanguageServiceClient.Create())
+                .AddResponderServices();
 
-            services.AddHttpClient();
-            services.AddHttpClient<ISteamClient, SteamClient>();
+            services.AddHttpClient(DiscordHttpClientConstants.RESPONDER_CLIENT, x => x.DefaultRequestHeaders.UserAgent.Add(productHeader));
+            services.AddHttpClient<ISteamClient, SteamClient>(x => x.DefaultRequestHeaders.UserAgent.Add(productHeader));
 
             var provider = services.BuildServiceProvider();
 

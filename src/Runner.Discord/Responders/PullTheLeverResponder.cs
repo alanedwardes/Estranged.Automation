@@ -47,13 +47,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             "<:shibhide:436284167802716171>", "<:shibshocked:436284168213626891>",
             "<:shibchill:436284167051804673>"
         };
-        private readonly ILogger<PullTheLeverResponder> logger;
-        private readonly IRateLimitingRepository rateLimiting;
+        private readonly ILogger<PullTheLeverResponder> _logger;
+        private readonly IRateLimitingRepository _rateLimiting;
 
         public PullTheLeverResponder(ILogger<PullTheLeverResponder> logger, IRateLimitingRepository rateLimiting)
         {
-            this.logger = logger;
-            this.rateLimiting = rateLimiting;
+            _logger = logger;
+            _rateLimiting = rateLimiting;
         }
 
         private string RandomEmoji(string[] icons) => icons.OrderBy(x => Guid.NewGuid()).First();
@@ -62,10 +62,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private async Task<bool> CheckWithinRateLimit(IUser user)
         {
-            if (!await rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + user.Id + DateTime.UtcNow.ToString("MM-dd-yyyy-H"), LimitPerUserPerHour) && user.Id != 266644379576434688)
+            if (!await _rateLimiting.IsWithinLimit(nameof(PullTheLeverResponder) + user.Id + DateTime.UtcNow.ToString("MM-dd-yyyy-H"), LimitPerUserPerHour) && user.Id != 266644379576434688)
             {
                 await user.SendMessageAsync($"Sorry, you've exceeded the maximum allowed pull the lever requests this hour ({LimitPerUserPerHour})");
-                logger.LogWarning($"Rate limiting {user.Username} for pull the lever");
+                _logger.LogWarning($"Rate limiting {user.Username} for pull the lever");
                 return false;
             }
 

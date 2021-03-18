@@ -19,10 +19,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private readonly Lazy<Task<TwitchEmoji[]>> emojiTask;
 
-        public TwitchResponder(HttpClient httpClient)
+        public TwitchResponder(IHttpClientFactory httpClientFactory)
         {
             emojiTask = new Lazy<Task<TwitchEmoji[]>>(async () =>
             {
+                using var httpClient = httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
+
                 var emojiListResponse = await httpClient.GetAsync("https://www.twitch.tv/creatorcamp/en/learn-the-basics/emotes/");
 
                 emojiListResponse.EnsureSuccessStatusCode();
