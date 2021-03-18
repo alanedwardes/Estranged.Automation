@@ -30,9 +30,9 @@ namespace Estranged.Automation.Runner.Syndication
         {
             _discordSocketClient.Log += ClientLog;
             _discordSocketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
-            _discordSocketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Id, channel, socketClient, token));
-            _discordSocketClient.UserJoined += user => WrapTask(UserJoined(user, socketClient, token));
-            _discordSocketClient.UserLeft += user => WrapTask(UserLeft(user, socketClient, token));
+            _discordSocketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Id, channel, _discordSocketClient, token));
+            _discordSocketClient.UserJoined += user => WrapTask(UserJoined(user, _discordSocketClient, token));
+            _discordSocketClient.UserLeft += user => WrapTask(UserLeft(user, _discordSocketClient, token));
 
             await _discordSocketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await _discordSocketClient.StartAsync();
