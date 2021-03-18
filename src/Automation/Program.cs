@@ -1,4 +1,5 @@
-﻿using Amazon;
+﻿using Ae.Steam.Client;
+using Amazon;
 using Amazon.DynamoDBv2;
 using Estranged.Automation.Runner.Syndication;
 using Estranged.Automation.Shared;
@@ -31,21 +32,20 @@ namespace Estranged.Automation
                 Credentials = new Credentials("estranged-automation", Environment.GetEnvironmentVariable("GITHUB_PASSWORD"))
             };
 
-            var provider = new ServiceCollection()
-                .AddLogging(options =>
-                {
-                    options.AddConsole();
-                    options.SetMinimumLevel(LogLevel.Warning);
-                })
-                .AddSingleton(httpClient)
+            var services = new ServiceCollection()
+                .AddLogging(options => options.AddConsole().SetMinimumLevel(LogLevel.Warning))
                 .AddTransient<RunnerManager>()
                 .AddTransient<IRunner, DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
                 .AddSingleton(TranslationClient.Create())
-                .AddSingleton(LanguageServiceClient.Create())
-                .BuildServiceProvider();
+                .AddSingleton(LanguageServiceClient.Create());
+
+            services.AddHttpClient();
+            services.AddHttpClient<ISteamClient, SteamClient>();
+
+            var provider = services.BuildServiceProvider();
 
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
 

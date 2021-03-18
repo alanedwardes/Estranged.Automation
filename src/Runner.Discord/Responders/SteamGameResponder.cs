@@ -1,47 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Ae.Steam.Client;
+using Ae.Steam.Client.Entities;
 using Discord;
-using Newtonsoft.Json;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
     public sealed class SteamGameResponder : IResponder
     {
-        public class App
-        {
-            public int Appid { get; set; }
-            public string Name { get; set; }
-        }
-
-        public class Applist
-        {
-            public List<App> Apps { get; set; } = new List<App>();
-        }
-
-        public class SteamAppListRoot
-        {
-            public Applist Applist { get; set; }
-        }
-
         private readonly string[] commands = new string[] { "what to play", "recommend me a game", "what to buy", "oh man it sure it annoying I don't have anything to play" };
-        private const string steamStoreUrl = "https://store.steampowered.com/app/";
+        private readonly Lazy<Task<IReadOnlyList<SteamAppSummary>>> _steamList;
+        private readonly ISteamClient _steamClient;
 
-        private readonly Lazy<Task<SteamAppListRoot>> steamList;
-
-        public SteamGameResponder(HttpClient httpClient)
+        public SteamGameResponder(ISteamClient steamClient)
         {
-            steamList = new Lazy<Task<SteamAppListRoot>>(async () =>
-            {
-                HttpResponseMessage response = await httpClient.GetAsync("https://api.steampowered.com/ISteamApps/GetAppList/v2/");
-                response.EnsureSuccessStatusCode();
-                string responseBody = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<SteamAppListRoot>(responseBody);
-            });
+            _steamList = new Lazy<Task<IReadOnlyList<SteamAppSummary>>>(() => steamClient.GetAppList(CancellationToken.None));
+            _steamClient = steamClient;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
@@ -53,6 +31,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (message.Author.Id == 269883106792701952)
             {
+                const string steamStoreUrl = "https://store.steampowered.com/app/";
                 int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 2) == 0 ? 261820 : 582890;
                 await message.Channel.SendMessageAsync($"You should try this: {steamStoreUrl}{totallyRandomAppId}", options: token.ToRequestOptions());
                 return;
@@ -64,9 +43,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var steamApps = await steamList.Value;
-            var randomApp = steamApps.Applist.Apps[RandomNumberGenerator.GetInt32(0, steamApps.Applist.Apps.Count)];
-            var randomGame = $"You should try {randomApp.Name}\nFind it here: {steamStoreUrl}{randomApp.Appid}";
+            var steamApps = await _steamList.Value;
+            var randomApp = steamApps[RandomNumberGenerator.GetInt32(0, steamApps.Count)];
+            var randomGame = $"You should try {randomApp.Name}\nFind it here: {randomApp.StorePage}";
             await message.Channel.SendMessageAsync(randomGame, options: token.ToRequestOptions());
         }
     }

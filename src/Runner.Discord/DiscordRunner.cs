@@ -17,15 +17,22 @@ using System.Collections.Generic;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Octokit;
+using Ae.Steam.Client;
 
 namespace Estranged.Automation.Runner.Syndication
 {
     public class DiscordRunner : IRunner
     {
         private readonly ILogger<DiscordRunner> logger;
-        private IServiceProvider responderProvider;
+        private readonly IServiceProvider responderProvider;
 
-        public DiscordRunner(ILogger<DiscordRunner> logger, ILoggerFactory loggerFactory, HttpClient httpClient, TranslationClient translationClient, LanguageServiceClient languageServiceClient, IGitHubClient gitHubClient)
+        public DiscordRunner(ILogger<DiscordRunner> logger,
+            ILoggerFactory loggerFactory,
+            HttpClient httpClient,
+            TranslationClient translationClient,
+            LanguageServiceClient languageServiceClient,
+            IGitHubClient gitHubClient,
+            ISteamClient steamClient)
         {
             this.logger = logger;
 
@@ -36,6 +43,7 @@ namespace Estranged.Automation.Runner.Syndication
                 .AddSingleton(translationClient)
                 .AddSingleton(languageServiceClient)
                 .AddSingleton(gitHubClient)
+                .AddSingleton(steamClient)
                 .AddSingleton<IResponder, LocalizationResponder>()
                 .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
                 .AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
