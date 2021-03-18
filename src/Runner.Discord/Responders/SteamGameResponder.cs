@@ -8,6 +8,7 @@ using Ae.Steam.Client;
 using Ae.Steam.Client.Entities;
 using Ae.Steam.Client.Exceptions;
 using Discord;
+using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
@@ -15,11 +16,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly string[] commands = new string[] { "what to play", "recommend me a game", "what to buy", "oh man it sure it annoying I don't have anything to play" };
         private readonly Lazy<Task<IReadOnlyList<SteamAppSummary>>> _steamList;
+        private readonly ILogger<SteamGameResponder> _logger;
         private readonly ISteamClient _steamClient;
 
-        public SteamGameResponder(ISteamClient steamClient)
+        public SteamGameResponder(ILogger<SteamGameResponder> logger, ISteamClient steamClient)
         {
             _steamList = new Lazy<Task<IReadOnlyList<SteamAppSummary>>>(() => steamClient.GetAppList(CancellationToken.None));
+            _logger = logger;
             _steamClient = steamClient;
         }
 
@@ -29,7 +32,16 @@ namespace Estranged.Automation.Runner.Discord.Responders
             var randomApp = steamApps[RandomNumberGenerator.GetInt32(0, steamApps.Count)];
             var appId = randomApp.AppId;
 
-            SteamAppDetails steamAppDetails = await _steamClient.GetAppDetails(appId, token);
+            SteamAppDetails steamAppDetails;
+            try
+            {
+                steamAppDetails = await _steamClient.GetAppDetails(appId, token);
+            }
+            catch (SteamClientException e)
+            {
+                _logger.LogError(e, "Error from Steam client");
+                return null;
+            }
             
             if (steamAppDetails.Type != "game")
             {
