@@ -39,11 +39,16 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
             catch (SteamClientException e)
             {
-                _logger.LogError(e, "Error from Steam client");
+                _logger.LogWarning(e, "Error from Steam client");
                 return null;
             }
             
             if (steamAppDetails.Type != "game")
+            {
+                return null;
+            }
+
+            if (steamAppDetails.ReleaseDate.ComingSoon)
             {
                 return null;
             }
