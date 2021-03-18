@@ -26,7 +26,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _steamClient = steamClient;
         }
 
-        private async Task<SteamAppDetails> GetRandomGame(CancellationToken token)
+        private async Task<SteamAppDetails> GetRandomGame(CancellationToken token, bool safeForWork)
         {
             var steamApps = await _steamList.Value;
             var randomApp = steamApps[RandomNumberGenerator.GetInt32(0, steamApps.Count)];
@@ -53,7 +53,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return null;
             }
 
-            if (steamAppDetails.RequiredAge >= 18)
+            if (steamAppDetails.RequiredAge >= 18 && safeForWork)
             {
                 return null;
             }
@@ -75,8 +75,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
+            var isSafeForWork = message.Channel.IsPublicChannel();
+
             // Try 3 times to get something
-            var randomGame = await GetRandomGame(token) ?? await GetRandomGame(token) ?? await GetRandomGame(token);
+            var randomGame = await GetRandomGame(token, isSafeForWork) ?? await GetRandomGame(token, isSafeForWork) ?? await GetRandomGame(token, isSafeForWork);
 
             if (randomGame == null)
             {
