@@ -26,39 +26,26 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _steamClient = steamClient;
         }
 
-        private async Task<SteamAppDetails> GetRandomGame(CancellationToken token, bool onlySafeForWork)
+        private async Task<SteamAppSummary> GetRandomGame(CancellationToken token, bool onlySafeForWork)
         {
             var steamApps = await _steamList.Value;
             var randomApp = steamApps[RandomNumberGenerator.GetInt32(0, steamApps.Count)];
             var appId = randomApp.AppId;
 
-            SteamAppDetails steamAppDetails;
             try
             {
-                steamAppDetails = await _steamClient.GetAppDetails(appId, token);
+                if (onlySafeForWork && await _steamClient.IsAppAdultOnly(appId, token))
+                {
+                    return null;
+                }
+
+                return randomApp;
             }
             catch (SteamClientException e)
             {
                 _logger.LogWarning(e, "Error from Steam client");
                 return null;
             }
-            
-            if (steamAppDetails.Type != "game")
-            {
-                return null;
-            }
-
-            if (steamAppDetails.ReleaseDate.ComingSoon)
-            {
-                return null;
-            }
-
-            if (steamAppDetails.RequiredAge >= 18 && onlySafeForWork)
-            {
-                return null;
-            }
-
-            return steamAppDetails;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
@@ -86,7 +73,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
             
-            await message.Channel.SendMessageAsync($"You should try {randomGame.Name}\nFind it here: https://store.steampowered.com/app/{randomGame.SteamAppId}", options: token.ToRequestOptions());
+            await message.Channel.SendMessageAsync($"You should try {randomGame.Name}\nFind it here: {randomGame.StorePage}", options: token.ToRequestOptions());
         }
     }
 }
