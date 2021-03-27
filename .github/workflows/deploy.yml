@@ -17,5 +17,9 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+
+    - name: upload image to ECR
+      uses: appleboy/docker-ecr-action@master
+      with:
+        repo: estbot
+        registry: public.ecr.aws/j7m3k0v4/estbot:latest
