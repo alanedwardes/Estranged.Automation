@@ -22,7 +22,7 @@ jobs:
       uses: appleboy/docker-ecr-action@master
       with:
         repo: estbot
+        region: eu-west-2
         access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        region: eu-west-2
-        registry: public.ecr.aws/j7m3k0v4
+        registry: ${{ secrets.AWS_ECR_REGISTRY }}
