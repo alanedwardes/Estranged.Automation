@@ -18,22 +18,17 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
       
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+    - name: Login to Public ECR
+      uses: docker/login-action@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-west-2
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-      
-    - name: Build, tag, and push image to Amazon ECR
+        registry: public.ecr.aws
+        username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       env:
-        ECR_REGISTRY: public.ecr.aws
-        ECR_REPOSITORY: j7m3k0v4/estbot
+        AWS_REGION: eu-west-2
         IMAGE_TAG: ${{ github.sha }}
+      
+    - name: Push
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker build -t public.ecr.aws/j7m3k0v4/estbot:$IMAGE_TAG .
+        docker push public.ecr.aws/j7m3k0v4/estbot:$IMAGE_TAG
