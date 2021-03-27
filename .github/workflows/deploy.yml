@@ -29,4 +29,5 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t public.ecr.aws/j7m3k0v4/estbot:$IMAGE_TAG .
-        docker push public.ecr.aws/j7m3k0v4/estbot:$IMAGE_TAG
+        docker build -t public.ecr.aws/j7m3k0v4/estbot:latest .
+        docker push --all-tags public.ecr.aws/j7m3k0v4/estbot
