@@ -24,11 +24,10 @@ jobs:
         registry: public.ecr.aws
         username: ${{ secrets.AWS_ACCESS_KEY_ID }}
         password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      env:
-        AWS_REGION: eu-west-2
-        IMAGE_TAG: ${{ github.sha }}
-      
+
     - name: Push
+      env:
+        IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t public.ecr.aws/j7m3k0v4/estbot:$IMAGE_TAG .
         docker push public.ecr.aws/j7m3k0v4/estbot:$IMAGE_TAG
