@@ -21,7 +21,7 @@ jobs:
     - name: upload image to ECR
       uses: appleboy/docker-ecr-action@master
       with:
-        repo: estbot
+        repo: j7m3k0v4/estbot
         region: eu-west-2
         access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
