@@ -1,11 +1,9 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1
+FROM mcr.microsoft.com/dotnet/runtime:3.1
 
 RUN mkdir /opt/estbot
 
-ADD . /opt/estbot
-
-RUN dotnet publish /opt/estbot/src/Automation --configuration Release --runtime linux-x64
+ADD build/linux-x64 /opt/estbot
 
 VOLUME ["/data"]
 
-ENTRYPOINT ["/opt/estbot/src/Automation/bin/Release/netcoreapp3.1/linux-x64/publish/Estranged.Automation"]
+ENTRYPOINT ["/opt/estbot/Estranged.Automation"]
