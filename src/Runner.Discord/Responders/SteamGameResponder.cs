@@ -41,11 +41,21 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
             catch (SteamClientException e)
             {
-                _logger.LogWarning(e, "Error from Steam client");
+                _logger.LogWarning(e, "Error getting is adult only flag");
                 return null;
             }
 
-            var steamAppDetails = await _steamClient.GetAppDetails(randomApp.AppId, token);
+            SteamAppDetails steamAppDetails;
+            try
+            {
+                steamAppDetails = await _steamClient.GetAppDetails(randomApp.AppId, token);
+            }
+            catch (SteamClientException e)
+            {
+                _logger.LogWarning(e, "Error getting app details");
+                return null;
+            }
+
             if (steamAppDetails.Type != "game")
             {
                 return null;
