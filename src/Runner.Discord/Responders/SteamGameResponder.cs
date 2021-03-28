@@ -38,27 +38,36 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     return null;
                 }
-
-                return randomApp;
             }
             catch (SteamClientException e)
             {
                 _logger.LogWarning(e, "Error from Steam client");
                 return null;
             }
+
+            var steamAppDetails = await _steamClient.GetAppDetails(randomApp.AppId, token);
+            if (steamAppDetails.Type != "game")
+            {
+                return null;
+            }
+
+            if (steamAppDetails.ReleaseDate.ComingSoon)
+            {
+                return null;
+            }
+
+            if (steamAppDetails.RequiredAge >= 18 && onlySafeForWork)
+            {
+                return null;
+            }
+
+            return randomApp;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {            
             if (!commands.Any(x => message.Content.Contains(x, StringComparison.InvariantCultureIgnoreCase)))
             {
-                return;
-            }
-
-            if (message.Author.Id == 269883106792701952)
-            {
-                int totallyRandomAppId = RandomNumberGenerator.GetInt32(0, 2) == 0 ? 261820 : 582890;
-                await message.Channel.SendMessageAsync($"You should try this: https://store.steampowered.com/app/{totallyRandomAppId}", options: token.ToRequestOptions());
                 return;
             }
 
