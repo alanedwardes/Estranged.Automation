@@ -21,7 +21,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            await message.AddReactionAsync(new Emoji(EMOJI.OrderBy(x => Guid.NewGuid()).First());
+            await message.AddReactionAsync(new Emoji(EMOJI.OrderBy(x => Guid.NewGuid()).First()));
         }
     }
 }
