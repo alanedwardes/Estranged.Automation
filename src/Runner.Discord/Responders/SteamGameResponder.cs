@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Ae.Steam.Client;
@@ -29,7 +28,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
         private async Task<SteamAppSummary> GetRandomGame(CancellationToken token, bool onlySafeForWork)
         {
             var steamApps = await _steamList.Value;
-            var randomApp = steamApps[RandomNumberGenerator.GetInt32(0, steamApps.Count)];
+            var randomApp = steamApps.OrderBy(x => x).First();
             var appId = randomApp.AppId;
 
             try

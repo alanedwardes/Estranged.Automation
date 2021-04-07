@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,8 +42,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            var randomFloat = RandomNumberGenerator.GetInt32(0, int.MaxValue) / (double)int.MaxValue;
-            if (randomFloat < 0.95)
+            if (RandomExtensions.PercentChance(95))
             {
                 return;
             }

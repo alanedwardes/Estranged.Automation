@@ -1,6 +1,5 @@
 ﻿using Discord;
 using System;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (!(RandomNumberGenerator.GetInt32(0, 101) >= 90))
+            if (RandomExtensions.PercentChance(95))
             {
                 return;
             }
