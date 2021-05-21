@@ -52,16 +52,17 @@ namespace Estranged.Automation.Runner.Syndication
             // Get the "members" role
             var role = guild.GetRole(845401897204580412);
 
-            var socketGuildUser = (SocketGuildUser)reaction.User;
+            // Get the user that added the reaction
+            var user = guild.GetUser(reaction.UserId);
 
-            if (role.Members.Contains(socketGuildUser))
+            if (role.Members.Contains(user))
             {
                 // The member already has the role
                 return;
             }
 
             // Add the role to the user
-            await socketGuildUser.AddRoleAsync(role, options: token.ToRequestOptions());
+            await user.AddRoleAsync(role, options: token.ToRequestOptions());
         }
 
         private async Task WrapTask(Task task)
