@@ -52,7 +52,7 @@ namespace Estranged.Automation.Runner.Syndication
             // Get the "members" role
             var role = guild.GetRole(845401897204580412);
 
-            var socketGuildUser = (SocketGuildUser)message.Value.Author;
+            var socketGuildUser = (SocketGuildUser)reaction.User;
 
             if (role.Members.Contains(socketGuildUser))
             {
