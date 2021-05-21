@@ -34,7 +34,7 @@ namespace Estranged.Automation.Runner.Syndication
             _discordSocketClient.MessageDeleted += (message, channel) => WrapTask(MessageDeleted(message.Id, channel, _discordSocketClient, token));
             _discordSocketClient.UserJoined += user => WrapTask(UserJoined(user, _discordSocketClient, token));
             _discordSocketClient.UserLeft += user => WrapTask(UserLeft(user, _discordSocketClient, token));
-            _discordSocketClient.ReactionAdded += (message, channel, reaction) => ReactionAdded(message, _discordSocketClient, channel, reaction, token);
+            _discordSocketClient.ReactionAdded += (message, channel, reaction) => ReactionAdded(_discordSocketClient, channel, reaction, token);
 
             await _discordSocketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await _discordSocketClient.StartAsync();
@@ -43,9 +43,9 @@ namespace Estranged.Automation.Runner.Syndication
 
         private IProducerConsumerCollection<ulong> _usersWithMembersRole = new ConcurrentBag<ulong>();
 
-        private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, DiscordSocketClient client, ISocketMessageChannel channel, SocketReaction reaction, CancellationToken token)
+        private async Task ReactionAdded(DiscordSocketClient client, ISocketMessageChannel channel, SocketReaction reaction, CancellationToken token)
         {
-            if (channel.Name != "rules")
+            if (channel.Name != "verification")
             {
                 return;
             }
@@ -62,10 +62,10 @@ namespace Estranged.Automation.Runner.Syndication
 
             // Get a list of all users in the server
             _logger.LogInformation("Getting a list of all guild members because {UserId} reacted in the rules channel", reaction.UserId);
-            var bufferedUsers = await guild.GetUsersAsync(options: token.ToRequestOptions()).ToListAsync();
+            var bufferedUsers = await guild.GetUsersAsync(options: token.ToRequestOptions()).FlattenAsync();
 
             // Get the user that added the reaction
-            var user = bufferedUsers.SelectMany(x => x).Single(x => x.Id == reaction.UserId);
+            var user = bufferedUsers.Single(x => x.Id == reaction.UserId);
 
             // Add the role to the user
             _logger.LogInformation("Adding role {Role} to {User}", role, user);
