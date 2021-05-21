@@ -29,14 +29,39 @@ namespace Estranged.Automation.Runner.Syndication
         public async Task Run(CancellationToken token)
         {
             _discordSocketClient.Log += ClientLog;
-            _discordSocketClient.MessageReceived += message => WrapTask(ClientMessageReceived(message, token));
-            _discordSocketClient.MessageDeleted += (message, channel) => WrapTask(ClientMessageDeleted(message.Id, channel, _discordSocketClient, token));
+            _discordSocketClient.MessageReceived += message => WrapTask(MessageReceived(message, token));
+            _discordSocketClient.MessageDeleted += (message, channel) => WrapTask(MessageDeleted(message.Id, channel, _discordSocketClient, token));
             _discordSocketClient.UserJoined += user => WrapTask(UserJoined(user, _discordSocketClient, token));
             _discordSocketClient.UserLeft += user => WrapTask(UserLeft(user, _discordSocketClient, token));
+            _discordSocketClient.ReactionAdded += (message, channel, reaction) => ReactionAdded(message, _discordSocketClient, channel, reaction, token);
 
             await _discordSocketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await _discordSocketClient.StartAsync();
             await Task.Delay(-1);
+        }
+
+        private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, DiscordSocketClient client, ISocketMessageChannel channel, SocketReaction reaction, CancellationToken token)
+        {
+            if (channel.Name != "rules")
+            {
+                return;
+            }
+
+            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
+
+            // Get the "members" role
+            var role = guild.GetRole(845401897204580412);
+
+            var socketGuildUser = (SocketGuildUser)message.Value.Author;
+
+            if (role.Members.Contains(socketGuildUser))
+            {
+                // The member already has the role
+                return;
+            }
+
+            // Add the role to the user
+            await socketGuildUser.AddRoleAsync(role, options: token.ToRequestOptions());
         }
 
         private async Task WrapTask(Task task)
@@ -89,7 +114,7 @@ namespace Estranged.Automation.Runner.Syndication
             await client.GetChannelByName("goodbyes").SendMessageAsync(goodbye, options: token.ToRequestOptions());
         }
 
-        private async Task ClientMessageDeleted(ulong messageId, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
+        private async Task MessageDeleted(ulong messageId, ISocketMessageChannel channel, DiscordSocketClient client, CancellationToken token)
         {
             _logger.LogInformation("Message deleted: {0}", messageId);
 
@@ -107,7 +132,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         private IList<IMessage> _publicMessageHistory = new List<IMessage>();
 
-        private async Task ClientMessageReceived(SocketMessage socketMessage, CancellationToken token)
+        private async Task MessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
             messageCount++;
 
