@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Estranged.Automation.Runner.Discord;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace Estranged.Automation.Runner.Syndication
 {
@@ -40,6 +41,8 @@ namespace Estranged.Automation.Runner.Syndication
             await Task.Delay(-1);
         }
 
+        private IProducerConsumerCollection<ulong> _usersWithMembersRole = new ConcurrentBag<ulong>();
+
         private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, DiscordSocketClient client, ISocketMessageChannel channel, SocketReaction reaction, CancellationToken token)
         {
             if (channel.Name != "rules")
@@ -47,22 +50,27 @@ namespace Estranged.Automation.Runner.Syndication
                 return;
             }
 
-            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
-
-            // Get the "members" role
-            var role = guild.GetRole(845401897204580412);
-
-            // Get the user that added the reaction
-            var user = guild.GetUser(reaction.UserId);
-
-            if (role.Members.Contains(user))
+            if (_usersWithMembersRole.Contains(reaction.UserId))
             {
-                // The member already has the role
                 return;
             }
 
+            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
+            
+            // Get the "members" role
+            var role = guild.GetRole(845401897204580412);
+
+            // Get a list of all users in the server
+            _logger.LogInformation("Getting a list of all guild members because {UserId} reacted in the rules channel", reaction.UserId);
+            var bufferedUsers = await guild.GetUsersAsync(options: token.ToRequestOptions()).ToListAsync();
+
+            // Get the user that added the reaction
+            var user = bufferedUsers.SelectMany(x => x).Single(x => x.Id == reaction.UserId);
+
             // Add the role to the user
+            _logger.LogInformation("Adding role {Role} to {User}", role, user);
             await user.AddRoleAsync(role, options: token.ToRequestOptions());
+            _usersWithMembersRole.TryAdd(user.Id);
         }
 
         private async Task WrapTask(Task task)
