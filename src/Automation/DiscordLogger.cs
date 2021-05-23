@@ -67,15 +67,8 @@ namespace Estranged.Automation
             {
                 if (_embeds.TryDequeue(out var item))
                 {
-                    try
-                    {
-                        await channel.SendMessageAsync(text: item.Item1, embed: item.Item2);
-                        await Task.Delay(TimeSpan.FromSeconds(1));
-                    }
-                    catch (Exception)
-                    {
-                        _embeds.Enqueue(item);
-                    }
+                    await channel.SendMessageAsync(text: item.Item1, embed: item.Item2);
+                    await Task.Delay(TimeSpan.FromSeconds(1));
                 }
             }
         }
