@@ -44,14 +44,13 @@ namespace Estranged.Automation
                 Timestamp = DateTimeOffset.UtcNow
             };
 
-            _embeds.Enqueue((exception?.ToString(), embed.Build()));
+            EMBEDS.Enqueue((exception?.ToString(), embed.Build()));
 
             _ = PostMessagesBestEffort();
         }
 
-        private readonly ConcurrentQueue<(string, Embed)> _embeds = new ConcurrentQueue<(string, Embed)>();
-
-        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+        private static readonly ConcurrentQueue<(string, Embed)> EMBEDS = new ConcurrentQueue<(string, Embed)>();
+        private static readonly SemaphoreSlim SEMAPHORE = new SemaphoreSlim(1, 1);
 
         public async Task PostMessagesBestEffort()
         {
@@ -67,9 +66,9 @@ namespace Estranged.Automation
                 return;
             }
 
-            while (!_embeds.IsEmpty)
+            while (!EMBEDS.IsEmpty)
             {
-                if (_embeds.TryDequeue(out var item))
+                if (EMBEDS.TryDequeue(out var item))
                 {
                     string text = null;
                     if (item.Item1 != null)
@@ -77,7 +76,7 @@ namespace Estranged.Automation
                         text = "```\n" + item.Item1.Truncate(512) + "\n```";
                     }
 
-                    await _semaphoreSlim.WaitAsync();
+                    await SEMAPHORE.WaitAsync();
                     try
                     {
                         await channel.SendMessageAsync(text: text, embed: item.Item2);
@@ -85,7 +84,7 @@ namespace Estranged.Automation
                     }
                     finally
                     {
-                        _semaphoreSlim.Release();
+                        SEMAPHORE.Release();
                     }
                 }
             }
