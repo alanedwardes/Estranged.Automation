@@ -4,6 +4,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Humanizer;
+using System.Threading;
 
 namespace Estranged.Automation
 {
@@ -49,6 +51,8 @@ namespace Estranged.Automation
 
         private readonly ConcurrentQueue<(string, Embed)> _embeds = new ConcurrentQueue<(string, Embed)>();
 
+        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+
         public async Task PostMessagesBestEffort()
         {
             var guild = await _discordClient.GetGuildAsync(368117880547573760);
@@ -67,8 +71,22 @@ namespace Estranged.Automation
             {
                 if (_embeds.TryDequeue(out var item))
                 {
-                    await channel.SendMessageAsync(text: item.Item1, embed: item.Item2);
-                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    string text = null;
+                    if (item.Item1 != null)
+                    {
+                        text = "```\n" + item.Item1.Truncate(512) + "\n```";
+                    }
+
+                    await _semaphoreSlim.WaitAsync();
+                    try
+                    {
+                        await channel.SendMessageAsync(text: text, embed: item.Item2);
+                        await Task.Delay(TimeSpan.FromMilliseconds(500));
+                    }
+                    finally
+                    {
+                        _semaphoreSlim.Release();
+                    }
                 }
             }
         }
