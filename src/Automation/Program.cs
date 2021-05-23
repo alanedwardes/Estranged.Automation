@@ -34,7 +34,12 @@ namespace Estranged.Automation
             var discordSocketClient = new DiscordSocketClient(new DiscordSocketConfig { HandlerTimeout = null });
 
             var services = new ServiceCollection()
-                .AddLogging(options => options.AddConsole().SetMinimumLevel(LogLevel.Information))
+                .AddLogging(options =>
+                {
+                    options.AddConsole()
+                           .AddProvider(new DiscordLoggerProvider(discordSocketClient))
+                           .SetMinimumLevel(LogLevel.Information);
+                })
                 .AddTransient<RunnerManager>()
                 .AddTransient<IRunner, DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
