@@ -42,14 +42,14 @@ namespace Estranged.Automation
                 Timestamp = DateTimeOffset.UtcNow
             };
 
-            _embeds.Enqueue(embed.Build());
+            _embeds.Enqueue((exception?.ToString(), embed.Build()));
 
-            _ = PostMessagesBestEffort(logLevel, eventId, state, exception, formatter);
+            _ = PostMessagesBestEffort();
         }
 
-        private readonly ConcurrentQueue<Embed> _embeds = new ConcurrentQueue<Embed>();
+        private readonly ConcurrentQueue<(string, Embed)> _embeds = new ConcurrentQueue<(string, Embed)>();
 
-        public async Task PostMessagesBestEffort<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public async Task PostMessagesBestEffort()
         {
             var guild = await _discordClient.GetGuildAsync(368117880547573760);
             if (guild == null)
@@ -65,16 +65,16 @@ namespace Estranged.Automation
 
             while (!_embeds.IsEmpty)
             {
-                if (_embeds.TryDequeue(out Embed embed))
+                if (_embeds.TryDequeue(out var item))
                 {
                     try
                     {
-                        await channel.SendMessageAsync(embed: embed);
+                        await channel.SendMessageAsync(text: item.Item1, embed: item.Item2);
                         await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                     catch (Exception)
                     {
-                        _embeds.Enqueue(embed);
+                        _embeds.Enqueue(item);
                     }
                 }
             }

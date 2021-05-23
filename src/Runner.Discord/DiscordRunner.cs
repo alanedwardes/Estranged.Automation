@@ -137,14 +137,10 @@ namespace Estranged.Automation.Runner.Syndication
             await client.GetChannelByName(deletionsChannel).SendMessageAsync("Deleted:", false, message.QuoteMessage(), token.ToRequestOptions());
         }
 
-        private int messageCount;
-
         private IList<IMessage> _publicMessageHistory = new List<IMessage>();
 
         private async Task MessageReceived(SocketMessage socketMessage, CancellationToken token)
         {
-            messageCount++;
-
             if (socketMessage.Channel.IsPublicChannel())
             {
                 _publicMessageHistory.Add(socketMessage);
