@@ -23,6 +23,7 @@ namespace Estranged.Automation.Runner.Discord
                            .AddSingleton<IResponder, SobResponder>()
                            .AddSingleton<IResponder, RepeatPhraseResponder>()
                            .AddSingleton<IResponder, EmojiReactionResponder>()
+                           .AddSingleton<IResponder, HowAreYouResponder>()
                            .AddSingleton<IMessageDeleted, DeletedMessageQuoter>()
                            .AddSingleton<IUserLeftHandler, LeftMessageHandler>()
                            .AddSingleton<IReactionAddedHandler, VerifiedUserHandler>()

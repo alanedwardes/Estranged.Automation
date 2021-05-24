@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace Estranged.Automation.Runner.Discord
 {
-    public class DiscordRunner : IRunner
+    public sealed class DiscordRunner : IRunner
     {
         private readonly ILogger<DiscordRunner> _logger;
         private readonly IServiceProvider _serviceProvider;
