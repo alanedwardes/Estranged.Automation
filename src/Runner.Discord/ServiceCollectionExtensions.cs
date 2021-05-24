@@ -1,5 +1,5 @@
-﻿using Estranged.Automation.Runner.Discord.Responders;
-using Estranged.Automation.Shared;
+﻿using Estranged.Automation.Runner.Discord.Handlers;
+using Estranged.Automation.Runner.Discord.Responders;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Estranged.Automation.Runner.Discord
@@ -22,7 +22,11 @@ namespace Estranged.Automation.Runner.Discord
                            .AddSingleton<IResponder, SteamGameResponder>()
                            .AddSingleton<IResponder, SobResponder>()
                            .AddSingleton<IResponder, RepeatPhraseResponder>()
-                           .AddSingleton<IResponder, EmojiReactionResponder>();
+                           .AddSingleton<IResponder, EmojiReactionResponder>()
+                           .AddSingleton<IMessageDeleted, DeletedMessageQuoter>()
+                           .AddSingleton<IUserLeftHandler, LeftMessageHandler>()
+                           .AddSingleton<IReactionAddedHandler, VerifiedUserHandler>()
+                           .AddSingleton<IUserJoinedHandler, WelcomeMessageHandler>();
         }
     }
 }

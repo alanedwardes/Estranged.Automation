@@ -4,7 +4,6 @@ using Amazon.DynamoDBv2;
 using Discord;
 using Discord.WebSocket;
 using Estranged.Automation.Runner.Discord;
-using Estranged.Automation.Runner.Syndication;
 using Estranged.Automation.Shared;
 using Google.Cloud.Language.V1;
 using Google.Cloud.Translation.V2;
