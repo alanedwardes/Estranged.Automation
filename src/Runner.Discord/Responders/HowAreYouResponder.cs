@@ -27,9 +27,17 @@ namespace Estranged.Automation.Runner.Discord.Responders
             "Don't ask me again."
         };
 
+        private static readonly IReadOnlyList<string> TRIGGERS = new[]
+        {
+            "how are you",
+            "how is everyone",
+            "how's everyone",
+            "how you"
+        };
+
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (!message.Content.ToLowerInvariant().Contains("how are you"))
+            if (!TRIGGERS.Any(x => message.Content.ToLowerInvariant().Contains(x)))
             {
                 return;
             }
