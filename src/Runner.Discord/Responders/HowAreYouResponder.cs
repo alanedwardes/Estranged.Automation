@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,17 +34,16 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (!message.MentionedUserIds.Contains(437014310078906378ul))
-            {
-                return;
-            }
-
             if (RandomExtensions.PercentChance(25))
             {
                 return;
             }
 
-            await message.Channel.SendMessageAsync(string.Format(RESPONSES.OrderBy(x => Guid.NewGuid()).First(), $"<@{message.Author.Id}>"));
+            using (message.Channel.EnterTypingState())
+            {
+                await Task.Delay(TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(3, 6)));
+                await message.Channel.SendMessageAsync(string.Format(RESPONSES.OrderBy(x => Guid.NewGuid()).First(), $"<@{message.Author.Id}>"));
+            }
         }
     }
 }
