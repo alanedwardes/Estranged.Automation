@@ -21,7 +21,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
             "BOTtacular",
             "Good Thank You How Are You {0}",
             "😭",
-            "no"
+            "no",
+            "Not great. My car broke down..."
         };
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
