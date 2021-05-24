@@ -73,7 +73,7 @@ namespace Estranged.Automation
                     string text = null;
                     if (item.Item1 != null)
                     {
-                        text = "```\n" + item.Item1.Truncate(512) + "\n```";
+                        text = "```\n" + item.Item1.Truncate(1024) + "\n```";
                     }
 
                     await SEMAPHORE.WaitAsync();
