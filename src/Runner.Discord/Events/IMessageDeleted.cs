@@ -3,7 +3,7 @@ using System.Threading;
 using Discord.WebSocket;
 using Discord;
 
-namespace Estranged.Automation.Runner.Discord
+namespace Estranged.Automation.Runner.Discord.Events
 {
     public interface IMessageDeleted
     {

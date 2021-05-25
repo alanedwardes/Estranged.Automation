@@ -1,4 +1,5 @@
-﻿using Estranged.Automation.Runner.Discord.Handlers;
+﻿using Estranged.Automation.Runner.Discord.Events;
+using Estranged.Automation.Runner.Discord.Handlers;
 using Estranged.Automation.Runner.Discord.Responders;
 using Microsoft.Extensions.DependencyInjection;
 

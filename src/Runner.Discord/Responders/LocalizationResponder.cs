@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Discord;
+using Estranged.Automation.Runner.Discord.Events;
 using Octokit;
 
 namespace Estranged.Automation.Runner.Discord.Responders

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Estranged.Automation.Runner.Discord.Events;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Estranged.Automation.Runner.Discord.Events;
 using Estranged.Automation.Shared;
 using Microsoft.Extensions.Logging;
 

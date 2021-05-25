@@ -7,6 +7,7 @@ using Ae.Steam.Client;
 using Ae.Steam.Client.Entities;
 using Ae.Steam.Client.Exceptions;
 using Discord;
+using Estranged.Automation.Runner.Discord.Events;
 using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders

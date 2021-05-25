@@ -4,17 +4,16 @@ using Microsoft.Extensions.Logging;
 using Discord.WebSocket;
 using Discord;
 using System.Linq;
-using System.Collections.Concurrent;
+using Estranged.Automation.Runner.Discord.Events;
 
 namespace Estranged.Automation.Runner.Discord.Handlers
 {
     public sealed class VerifiedUserHandler : IReactionAddedHandler
     {
-        private readonly IProducerConsumerCollection<ulong> _usersWithMembersRole = new ConcurrentBag<ulong>();
         private readonly ILogger<VerifiedUserHandler> _logger;
-        private readonly IDiscordClient _discordClient;
+        private readonly DiscordSocketClient _discordClient;
 
-        public VerifiedUserHandler(ILogger<VerifiedUserHandler> logger, IDiscordClient discordClient)
+        public VerifiedUserHandler(ILogger<VerifiedUserHandler> logger, DiscordSocketClient discordClient)
         {
             _logger = logger;
             _discordClient = discordClient;
@@ -27,27 +26,24 @@ namespace Estranged.Automation.Runner.Discord.Handlers
                 return;
             }
 
-            if (_usersWithMembersRole.Contains(reaction.UserId))
+            var guild = _discordClient.Guilds.Single(x => x.Name == "ESTRANGED");
+
+            // The "verified" role
+            var role = guild.GetRole(845401897204580412);
+
+            var user = await _discordClient.Rest.GetGuildUserAsync(guild.Id, reaction.UserId);
+            if (user.RoleIds.Contains(role.Id))
             {
+                _logger.LogWarning("User {User} already has role {Role}", user, role);
                 return;
             }
 
-            var guild = ((DiscordSocketClient)_discordClient).Guilds.Single(x => x.Name == "ESTRANGED");
-
-            // Get the "members" role
-            var role = guild.GetRole(845401897204580412);
-
-            // Get a list of all users in the server
-            _logger.LogInformation("Getting a list of all guild members because {UserId} reacted in the rules channel", reaction.UserId);
-            var bufferedUsers = await guild.GetUsersAsync(options: token.ToRequestOptions()).FlattenAsync();
-
-            // Get the user that added the reaction
-            var user = bufferedUsers.Single(x => x.Id == reaction.UserId);
-
-            // Add the role to the user
             _logger.LogInformation("Adding role {Role} to {User}", role, user);
-            await user.AddRoleAsync(role, options: token.ToRequestOptions());
-            _usersWithMembersRole.TryAdd(user.Id);
+            await user.AddRoleAsync(role);
+
+            user = await _discordClient.Rest.GetGuildUserAsync(guild.Id, reaction.UserId);
+
+            _logger.LogInformation("{User} now has roles {Roles}", user, string.Join(", ", user.RoleIds.Select(guild.GetRole).Select(x => x.Name)));
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Estranged.Automation.Runner.Discord.Events;
 using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.Logging;
 
