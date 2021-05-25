@@ -80,7 +80,7 @@ namespace Estranged.Automation
                     try
                     {
                         await channel.SendMessageAsync(text: text, embed: item.Item2);
-                        await Task.Delay(TimeSpan.FromMilliseconds(500));
+                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                     finally
                     {
