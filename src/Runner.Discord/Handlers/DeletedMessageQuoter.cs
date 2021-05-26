@@ -14,9 +14,9 @@ namespace Estranged.Automation.Runner.Discord.Handlers
     {
         private readonly IDictionary<ulong, IMessage> _publicMessageHistory = new ConcurrentDictionary<ulong, IMessage>();
         private readonly ILogger<DeletedMessageQuoter> _logger;
-        private readonly IDiscordClient _discordClient;
+        private readonly DiscordSocketClient _discordClient;
 
-        public DeletedMessageQuoter(ILogger<DeletedMessageQuoter> logger, IDiscordClient discordClient)
+        public DeletedMessageQuoter(ILogger<DeletedMessageQuoter> logger, DiscordSocketClient discordClient)
         {
             _logger = logger;
             _discordClient = discordClient;
@@ -34,7 +34,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
             if (_publicMessageHistory.TryGetValue(message.Id, out IMessage value))
             {
-                await ((DiscordSocketClient)_discordClient).GetChannelByName(deletionsChannel).SendMessageAsync("Deleted:", false, value.QuoteMessage(), token.ToRequestOptions());
+                await _discordClient.GetChannelByName(deletionsChannel).SendMessageAsync("Deleted:", false, value.QuoteMessage(), token.ToRequestOptions());
             }
         }
 

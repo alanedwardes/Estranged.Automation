@@ -11,9 +11,9 @@ namespace Estranged.Automation.Runner.Discord.Handlers
     public sealed class WelcomeMessageHandler : IUserJoinedHandler
     {
         private readonly ILogger<WelcomeMessageHandler> _logger;
-        private readonly IDiscordClient _discordClient;
+        private readonly DiscordSocketClient _discordClient;
 
-        public WelcomeMessageHandler(ILogger<WelcomeMessageHandler> logger, IDiscordClient discordClient)
+        public WelcomeMessageHandler(ILogger<WelcomeMessageHandler> logger, DiscordSocketClient discordClient)
         {
             _logger = logger;
             _discordClient = discordClient;
@@ -23,7 +23,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
         {
             _logger.LogInformation("User joined: {0}", user);
 
-            var guild = ((DiscordSocketClient)_discordClient).Guilds.Single(x => x.Name == "ESTRANGED");
+            var guild = _discordClient.Guilds.Single(x => x.Name == "ESTRANGED");
 
             var welcomeChannel = guild.TextChannels.Single(x => x.Name == "welcome");
             var rulesChannel = guild.TextChannels.Single(x => x.Name == "rules");

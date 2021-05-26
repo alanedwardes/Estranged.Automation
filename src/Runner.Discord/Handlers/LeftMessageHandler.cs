@@ -10,9 +10,9 @@ namespace Estranged.Automation.Runner.Discord.Handlers
     public sealed class LeftMessageHandler : IUserLeftHandler
     {
         private readonly ILogger<LeftMessageHandler> _logger;
-        private readonly IDiscordClient _discordClient;
+        private readonly DiscordSocketClient _discordClient;
 
-        public LeftMessageHandler(ILogger<LeftMessageHandler> logger, IDiscordClient discordClient)
+        public LeftMessageHandler(ILogger<LeftMessageHandler> logger, DiscordSocketClient discordClient)
         {
             _logger = logger;
             _discordClient = discordClient;
@@ -24,7 +24,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
             var goodbye = $"User {user} left the server!";
 
-            await ((DiscordSocketClient)_discordClient).GetChannelByName("goodbyes").SendMessageAsync(goodbye, options: token.ToRequestOptions());
+            await _discordClient.GetChannelByName("goodbyes").SendMessageAsync(goodbye, options: token.ToRequestOptions());
         }
     }
 }
