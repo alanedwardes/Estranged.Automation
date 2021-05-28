@@ -8,6 +8,8 @@ using Estranged.Automation.Shared;
 using Google.Cloud.Language.V1;
 using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using System;
@@ -51,8 +53,11 @@ namespace Estranged.Automation
                 .AddSingleton(LanguageServiceClient.Create())
                 .AddResponderServices();
 
-            services.AddHttpClient(DiscordHttpClientConstants.RESPONDER_CLIENT, x => x.DefaultRequestHeaders.UserAgent.Add(productHeader));
-            services.AddHttpClient<ISteamClient, SteamClient>(x => x.DefaultRequestHeaders.UserAgent.Add(productHeader));
+            var builder1 = services.AddHttpClient(DiscordHttpClientConstants.RESPONDER_CLIENT, x => x.DefaultRequestHeaders.UserAgent.Add(productHeader));
+            builder1.Services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
+
+            var builder2 = services.AddHttpClient<ISteamClient, SteamClient>(x => x.DefaultRequestHeaders.UserAgent.Add(productHeader));
+            builder2.Services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
 
             var provider = services.BuildServiceProvider();
 
