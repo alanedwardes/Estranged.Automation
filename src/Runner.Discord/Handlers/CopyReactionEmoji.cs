@@ -1,18 +1,26 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Estranged.Automation.Runner.Discord.Events;
-using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Estranged.Automation.Runner.Discord.Handlers
 {
-    public sealed class CopyReactionEmoji : IReactionAddedHandler
+    public sealed class CopyReactionEmoji : IReactionAddedHandler, IResponder
     {
         private readonly IDiscordClient _discordClient;
 
         public CopyReactionEmoji(IDiscordClient discordClient) => _discordClient = discordClient;
+
+        public async Task ProcessMessage(IMessage message, CancellationToken token)
+        {
+            if (!RandomExtensions.PercentChance(1))
+            {
+                return;
+            }
+
+            await PostTrademark(message, token);
+        }
 
         public async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction, CancellationToken token)
         {
@@ -30,25 +38,35 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
             if (!RandomExtensions.PercentChance(1))
             {
-                await PostReactions(downloadedMessage, token, new Emoji("🇪"), new Emoji("🇸"), new Emoji("🇹"), new Emoji("🇧"), new Emoji("🇴"), new Emoji("🤓"));
+                await PostTrademark(downloadedMessage, token);
                 return;
             }
 
             if (!RandomExtensions.PercentChance(5))
             {
-                await PostReactions(downloadedMessage, token, new Emoji("🤥"));
+                await downloadedMessage.AddReactionAsync(new Emoji("🤥"), token.ToRequestOptions());
                 return;
             }
 
-            await PostReactions(downloadedMessage, token, reaction.Emote);
+            await downloadedMessage.AddReactionAsync(reaction.Emote, token.ToRequestOptions());
         }
 
-        private async Task PostReactions(IUserMessage message, CancellationToken token, params IEmote[] emotes)
+        private async Task PostTrademark(IMessage message, CancellationToken token)
         {
-            foreach (var emote in emotes)
+            var trademark = new[]
             {
-                await message.AddReactionAsync(emote, token.ToRequestOptions());
-            }
+                new Emoji("🇪"),
+                new Emoji("🇸"),
+                new Emoji("🇹"),
+                new Emoji("🇧"),
+                new Emoji("🇴"),
+                new Emoji("🤓")
+            };
+
+            foreach (var emoji in trademark)
+            {
+                await message.AddReactionAsync(emoji, token.ToRequestOptions());
+            }            
         }
     }
 }
