@@ -24,8 +24,6 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public async Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel, CancellationToken token)
         {
-            _logger.LogInformation("Message deleted: {0}", message.Id);
-
             const string deletionsChannel = "deletions";
             if (!channel.IsPublicChannel() && channel.Name != deletionsChannel)
             {
