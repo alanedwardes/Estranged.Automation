@@ -29,6 +29,7 @@ namespace Estranged.Automation.Runner.Discord
                            .AddSingleton<IUserLeftHandler, LeftMessageHandler>()
                            .AddSingleton<IReactionAddedHandler, VerifiedUserHandler>()
                            .AddSingleton<IUserJoinedHandler, WelcomeMessageHandler>()
+                           .AddSingleton<IReactionAddedHandler, CopyReactionEmoji>()
                            .AddSingleton<IUserIsTyping, UserGreetingHandler>()
                            .AddSingleton<IGuildMemberUpdated, AuditTrailHandler>()
                            .AddSingleton<IMessageDeleted, AuditTrailHandler>()
