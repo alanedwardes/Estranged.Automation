@@ -61,6 +61,7 @@ namespace Estranged.Automation.Runner.Discord
             _discordSocketClient.GuildMemberUpdated += (oldMember, newMember) => Task.WhenAll(_serviceProvider.GetServices<IGuildMemberUpdated>().Select(x => WrapTask(x.GuildMemberUpdated(oldMember, newMember, token))));
             _discordSocketClient.RoleUpdated += (oldRole, newRole) => Task.WhenAll(_serviceProvider.GetServices<IRoleUpdated>().Select(x => WrapTask(x.RoleUpdated(oldRole, newRole, token))));
             _discordSocketClient.UserUpdated += (oldUser, newUser) => Task.WhenAll(_serviceProvider.GetServices<IUserUpdated>().Select(x => WrapTask(x.UserUpdated(oldUser, newUser, token))));
+            _discordSocketClient.UserIsTyping += (socketUser, channel) => Task.WhenAll(_serviceProvider.GetServices<IUserIsTyping>().Select(x => WrapTask(x.UserIsTyping(socketUser, channel, token))));
 
             await _discordSocketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await _discordSocketClient.StartAsync();

@@ -28,7 +28,8 @@ namespace Estranged.Automation.Runner.Discord
                            .AddSingleton<IMessageDeleted, DeletedMessageQuoter>()
                            .AddSingleton<IUserLeftHandler, LeftMessageHandler>()
                            .AddSingleton<IReactionAddedHandler, VerifiedUserHandler>()
-                           .AddSingleton<IUserJoinedHandler, WelcomeMessageHandler>();
+                           .AddSingleton<IUserJoinedHandler, WelcomeMessageHandler>()
+                           .AddSingleton<IUserIsTyping, UserGreetingHandler>();
         }
     }
 }
