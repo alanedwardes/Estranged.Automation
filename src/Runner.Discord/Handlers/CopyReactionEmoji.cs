@@ -36,13 +36,13 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
             var downloadedMessage = await message.GetOrDownloadAsync();
 
-            if (!RandomExtensions.PercentChance(0.01f))
+            if (RandomExtensions.PercentChance(0.1f))
             {
                 await PostTrademark(downloadedMessage, token);
                 return;
             }
 
-            if (!RandomExtensions.PercentChance(5))
+            if (RandomExtensions.PercentChance(5))
             {
                 await downloadedMessage.AddReactionAsync(new Emoji("🤥"), token.ToRequestOptions());
                 return;
