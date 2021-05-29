@@ -36,7 +36,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
             var downloadedMessage = await message.GetOrDownloadAsync();
 
-            if (!RandomExtensions.PercentChance(.1f))
+            if (!RandomExtensions.PercentChance(.05f))
             {
                 await PostTrademark(downloadedMessage, token);
                 return;
