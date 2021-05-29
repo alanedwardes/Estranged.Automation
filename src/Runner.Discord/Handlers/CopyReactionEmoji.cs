@@ -14,7 +14,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (!RandomExtensions.PercentChance(1))
+            if (!RandomExtensions.PercentChance(.1f))
             {
                 return;
             }
@@ -36,7 +36,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
             var downloadedMessage = await message.GetOrDownloadAsync();
 
-            if (!RandomExtensions.PercentChance(1))
+            if (!RandomExtensions.PercentChance(.1f))
             {
                 await PostTrademark(downloadedMessage, token);
                 return;

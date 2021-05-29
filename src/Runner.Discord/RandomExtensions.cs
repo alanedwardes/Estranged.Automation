@@ -1,12 +1,25 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
 
 namespace Estranged.Automation.Runner.Discord
 {
     public static class RandomExtensions
     {
-        public static bool PercentChance(int percent)
+        public static bool PercentChance(float percent)
         {
-            return RandomNumberGenerator.GetInt32(0, 101) < percent;
+            return RandomPercent() < percent;
+        }
+
+        private static uint RandomUint()
+        {
+            byte[] random = new byte[4];
+            RandomNumberGenerator.Fill(random);
+            return BitConverter.ToUInt32(random);
+        }
+
+        private static float RandomPercent()
+        {
+            return RandomUint() / (float)uint.MaxValue * 100f;
         }
     }
 }
