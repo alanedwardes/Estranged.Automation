@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Estranged.Automation
 {
@@ -21,25 +22,36 @@ namespace Estranged.Automation
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        private IEnumerable<IMessage> GetAssociatedMessages(object state)
         {
-            var logMessage = new DiscordLogMessage
-            {
-                Level = logLevel,
-                Category = _categoryName,
-                Message = formatter(state, exception),
-                Exception = exception,
-            };
-
             foreach (KeyValuePair<string, object> stateValue in state as IReadOnlyList<KeyValuePair<string, object>>)
             {
                 if (stateValue.Value is IMessage message)
                 {
-                    logMessage.AssociatedMessage = message;
+                    yield return message;
                 }
             }
+        }
 
-            _messageQueue.Enqueue(logMessage);
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            DiscordLogMessage CreateLogMessage(string message, IMessage associatedMessage) => new DiscordLogMessage
+            {
+                Level = logLevel,
+                Category = _categoryName,
+                Message = message,
+                Exception = exception,
+                AssociatedMessage = associatedMessage
+            };
+
+            var associatedMessages = GetAssociatedMessages(state).ToArray();
+
+            _messageQueue.Enqueue(CreateLogMessage(formatter(state, exception), associatedMessages.FirstOrDefault()));
+
+            foreach (var associatedMessage in associatedMessages.Skip(1))
+            {
+                _messageQueue.Enqueue(CreateLogMessage(null, associatedMessage));
+            }
         }
     }
 }

@@ -41,7 +41,14 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public async Task MessageUpdated(Cacheable<IMessage, ulong> message, SocketMessage socketMessage, ISocketMessageChannel channel, CancellationToken token)
         {
-            _logger.LogInformation("Message {Message} was updated in {Channel}", await message.GetOrDownloadAsync(), channel);
+            if (message.HasValue)
+            {
+                _logger.LogInformation("Message {Original} was updated to {Updated} in {Channel}", message.Value, await message.DownloadAsync(), channel);
+            }
+            else
+            {
+                _logger.LogInformation("Message {Message} was updated in {Channel} (message not cached)", await message.DownloadAsync(), channel);
+            }
         }
 
         public Task UserJoined(SocketGuildUser user, CancellationToken token)
