@@ -69,7 +69,7 @@ namespace Estranged.Automation.Runner.Discord
                 368117881000427540, // #general
                 479405352207777795, // #gaming
                 437311972917248022, // #act-i
-                437312012603752458, // #act-ii
+                437312012603752458, // #the-departure
                 439742315016486922, // #dev-screenshots
                 454937488000024577, // #bugs,
                 457813004889751553, // #ideas
