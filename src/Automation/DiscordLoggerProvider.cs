@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Estranged.Automation.Runner.Discord;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,6 +16,7 @@ namespace Estranged.Automation
         public LogLevel Level { get; set; }
         public string Message { get; set; }
         public Exception Exception { get; set; }
+        public IMessage AssociatedMessage { get; set; }
     }
 
     public sealed class DiscordLoggerProvider : ILoggerProvider
@@ -83,7 +85,7 @@ namespace Estranged.Automation
                 text += "```\n" + logMessage.Exception.ToString().Truncate(1024) + "\n```";
             }
 
-            await channel.SendMessageAsync(text, options: new RequestOptions { CancelToken = _tokenSource.Token });
+            await channel.SendMessageAsync(text, embed: logMessage.AssociatedMessage?.QuoteMessage(), options: new RequestOptions { CancelToken = _tokenSource.Token });
         }
 
         public void Dispose() => _tokenSource.Cancel();

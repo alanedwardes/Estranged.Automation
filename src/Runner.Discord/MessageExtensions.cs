@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Estranged.Automation.Runner.Discord
 {
-    internal static class MessageExtensions
+    public static class MessageExtensions
     {
         public static Embed QuoteMessage(this IMessage quotedMessage, IUser quoter = null)
         {

@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Discord;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Estranged.Automation
 {
@@ -21,13 +23,23 @@ namespace Estranged.Automation
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            _messageQueue.Enqueue(new DiscordLogMessage
+            var logMessage = new DiscordLogMessage
             {
                 Level = logLevel,
                 Category = _categoryName,
                 Message = formatter(state, exception),
-                Exception = exception
-            });
+                Exception = exception,
+            };
+
+            foreach (KeyValuePair<string, object> stateValue in state as IReadOnlyList<KeyValuePair<string, object>>)
+            {
+                if (stateValue.Value is IMessage message)
+                {
+                    logMessage.AssociatedMessage = message;
+                }
+            }
+
+            _messageQueue.Enqueue(logMessage);
         }
     }
 }

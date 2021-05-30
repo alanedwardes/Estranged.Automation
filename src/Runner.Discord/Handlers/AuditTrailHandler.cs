@@ -27,14 +27,21 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel, CancellationToken token)
         {
-            _logger.LogInformation("Message {MessageId} was deleted in {Channel}", message.Id, channel);
+            if (message.HasValue)
+            {
+                _logger.LogInformation("Message {Message} was deleted in {Channel}", message.Value, channel);
+            }
+            else
+            {
+                _logger.LogInformation("Message {Message} was deleted in {Channel} (message not cached)", message.Id, channel);
+            }
+
             return Task.CompletedTask;
         }
 
-        public Task MessageUpdated(Cacheable<IMessage, ulong> message, SocketMessage socketMessage, ISocketMessageChannel channel, CancellationToken token)
+        public async Task MessageUpdated(Cacheable<IMessage, ulong> message, SocketMessage socketMessage, ISocketMessageChannel channel, CancellationToken token)
         {
-            _logger.LogInformation("Message {MessageId} was updated to {NewMessage} in {Channel}", message.Id, socketMessage, channel);
-            return Task.CompletedTask;
+            _logger.LogInformation("Message {Message} was updated in {Channel}", await message.GetOrDownloadAsync(), channel);
         }
 
         public Task UserJoined(SocketGuildUser user, CancellationToken token)
