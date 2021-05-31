@@ -37,12 +37,12 @@ namespace Estranged.Automation.Runner.Discord
 
                 if (embed.Image.HasValue)
                 {
-                    builder.WithImageUrl(embed.Image.Value.ProxyUrl);
+                    builder.WithImageUrl(embed.Image.Value.Url);
                 }
 
                 if (embed.Thumbnail.HasValue)
                 {
-                    builder.WithImageUrl(embed.Thumbnail.Value.ProxyUrl);
+                    builder.WithImageUrl(embed.Thumbnail.Value.Url);
                 }
 
                 foreach (var field in embed.Fields)
