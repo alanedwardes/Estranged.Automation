@@ -41,6 +41,11 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public async Task MessageUpdated(Cacheable<IMessage, ulong> message, SocketMessage socketMessage, ISocketMessageChannel channel, CancellationToken token)
         {
+            if (channel.Id == 845981918130733106)
+            {
+                return;
+            }
+
             if (message.HasValue)
             {
                 _logger.LogInformation("Message {Original} was updated to {Updated} in {Channel}", message.Value, await message.DownloadAsync(), channel);
