@@ -40,6 +40,11 @@ namespace Estranged.Automation.Runner.Discord
                     builder.WithImageUrl(embed.Image.Value.Url);
                 }
 
+                if (embed.Thumbnail.HasValue)
+                {
+                    builder.WithImageUrl(embed.Thumbnail.Value.Url);
+                }
+
                 foreach (var field in embed.Fields)
                 {
                     if (!string.IsNullOrWhiteSpace(field.Name) && !string.IsNullOrWhiteSpace(field.Value))
