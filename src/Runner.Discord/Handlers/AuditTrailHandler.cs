@@ -41,8 +41,9 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public async Task MessageUpdated(Cacheable<IMessage, ulong> message, SocketMessage socketMessage, ISocketMessageChannel channel, CancellationToken token)
         {
-            if (channel.Id == 845981918130733106)
+            if (!socketMessage.EditedTimestamp.HasValue)
             {
+                // This edit was made by Discord
                 return;
             }
 
