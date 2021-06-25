@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using Estranged.Automation.Runner.Discord.Events;
+using Humanizer;
 
 namespace Estranged.Automation.Runner.Discord
 {
@@ -25,21 +26,15 @@ namespace Estranged.Automation.Runner.Discord
             _discordSocketClient = discordSocketClient;
         }
 
-        private static readonly IReadOnlyDictionary<LogSeverity, LogLevel> LOG_LEVEL_MAPPING = new Dictionary<LogSeverity, LogLevel>
-        {
-            { LogSeverity.Critical, LogLevel.Critical },
-            { LogSeverity.Debug, LogLevel.Debug },
-            { LogSeverity.Error, LogLevel.Error },
-            { LogSeverity.Info, LogLevel.Information },
-            { LogSeverity.Verbose, LogLevel.Trace },
-            { LogSeverity.Warning, LogLevel.Warning }
-        };
+        private readonly DateTimeOffset _startTime = DateTimeOffset.UtcNow;
+        private DateTimeOffset _connectTime = DateTimeOffset.UtcNow;
 
         public async Task Run(CancellationToken token)
         {
-            _discordSocketClient.Log += logMessage =>
+            _discordSocketClient.Connected += () =>
             {
-                _logger.Log(LOG_LEVEL_MAPPING[logMessage.Severity], logMessage.Exception, logMessage.Message);
+                _logger.LogInformation("Connected. Uptime {Uptime}, previous connection time {PreviousConnectionTime}", (DateTimeOffset.UtcNow - _startTime).Humanize(), (DateTimeOffset.UtcNow - _connectTime).Humanize());
+                _connectTime = DateTimeOffset.UtcNow;
                 return Task.CompletedTask;
             };
 
