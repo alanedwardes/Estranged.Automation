@@ -33,7 +33,7 @@ namespace Estranged.Automation.Runner.Discord
         {
             _discordSocketClient.Connected += () =>
             {
-                _logger.LogInformation("Connected. Uptime {Uptime}, previous connection time {PreviousConnectionTime}", (DateTimeOffset.UtcNow - _startTime).Humanize(), (DateTimeOffset.UtcNow - _connectTime).Humanize());
+                _logger.LogTrace("Connected. Uptime {Uptime}, previous connection time {PreviousConnectionTime}", (DateTimeOffset.UtcNow - _startTime).Humanize(), (DateTimeOffset.UtcNow - _connectTime).Humanize());
                 _connectTime = DateTimeOffset.UtcNow;
                 return Task.CompletedTask;
             };

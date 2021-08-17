@@ -32,12 +32,10 @@ namespace Estranged.Automation.Runner.Discord
                            .AddSingleton<IUserJoinedHandler, WelcomeMessageHandler>()
                            .AddSingleton<IReactionAddedHandler, CopyReactionEmoji>()
                            .AddSingleton<IUserIsTyping, UserGreetingHandler>()
-                           .AddSingleton<IGuildMemberUpdated, AuditTrailHandler>()
                            .AddSingleton<IMessageDeleted, AuditTrailHandler>()
                            .AddSingleton<IMessageUpdated, AuditTrailHandler>()
                            .AddSingleton<IUserJoinedHandler, AuditTrailHandler>()
-                           .AddSingleton<IUserLeftHandler, AuditTrailHandler>()
-                           .AddSingleton<IUserUpdated, AuditTrailHandler>();
+                           .AddSingleton<IUserLeftHandler, AuditTrailHandler>();
         }
     }
 }
