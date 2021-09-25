@@ -12,9 +12,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly IReadOnlyList<Uri> _library = new[]
         {
-            new Uri("https://alan.gdn/3eb70cea-8059-4797-b1aa-734a29e6779b.jpg"),
-            new Uri("https://alan.gdn/eb05b40e-6d98-418e-96a2-de2b69d2be24.jpg"),
-            new Uri("https://alan.gdn/65391db7-2c91-4c32-8b53-6610dddc5685.jpg")
+            new Uri("https://alan.gdn/3eb70cea-8059-4797-b1aa-734a29e6779b.jpg"), // Seth Rogan
+            new Uri("https://alan.gdn/eb05b40e-6d98-418e-96a2-de2b69d2be24.jpg"), // Chris Pratt
+            new Uri("https://alan.gdn/65391db7-2c91-4c32-8b53-6610dddc5685.jpg")  // Jack Black
         };
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
