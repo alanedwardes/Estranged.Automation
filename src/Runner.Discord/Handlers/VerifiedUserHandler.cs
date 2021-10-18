@@ -26,7 +26,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
                 return;
             }
 
-            var guild = _discordClient.Guilds.Single(x => x.Name == "ESTRANGED");
+            var guild = _discordClient.GetEstrangedGuild();
 
             // The "verified" role
             var role = guild.GetRole(845401897204580412);

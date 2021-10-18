@@ -23,7 +23,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
         {
             _logger.LogInformation("User joined: {0}", user);
 
-            var guild = _discordClient.Guilds.Single(x => x.Name == "ESTRANGED");
+            var guild = _discordClient.GetEstrangedGuild();
 
             var welcomeChannel = guild.TextChannels.Single(x => x.Name == "welcome");
             var rulesChannel = guild.TextChannels.Single(x => x.Name == "rules");

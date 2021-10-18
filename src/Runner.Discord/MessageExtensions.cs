@@ -91,11 +91,14 @@ namespace Estranged.Automation.Runner.Discord
             return publicChannels.Contains(channel.Id);
         }
 
+        public static SocketGuild GetEstrangedGuild(this DiscordSocketClient client)
+        {
+            return client.Guilds.Single(x => x.Name == "ESTRANGED");
+        }
+
         public static SocketTextChannel GetChannelByName(this DiscordSocketClient client, string channelName)
         {
-            var guild = client.Guilds.Single(x => x.Name == "ESTRANGED");
-
-            return guild.TextChannels.Single(x => x.Name == channelName);
+            return client.GetEstrangedGuild().TextChannels.Single(x => x.Name == channelName);
         }
     }
 }
