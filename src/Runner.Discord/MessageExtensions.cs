@@ -81,6 +81,10 @@ namespace Estranged.Automation.Runner.Discord
                 535160312320753664, // #bots
                 549182701630914561, // #aaaaaaaaaaaaaaaaaaaa
 
+                899774965895811082, // #test1
+                899775011261399131, // #test2
+                899775057331642448, // #test3
+
                 435131444931723264, // #friends
             };
 
