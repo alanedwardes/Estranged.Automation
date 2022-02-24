@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime:3.1
+FROM mcr.microsoft.com/dotnet/runtime:3.1-bullseye-slim-arm64v8
 
 RUN mkdir /opt/estbot
 
