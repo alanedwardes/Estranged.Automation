@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime:3.1
+FROM --platform=linux/arm/v7 mcr.microsoft.com/dotnet/runtime:3.1
 
 RUN mkdir /opt/estbot
 
