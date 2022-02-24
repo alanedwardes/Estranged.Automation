@@ -15,7 +15,7 @@ jobs:
         dotnet-version: 5.0.x
       
     - name: Build Estbot
-      run: dotnet publish src/Automation/Estranged.Automation.csproj --configuration Release --runtime linux-x64 --output build/linux-x64
+      run: dotnet publish src/Automation/Estranged.Automation.csproj --configuration Release --runtime linux-arm64 --output build/linux-x64
       
     - name: Login to Public ECR
       uses: docker/login-action@v1
