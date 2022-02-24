@@ -7,12 +7,10 @@
   <ItemGroup>
 	<PackageReference Include="Microsoft.Extensions.Http" Version="3.1.13" />
     <PackageReference Include="Ae.Steam.Client" Version="0.0.4" />
-    <PackageReference Include="Google.Cloud.Language.V1" Version="2.1.0" />
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.13" />
     <PackageReference Include="Discord.Net.WebSocket" Version="2.3.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.13" />
-    <PackageReference Include="Google.Cloud.Translation.V2" Version="2.0.0" />
     <PackageReference Include="Octokit" Version="0.50.0" />
   </ItemGroup>
 

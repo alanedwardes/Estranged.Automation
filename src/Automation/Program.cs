@@ -5,8 +5,6 @@ using Discord;
 using Discord.WebSocket;
 using Estranged.Automation.Runner.Discord;
 using Estranged.Automation.Shared;
-using Google.Cloud.Language.V1;
-using Google.Cloud.Translation.V2;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
@@ -53,8 +51,6 @@ namespace Estranged.Automation
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
                 .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
-                .AddSingleton(TranslationClient.Create())
-                .AddSingleton(LanguageServiceClient.Create())
                 .AddResponderServices();
 
             var builder1 = services.AddHttpClient(DiscordHttpClientConstants.RESPONDER_CLIENT, x => x.DefaultRequestHeaders.UserAgent.Add(productHeader));
