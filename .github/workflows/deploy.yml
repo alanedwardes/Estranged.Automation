@@ -28,6 +28,6 @@ jobs:
       env:
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build --platform linux/arm/v7 -t public.ecr.aws/j7m3k0v4/estbot:$IMAGE_TAG .
-        docker build --platform linux/arm/v7 -t public.ecr.aws/j7m3k0v4/estbot:latest .
+        docker build --platform linux/arm/v8 -t public.ecr.aws/j7m3k0v4/estbot:$IMAGE_TAG .
+        docker build --platform linux/arm/v8 -t public.ecr.aws/j7m3k0v4/estbot:latest .
         docker push --all-tags public.ecr.aws/j7m3k0v4/estbot
