@@ -65,7 +65,7 @@ namespace Estranged.Automation.Lambda.QuarterHour
                 .AddLogging(options =>
                 {
                     options.AddConsole();
-                    options.SetMinimumLevel(LogLevel.Warning);
+                    options.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Warning);
                 })
                 .AddSingleton<IRunnable, CommunityRunnable>()
                 .AddSingleton<IRunnable, ReviewsRunnable>()

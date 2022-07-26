@@ -12,11 +12,13 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public DeletedMessageQuoter(DiscordSocketClient discordClient) => _discordClient = discordClient;
 
-        public async Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel, CancellationToken token)
+        public async Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, CancellationToken token)
         {
+            var channelDownloaded = await channel.GetOrDownloadAsync();
+
             const string deletionsChannel = "deletions";
-            if (channel.Name == deletionsChannel ||
-                !channel.IsPublicChannel() ||
+            if (channelDownloaded.Name == deletionsChannel ||
+                !channelDownloaded.IsPublicChannel() ||
                 !message.HasValue)
             {
                 return;

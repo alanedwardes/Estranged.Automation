@@ -30,7 +30,7 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
         public ReviewsRunnable(ILogger<CommunityRunnable> logger, ISeenItemRepository seenItemRepository, HttpClient httpClient, Function.FunctionConfig config, TranslationClient translation, ISteamClient steam)
         {
             this.logger = logger;
-            this.slack = new SlackClient(new SlackConfig { WebHookUrl = config.EstrangedDiscordReviewsWebhook, HttpClient = httpClient });
+            this.slack = new SlackClient(new SlackConfig { WebHookUrl = config.EstrangedDiscordReviewsWebhook }, httpClient);
             this.seenItemRepository = seenItemRepository;
             this.translation = translation;
             this.steam = steam;

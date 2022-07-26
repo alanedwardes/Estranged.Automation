@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using Estranged.Automation.Runner.Discord.Events;
 using Microsoft.Extensions.Logging;
 using System.Threading;
@@ -18,7 +17,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
             _discordClient = discordClient;
         }
 
-        public async Task UserLeft(SocketGuildUser user, CancellationToken token)
+        public async Task UserLeft(SocketUser user, CancellationToken token)
         {
             _logger.LogInformation("User left: {0}", user);
 

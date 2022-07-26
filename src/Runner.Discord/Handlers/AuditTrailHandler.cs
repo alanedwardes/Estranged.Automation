@@ -13,7 +13,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public AuditTrailHandler(ILogger<AuditTrailHandler> logger) => _logger = logger;
 
-        public Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel, CancellationToken token)
+        public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, CancellationToken token)
         {
             if (message.HasValue)
             {
@@ -51,7 +51,7 @@ namespace Estranged.Automation.Runner.Discord.Handlers
             return Task.CompletedTask;
         }
 
-        public Task UserLeft(SocketGuildUser user, CancellationToken token)
+        public Task UserLeft(SocketUser user, CancellationToken token)
         {
             _logger.LogInformation("User {User} left", user);
             return Task.CompletedTask;

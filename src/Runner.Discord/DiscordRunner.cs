@@ -7,7 +7,6 @@ using Discord;
 using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 using Estranged.Automation.Runner.Discord.Events;
 using Humanizer;
 
@@ -51,7 +50,7 @@ namespace Estranged.Automation.Runner.Discord
             _discordSocketClient.MessageDeleted += (message, channel) => Task.WhenAll(_serviceProvider.GetServices<IMessageDeleted>().Select(x => WrapTask(x.MessageDeleted(message, channel, token))));
             _discordSocketClient.MessageUpdated += (message, socketMessage, channel) => Task.WhenAll(_serviceProvider.GetServices<IMessageUpdated>().Select(x => WrapTask(x.MessageUpdated(message, socketMessage, channel, token))));
             _discordSocketClient.UserJoined += user => Task.WhenAll(_serviceProvider.GetServices<IUserJoinedHandler>().Select(x => WrapTask(x.UserJoined(user, token))));
-            _discordSocketClient.UserLeft += user => Task.WhenAll(_serviceProvider.GetServices<IUserLeftHandler>().Select(x => WrapTask(x.UserLeft(user, token))));
+            _discordSocketClient.UserLeft += (guild, user) => Task.WhenAll(_serviceProvider.GetServices<IUserLeftHandler>().Select(x => WrapTask(x.UserLeft(user, token))));
             _discordSocketClient.ReactionAdded += (message, channel, reaction) => Task.WhenAll(_serviceProvider.GetServices<IReactionAddedHandler>().Select(x => WrapTask(x.ReactionAdded(message, channel, reaction, token))));
             _discordSocketClient.GuildMemberUpdated += (oldMember, newMember) => Task.WhenAll(_serviceProvider.GetServices<IGuildMemberUpdated>().Select(x => WrapTask(x.GuildMemberUpdated(oldMember, newMember, token))));
             _discordSocketClient.RoleUpdated += (oldRole, newRole) => Task.WhenAll(_serviceProvider.GetServices<IRoleUpdated>().Select(x => WrapTask(x.RoleUpdated(oldRole, newRole, token))));

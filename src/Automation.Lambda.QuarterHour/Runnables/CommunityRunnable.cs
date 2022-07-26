@@ -15,7 +15,7 @@ namespace Estranged.Automation.Lambda.QuarterHour.Runnables
 
         public CommunityRunnable(ILogger<CommunityRunnable> logger, ISeenItemRepository seenItemRepository, HttpClient httpClient, Function.FunctionConfig config, Scraper scraper)
         {
-            slack = new SlackClient(new SlackConfig { WebHookUrl = config.EstrangedDiscordCommunityWebhook, HttpClient = httpClient });
+            slack = new SlackClient(new SlackConfig { WebHookUrl = config.EstrangedDiscordCommunityWebhook }, httpClient);
             this.scraper = scraper;
         }
 

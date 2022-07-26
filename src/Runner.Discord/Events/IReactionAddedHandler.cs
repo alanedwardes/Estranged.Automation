@@ -7,6 +7,6 @@ namespace Estranged.Automation.Runner.Discord.Events
 {
     public interface IReactionAddedHandler
     {
-        Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction, CancellationToken token);
+        Task ReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction, CancellationToken token);
     }
 }

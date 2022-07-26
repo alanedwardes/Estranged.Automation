@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using Estranged.Automation.Runner.Discord.Events;
 using Microsoft.Extensions.Logging;
 using System.Linq;

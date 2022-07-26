@@ -14,7 +14,7 @@ namespace Estranged.Automation.Runner.Syndication
 
         public SyndicationRunnable(Function.FunctionConfig config, HttpClient httpClient, Scraper scraper)
         {
-            slack = new SlackClient(new SlackConfig { WebHookUrl = config.EstrangedDiscordSyndicationWebhook, HttpClient = httpClient });
+            slack = new SlackClient(new SlackConfig { WebHookUrl = config.EstrangedDiscordSyndicationWebhook }, httpClient);
             this.scraper = scraper;
         }
 

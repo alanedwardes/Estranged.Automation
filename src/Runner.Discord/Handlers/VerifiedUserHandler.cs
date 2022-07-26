@@ -19,9 +19,9 @@ namespace Estranged.Automation.Runner.Discord.Handlers
             _discordClient = discordClient;
         }
 
-        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction, CancellationToken token)
+        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction, CancellationToken token)
         {
-            if (channel.Name != "verification")
+            if ((await channel.GetOrDownloadAsync()).Name != "verification")
             {
                 return;
             }
