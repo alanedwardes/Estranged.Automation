@@ -9,6 +9,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (message.Channel.IsProtectedChannel())
+            {
+                return;
+            }
+
             var trimmed = message.Content.ToLower().Trim();
             if (trimmed.Contains("rtx on") || trimmed.Contains("rtx off"))
             {

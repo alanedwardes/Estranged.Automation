@@ -91,6 +91,28 @@ namespace Estranged.Automation.Runner.Discord
             return publicChannels.Contains(channel.Id);
         }
 
+        public static bool IsProtectedChannel(this IChannel channel)
+        {
+            IEnumerable<ulong> protectedChannels = new ulong[]
+            {
+                1036776421584027688, // #game-screenshots
+                435094509953744907, // #announcements
+                454937488000024577, // #bugs
+                439742315016486922, // #dev-screenshots
+                457813004889751553, // #ideas
+                883750008141279253, // #game-dev
+                455012497775132673, // #community
+                435152590209286145, // #reviews
+                633725420285591571, // #deletions
+                633724305871470593, // #goodbyes
+                437311972917248022, // #act-i
+                437312012603752458, // #the-departure
+                802974954160128011, // #arctic-cold
+            };
+
+            return protectedChannels.Contains(channel.Id);
+        }
+
         public static SocketGuild GetEstrangedGuild(this DiscordSocketClient client)
         {
             return client.Guilds.Single(x => x.Name == "ESTRANGED");

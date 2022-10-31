@@ -25,6 +25,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (message.Channel.IsProtectedChannel())
+            {
+                return;
+            }
+
             IList<string> words = message.Content.ToLower().Split(' ');
             var intersections = allBreeds.Intersect(words).ToArray();
             if (intersections.Any())

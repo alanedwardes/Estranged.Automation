@@ -9,6 +9,11 @@ namespace Estranged.Automation.Runner.Discord.Handlers
     {
         public async Task UserIsTyping(Cacheable<IUser, ulong> user, Cacheable<IMessageChannel, ulong> channel, CancellationToken token)
         {
+            if ((await channel.GetOrDownloadAsync()).IsProtectedChannel())
+            {
+                return;
+            }
+
             if (!RandomExtensions.PercentChance(1))
             {
                 return;

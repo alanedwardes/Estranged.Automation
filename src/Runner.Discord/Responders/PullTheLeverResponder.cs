@@ -75,6 +75,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (message.Channel.IsProtectedChannel())
+            {
+                return;
+            }
+
             string messageContent = message.Content.ToLower();
 
             if (message.Channel.Name != "bots")

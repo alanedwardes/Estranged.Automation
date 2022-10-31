@@ -75,7 +75,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
-        {            
+        {
+            if (message.Channel.IsProtectedChannel())
+            {
+                return;
+            }
+
             if (!commands.Any(x => message.Content.Contains(x, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return;

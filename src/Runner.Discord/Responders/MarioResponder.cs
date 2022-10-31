@@ -19,6 +19,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (message.Channel.IsProtectedChannel())
+            {
+                return;
+            }
+
             async Task PostFromLibrary()
             {
                 await message.Channel.SendMessageAsync("IT'S A ME-A");

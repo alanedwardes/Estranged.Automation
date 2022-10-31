@@ -11,6 +11,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (message.Channel.IsProtectedChannel())
+            {
+                return;
+            }
+
             if (!message.Content.ToLowerInvariant().Contains("hello"))
             {
                 return;
