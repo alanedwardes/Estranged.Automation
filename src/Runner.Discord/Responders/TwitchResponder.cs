@@ -31,7 +31,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 var emojiList = await emojiListResponse.Content.ReadAsStringAsync();
 
-                var matches = Regex.Matches(emojiList, "src=\"(?<url>/creatorcamp/assets/uploads/(?<name>.*?).png)\"");
+                var matches = Regex.Matches(emojiList, "(?<url>/creatorcamp/assets/uploads/(?<name>.*?).png)");
 
                 return matches.Select(x => new TwitchEmoji
                 {
