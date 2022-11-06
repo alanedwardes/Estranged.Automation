@@ -25,7 +25,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 using var httpClient = httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
 
-                var emojiListResponse = await httpClient.GetAsync("https://www.twitch.tv/creatorcamp/en/learn-the-basics/emotes/");
+                var emojiListResponse = await httpClient.GetAsync("https://www.twitch.tv/creatorcamp/en/paths/getting-started-on-twitch/emotes/");
 
                 emojiListResponse.EnsureSuccessStatusCode();
 
