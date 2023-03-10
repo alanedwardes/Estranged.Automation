@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Estranged.Automation.Runner.Discord.Events;
+using Microsoft.Extensions.Logging;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
@@ -18,20 +19,28 @@ namespace Estranged.Automation.Runner.Discord.Responders
         }
 
         private readonly Lazy<Task<TwitchEmoji[]>> emojiTask;
+        private readonly ILogger<TwitchResponder> _logger;
 
-        public TwitchResponder(IHttpClientFactory httpClientFactory)
+        public TwitchResponder(ILogger<TwitchResponder> logger, IHttpClientFactory httpClientFactory)
         {
+            _logger = logger;
+
             emojiTask = new Lazy<Task<TwitchEmoji[]>>(async () =>
             {
                 using var httpClient = httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
 
-                var emojiListResponse = await httpClient.GetAsync("https://www.twitch.tv/creatorcamp/en/paths/getting-started-on-twitch/emotes/");
+                var helpPageResponse = await httpClient.GetAsync("https://www.twitch.tv/creatorcamp/en/paths/getting-started-on-twitch/emotes/");
 
-                emojiListResponse.EnsureSuccessStatusCode();
+                helpPageResponse.EnsureSuccessStatusCode();
 
-                var emojiList = await emojiListResponse.Content.ReadAsStringAsync();
+                var helpPageResponseContent = await helpPageResponse.Content.ReadAsStringAsync();
 
-                var matches = Regex.Matches(emojiList, "(?<url>/creatorcamp/assets/uploads/(?<name>.*?).png)");
+                var matches = Regex.Matches(helpPageResponseContent, "(?<url>/creatorcamp/assets/uploads/(?<name>.*?).png)");
+
+                if (!matches.Any())
+                {
+                    _logger.LogWarning("Unable to find emoji matches, got the following response: {Content}", helpPageResponseContent.Length > 512 ? helpPageResponseContent[..512] : helpPageResponseContent);
+                }
 
                 return matches.Select(x => new TwitchEmoji
                 {
