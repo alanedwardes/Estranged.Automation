@@ -33,7 +33,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             foreach (var completion in response.Choices)
             {
-                await message.Channel.SendMessageAsync(completion.Message.Content, options: token.ToRequestOptions());
+                const int discordMessageLimit = 2000;
+
+                if (completion.Message.Content.Length > discordMessageLimit)
+                {
+                    await message.Channel.SendMessageAsync(completion.Message.Content[..discordMessageLimit], options: token.ToRequestOptions());
+
+                    // Assume not longer than 4000k
+                    await message.Channel.SendMessageAsync(completion.Message.Content[discordMessageLimit..completion.Message.Content.Length], options: token.ToRequestOptions());
+                }
+                else
+                {
+                    await message.Channel.SendMessageAsync(completion.Message.Content, options: token.ToRequestOptions());
+                }
             }
         }
     }
