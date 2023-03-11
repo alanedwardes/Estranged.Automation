@@ -31,7 +31,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             get
             {
                 var now = DateTime.UtcNow;
-                return now.AddMinutes(-now.Minute).AddSeconds(-now.Second);
+                return new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Utc);
             }
         }
 
