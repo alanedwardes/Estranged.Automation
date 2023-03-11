@@ -35,7 +35,7 @@ namespace Estranged.Automation
             {
                 HandlerTimeout = null,
                 MessageCacheSize = 1024,
-                GatewayIntents = GatewayIntents.MessageContent
+                GatewayIntents = GatewayIntents.All
             });
 
             var services = new ServiceCollection()
