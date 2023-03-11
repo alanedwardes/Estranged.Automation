@@ -26,7 +26,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _openAi = openAi;
         }
 
-        private static DateTime CurrentHour => DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Minute);
+        private static DateTime CurrentHour
+        {
+            get
+            {
+                var now = DateTime.UtcNow;
+                return now.AddMinutes(-now.Minute).AddSeconds(-now.Second);
+            }
+        }
 
         private AttemptsBucket Attempts = new AttemptsBucket();
 
