@@ -34,7 +34,8 @@ namespace Estranged.Automation
             var discordSocketClient = new DiscordSocketClient(new DiscordSocketConfig
             {
                 HandlerTimeout = null,
-                MessageCacheSize = 1024
+                MessageCacheSize = 1024,
+                GatewayIntents = GatewayIntents.MessageContent
             });
 
             var services = new ServiceCollection()
