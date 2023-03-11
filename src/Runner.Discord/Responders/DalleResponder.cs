@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
-    internal sealed class OpenAiResponder : IResponder
+
+    internal sealed class DalleResponder : IResponder
     {
         private class AttemptsBucket
         {
@@ -21,10 +22,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private readonly OpenAIAPI _openAi;
 
-        public OpenAiResponder(OpenAIAPI openAi)
-        {
-            _openAi = openAi;
-        }
+        public DalleResponder(OpenAIAPI openAi) => _openAi = openAi;
 
         private static DateTime CurrentBucket
         {
@@ -45,6 +43,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
+            var prompt = message.Content[trigger.Length..].Trim();
+
             if (Attempts.Bucket != CurrentBucket)
             {
                 // Refresh the bucket since time moved on
@@ -58,8 +58,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
 
             Attempts.Count++;
-
-            var prompt = message.Content[trigger.Length..].Trim();
 
             using (message.Channel.EnterTypingState())
             {
