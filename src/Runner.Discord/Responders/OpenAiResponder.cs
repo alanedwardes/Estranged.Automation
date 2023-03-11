@@ -13,10 +13,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private class AttemptsBucket
         {
-            public AttemptsBucket() => Hour = CurrentHour;
+            public AttemptsBucket() => Bucket = CurrentBucket;
 
             public int Count;
-            public DateTime Hour;
+            public DateTime Bucket;
         }
 
         private readonly OpenAIAPI _openAi;
@@ -26,12 +26,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _openAi = openAi;
         }
 
-        private static DateTime CurrentHour
+        private static DateTime CurrentBucket
         {
             get
             {
                 var now = DateTime.UtcNow;
-                return new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Utc);
+                return new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
             }
         }
 
@@ -45,7 +45,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (Attempts.Hour != CurrentHour)
+            if (Attempts.Bucket != CurrentBucket)
             {
                 // Refresh the bucket since time moved on
                 Attempts = new AttemptsBucket();
@@ -53,7 +53,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (Attempts.Count >= 10)
             {
-                await message.Channel.SendMessageAsync("wait until the top of the hour", options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
                 return;
             }
 
