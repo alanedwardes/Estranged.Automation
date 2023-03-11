@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using OpenAI_API;
 using OpenAI_API.Images;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +36,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using (message.Channel.EnterTypingState())
             {
-                var result = await _openAi.ImageGenerations.CreateImageAsync(new ImageGenerationRequest
+                var results = await _openAi.ImageGenerations.CreateImageAsync(new ImageGenerationRequest
                 {
                     Size = ImageSize._256,
                     NumOfImages = 1,
@@ -45,7 +46,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 _logger.LogInformation("Got response from OpenAI {Response}", JsonConvert.SerializeObject(result));
 
-                await message.Channel.SendMessageAsync(result.Object, options: token.ToRequestOptions());
+                var result = results.Data.Single();
+
+                await message.Channel.SendMessageAsync(result.Url, options: token.ToRequestOptions());
             }
         }
     }
