@@ -26,6 +26,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string trigger = "dalle";
             if (!message.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
             {
+                _logger.LogInformation("Ignoring message {Message}", message.Content);
                 return;
             }
 
