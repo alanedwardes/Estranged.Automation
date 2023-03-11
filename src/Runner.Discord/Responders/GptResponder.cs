@@ -26,25 +26,28 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var prompt = message.Content[trigger.Length..].Trim();
 
-            var response = await _openAi.Chat.CreateChatCompletionAsync(new List<ChatMessage>
+            using (message.Channel.EnterTypingState())
             {
-                new ChatMessage(ChatMessageRole.User, prompt)
-            }, new Model("gpt-3.5-turbo"));
-
-            foreach (var completion in response.Choices)
-            {
-                const int discordMessageLimit = 2000;
-
-                if (completion.Message.Content.Length > discordMessageLimit)
+                var response = await _openAi.Chat.CreateChatCompletionAsync(new List<ChatMessage>
                 {
-                    await message.Channel.SendMessageAsync(completion.Message.Content[..discordMessageLimit], options: token.ToRequestOptions());
+                    new ChatMessage(ChatMessageRole.User, prompt)
+                }, new Model("gpt-3.5-turbo"));
 
-                    // Assume not longer than 4000k
-                    await message.Channel.SendMessageAsync(completion.Message.Content[discordMessageLimit..], options: token.ToRequestOptions());
-                }
-                else
+                foreach (var completion in response.Choices)
                 {
-                    await message.Channel.SendMessageAsync(completion.Message.Content, options: token.ToRequestOptions());
+                    const int discordMessageLimit = 2000;
+
+                    if (completion.Message.Content.Length > discordMessageLimit)
+                    {
+                        await message.Channel.SendMessageAsync(completion.Message.Content[..discordMessageLimit], options: token.ToRequestOptions());
+
+                        // Assume not longer than 4000k
+                        await message.Channel.SendMessageAsync(completion.Message.Content[discordMessageLimit..], options: token.ToRequestOptions());
+                    }
+                    else
+                    {
+                        await message.Channel.SendMessageAsync(completion.Message.Content, options: token.ToRequestOptions());
+                    }
                 }
             }
         }
