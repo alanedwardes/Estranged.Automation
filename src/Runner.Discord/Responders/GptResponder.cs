@@ -40,7 +40,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     await message.Channel.SendMessageAsync(completion.Message.Content[..discordMessageLimit], options: token.ToRequestOptions());
 
                     // Assume not longer than 4000k
-                    await message.Channel.SendMessageAsync(completion.Message.Content[discordMessageLimit..completion.Message.Content.Length], options: token.ToRequestOptions());
+                    await message.Channel.SendMessageAsync(completion.Message.Content[discordMessageLimit..], options: token.ToRequestOptions());
                 }
                 else
                 {
