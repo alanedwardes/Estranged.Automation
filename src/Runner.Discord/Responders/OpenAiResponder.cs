@@ -36,7 +36,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using (message.Channel.EnterTypingState())
             {
-                var results = await _openAi.ImageGenerations.CreateImageAsync(new ImageGenerationRequest
+                var response = await _openAi.ImageGenerations.CreateImageAsync(new ImageGenerationRequest
                 {
                     Size = ImageSize._256,
                     NumOfImages = 1,
@@ -44,9 +44,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     Prompt = prompt
                 });
 
-                _logger.LogInformation("Got response from OpenAI {Response}", JsonConvert.SerializeObject(result));
+                _logger.LogInformation("Got response from OpenAI {Response}", JsonConvert.SerializeObject(response));
 
-                var result = results.Data.Single();
+                var result = response.Data.Single();
 
                 await message.Channel.SendMessageAsync(result.Url, options: token.ToRequestOptions());
             }
