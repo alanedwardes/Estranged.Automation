@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Estranged.Automation.Runner.Discord.Events;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Models;
@@ -14,14 +12,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     internal sealed class GptResponder : IResponder
     {
-        private readonly ILogger<GptResponder> _logger;
         private readonly OpenAIAPI _openAi;
 
-        public GptResponder(ILogger<GptResponder> logger, OpenAIAPI openAi)
-        {
-            _logger = logger;
-            _openAi = openAi;
-        }
+        public GptResponder(OpenAIAPI openAi) => _openAi = openAi;
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
@@ -37,8 +30,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 new ChatMessage(ChatMessageRole.User, prompt)
             }, new Model("gpt-3.5-turbo"));
-
-            _logger.LogInformation("Got response {Response}", JsonConvert.SerializeObject(response));
 
             foreach (var completion in response.Choices)
             {
