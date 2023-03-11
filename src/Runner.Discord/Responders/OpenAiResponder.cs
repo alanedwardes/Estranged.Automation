@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Estranged.Automation.Runner.Discord.Events;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using OpenAI_API;
 using OpenAI_API.Images;
 using System;
@@ -13,14 +11,24 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     internal sealed class OpenAiResponder : IResponder
     {
-        private readonly ILogger<OpenAiResponder> _logger;
+        private class AttemptsBucket
+        {
+            public AttemptsBucket() => Hour = CurrentHour;
+
+            public int Count;
+            public DateTime Hour;
+        }
+
         private readonly OpenAIAPI _openAi;
 
-        public OpenAiResponder(ILogger<OpenAiResponder> logger, OpenAIAPI openAi)
+        public OpenAiResponder(OpenAIAPI openAi)
         {
-            _logger = logger;
             _openAi = openAi;
         }
+
+        private static DateTime CurrentHour => DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Minute);
+
+        private AttemptsBucket Attempts = new AttemptsBucket();
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
@@ -30,9 +38,21 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var prompt = message.Content[trigger.Length..].Trim();
+            if (Attempts.Hour != CurrentHour)
+            {
+                // Refresh the bucket since time moved on
+                Attempts = new AttemptsBucket();
+            }
 
-            _logger.LogInformation("Prompting DALL-E with {Prompt}", prompt);
+            if (Attempts.Count >= 10)
+            {
+                await message.Channel.SendMessageAsync("wait until the top of the hour", options: token.ToRequestOptions());
+                return;
+            }
+
+            Attempts.Count++;
+
+            var prompt = message.Content[trigger.Length..].Trim();
 
             using (message.Channel.EnterTypingState())
             {
@@ -43,8 +63,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     ResponseFormat = ImageResponseFormat.Url,
                     Prompt = prompt
                 });
-
-                _logger.LogInformation("Got response from OpenAI {Response}", JsonConvert.SerializeObject(response));
 
                 var result = response.Data.Single();
 
