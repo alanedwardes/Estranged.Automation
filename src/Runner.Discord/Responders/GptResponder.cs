@@ -18,6 +18,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            if (message.Channel.IsPublicChannel())
+            {
+                return;
+            }
+
             const string trigger = "gpt";
             if (!message.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
             {
