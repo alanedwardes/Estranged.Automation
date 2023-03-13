@@ -29,17 +29,17 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            const string singleTrigger = "gpt";
-            if (message.Content.StartsWith(singleTrigger, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await SingleChat(message, message.Content[singleTrigger.Length..].Trim(), token);
-                return;
-            }
-
             const string multiTrigger = "gptc";
             if (message.Content.StartsWith(multiTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 await MultiChat(message, message.Content[multiTrigger.Length..].Trim(), token);
+                return;
+            }
+
+            const string singleTrigger = "gpt";
+            if (message.Content.StartsWith(singleTrigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await SingleChat(message, message.Content[singleTrigger.Length..].Trim(), token);
                 return;
             }
         }
