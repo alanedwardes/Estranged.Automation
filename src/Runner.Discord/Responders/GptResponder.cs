@@ -62,14 +62,16 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private async Task MultiChat(IMessage message, string prompt, CancellationToken token)
         {
+            const int chatMessageLimit = 30;
+
             await _semaphoreSlim.WaitAsync(token);
 
             try
             {
-                if (prompt == "reset" || _chatHistory.Count >= 20)
+                if (prompt == "reset" || _chatHistory.Count >= chatMessageLimit)
                 {
                     _chatHistory.Clear();
-                    await message.Channel.SendMessageAsync("Message limit of 20 reached or got 'reset', try your request again (new session)", options: token.ToRequestOptions());
+                    await message.Channel.SendMessageAsync($"Message limit of {chatMessageLimit} reached or got 'reset', try your request again (new session)", options: token.ToRequestOptions());
                     return;
                 }
 
