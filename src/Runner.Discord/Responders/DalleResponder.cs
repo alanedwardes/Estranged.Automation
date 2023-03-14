@@ -4,6 +4,7 @@ using OpenAI_API;
 using OpenAI_API.Images;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,8 +13,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
     internal sealed class DalleResponder : IResponder
     {
         private readonly OpenAIAPI _openAi;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public DalleResponder(OpenAIAPI openAi) => _openAi = openAi;
+        public DalleResponder(OpenAIAPI openAi, IHttpClientFactory httpClientFactory)
+        {
+            _openAi = openAi;
+            _httpClientFactory = httpClientFactory;
+        }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
@@ -56,7 +62,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 var result = response.Data.Single();
 
-                await message.Channel.SendMessageAsync(result.Url, options: token.ToRequestOptions());
+                using var httpClient = _httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
+                using var image = await httpClient.GetStreamAsync(result.Url);
+
+                await message.Channel.SendFileAsync(image, $"{prompt}.png", options: token.ToRequestOptions());
             }
         }
     }
