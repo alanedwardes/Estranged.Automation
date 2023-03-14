@@ -9,31 +9,11 @@ using System.Threading.Tasks;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
-
     internal sealed class DalleResponder : IResponder
     {
-        private class AttemptsBucket
-        {
-            public AttemptsBucket() => Bucket = CurrentBucket;
-
-            public int Count;
-            public DateTime Bucket;
-        }
-
         private readonly OpenAIAPI _openAi;
 
         public DalleResponder(OpenAIAPI openAi) => _openAi = openAi;
-
-        private static DateTime CurrentBucket
-        {
-            get
-            {
-                var now = DateTime.UtcNow;
-                return new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
-            }
-        }
-
-        private AttemptsBucket Attempts = new AttemptsBucket();
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
@@ -50,19 +30,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var prompt = message.Content[trigger.Length..].Trim();
 
-            if (Attempts.Bucket != CurrentBucket)
+            if (FeatureFlagResponder.ShouldResetDalleAttempts())
             {
                 // Refresh the bucket since time moved on
-                Attempts = new AttemptsBucket();
+                FeatureFlagResponder.ResetDalleAttempts();
             }
 
-            if (Attempts.Count >= 10)
+            if (FeatureFlagResponder.DalleAttempts.Count >= 10)
             {
                 await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
                 return;
             }
 
-            Attempts.Count++;
+            FeatureFlagResponder.DalleAttempts.Count++;
 
             using (message.Channel.EnterTypingState())
             {
