@@ -37,7 +37,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (message.Channel.IsPublicChannel())
+            if (message.Channel.IsPublicChannel() || AiState.IsDisabled)
             {
                 return;
             }

@@ -26,14 +26,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (message.Channel.IsPublicChannel() || _isDisabled)
+            if (message.Channel.IsPublicChannel() || AiState.IsDisabled)
             {
                 return;
             }
 
             if (message.Content == "gpt toggle" && message.Author.Id == 269883106792701952)
             {
-                _isDisabled = !_isDisabled;
+                AiState.IsDisabled = !AiState.IsDisabled;
                 return;
             }
 
