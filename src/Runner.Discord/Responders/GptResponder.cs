@@ -22,22 +22,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private readonly Model _chatGptModel = new Model("gpt-3.5-turbo");
 
-        private bool _isDisabled;
-
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (message.Channel.IsPublicChannel())
-            {
-                return;
-            }
-
-            if (message.Content == "gpt toggle" && message.Author.Id == 269883106792701952)
-            {
-                AiState.IsDisabled = !AiState.IsDisabled;
-                return;
-            }
-
-            if (AiState.IsDisabled)
+            if (message.Channel.IsPublicChannel() || !FeatureFlagResponder.IsAiEnabled)
             {
                 return;
             }
