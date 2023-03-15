@@ -29,6 +29,18 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
+            if (FeatureFlagResponder.ShouldResetGptAttempts())
+            {
+                // Refresh the bucket since time moved on
+                FeatureFlagResponder.ResetGptAttempts();
+            }
+
+            if (FeatureFlagResponder.GptAttempts.Count >= 100)
+            {
+                await message.Channel.SendMessageAsync("wait until the next hour", options: token.ToRequestOptions());
+                return;
+            }
+
             const string multiTrigger = "gptc";
             if (message.Content.StartsWith(multiTrigger, StringComparison.InvariantCultureIgnoreCase))
             {

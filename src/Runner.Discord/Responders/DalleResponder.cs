@@ -34,8 +34,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var prompt = message.Content[trigger.Length..].Trim();
-
             if (FeatureFlagResponder.ShouldResetDalleAttempts())
             {
                 // Refresh the bucket since time moved on
@@ -47,6 +45,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
                 return;
             }
+
+            var prompt = message.Content[trigger.Length..].Trim();
 
             FeatureFlagResponder.DalleAttempts.Count++;
 
