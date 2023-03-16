@@ -14,16 +14,18 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly OpenAIAPI _openAi;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IFeatureFlags _featureFlags;
 
-        public DalleResponder(OpenAIAPI openAi, IHttpClientFactory httpClientFactory)
+        public DalleResponder(OpenAIAPI openAi, IHttpClientFactory httpClientFactory, IFeatureFlags featureFlags)
         {
             _openAi = openAi;
             _httpClientFactory = httpClientFactory;
+            _featureFlags = featureFlags;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (message.Channel.IsPublicChannel() || !FeatureFlagResponder.IsAiEnabled)
+            if (message.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
             {
                 return;
             }
@@ -34,13 +36,15 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (FeatureFlagResponder.ShouldResetDalleAttempts())
+            if (_featureFlags.ShouldResetDalleAttempts())
             {
                 // Refresh the bucket since time moved on
-                FeatureFlagResponder.ResetDalleAttempts();
+                _featureFlags.ResetDalleAttempts();
             }
 
-            if (FeatureFlagResponder.DalleAttempts.Count >= 10)
+            int dalleLimit = 10;
+
+            if (_featureFlags.DalleAttempts.Count >= dalleLimit)
             {
                 await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
                 return;
@@ -48,7 +52,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var prompt = message.Content[trigger.Length..].Trim();
 
-            FeatureFlagResponder.DalleAttempts.Count++;
+            _featureFlags.DalleAttempts.Count++;
 
             using (message.Channel.EnterTypingState())
             {
@@ -65,7 +69,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 using var httpClient = _httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
                 using var image = await httpClient.GetStreamAsync(result.Url);
 
-                await message.Channel.SendFileAsync(image, $"{prompt}.png", options: token.ToRequestOptions());
+                await message.Channel.SendFileAsync(image, $"{prompt}.png", $"{_featureFlags.DalleAttempts.Count}/{dalleLimit}", options: token.ToRequestOptions());
             }
         }
     }

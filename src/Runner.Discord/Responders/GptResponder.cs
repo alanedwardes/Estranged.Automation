@@ -13,8 +13,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
     internal sealed class GptResponder : IResponder
     {
         private readonly OpenAIAPI _openAi;
+        private readonly IFeatureFlags _featureFlags;
 
-        public GptResponder(OpenAIAPI openAi) => _openAi = openAi;
+        public GptResponder(OpenAIAPI openAi, IFeatureFlags featureFlags)
+        {
+            _openAi = openAi;
+            _featureFlags = featureFlags;
+        }
 
         private readonly IList<ChatMessage> _chatHistory = new List<ChatMessage>();
 
@@ -24,18 +29,18 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            if (message.Channel.IsPublicChannel() || !FeatureFlagResponder.IsAiEnabled)
+            if (message.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
             {
                 return;
             }
 
-            if (FeatureFlagResponder.ShouldResetGptAttempts())
+            if (_featureFlags.ShouldResetGptAttempts())
             {
                 // Refresh the bucket since time moved on
-                FeatureFlagResponder.ResetGptAttempts();
+                _featureFlags.ResetGptAttempts();
             }
 
-            if (FeatureFlagResponder.GptAttempts.Count >= 100)
+            if (_featureFlags.GptAttempts.Count >= 100)
             {
                 await message.Channel.SendMessageAsync("wait until the next hour", options: token.ToRequestOptions());
                 return;

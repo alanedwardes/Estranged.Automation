@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Estranged.Automation.Runner.Discord.Responders
 {
-    internal sealed class FeatureFlagResponder : IResponder
+    internal sealed class FeatureFlagResponder : IResponder, IFeatureFlags
     {
-        internal class AttemptsBucket
+        public sealed class AttemptsBucket
         {
             public AttemptsBucket(DateTime bucket) => Bucket = bucket;
 
@@ -16,13 +16,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             public DateTime Bucket;
         }
 
-        static FeatureFlagResponder()
+        public FeatureFlagResponder()
         {
             ResetDalleAttempts();
             ResetGptAttempts();
         }
 
-        public static DateTime CurrentDalleBucket
+        private DateTime CurrentDalleBucket
         {
             get
             {
@@ -30,11 +30,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
             }
         }
-        internal static bool ShouldResetDalleAttempts() => DalleAttempts.Bucket != CurrentDalleBucket;
-        internal static void ResetDalleAttempts() => DalleAttempts = new AttemptsBucket(CurrentDalleBucket);
-        internal static AttemptsBucket DalleAttempts { get; private set; }
+        public bool ShouldResetDalleAttempts() => DalleAttempts.Bucket != CurrentDalleBucket;
+        public void ResetDalleAttempts() => DalleAttempts = new AttemptsBucket(CurrentDalleBucket);
+        public AttemptsBucket DalleAttempts { get; private set; }
 
-        public static DateTime CurrentGptBucket
+        private DateTime CurrentGptBucket
         {
             get
             {
@@ -42,11 +42,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Utc);
             }
         }
-        internal static bool ShouldResetGptAttempts() => GptAttempts.Bucket != CurrentGptBucket;
-        internal static void ResetGptAttempts() => GptAttempts = new AttemptsBucket(CurrentGptBucket);
-        internal static AttemptsBucket GptAttempts { get; private set; }
+        public bool ShouldResetGptAttempts() => GptAttempts.Bucket != CurrentGptBucket;
+        public void ResetGptAttempts() => GptAttempts = new AttemptsBucket(CurrentGptBucket);
+        public AttemptsBucket GptAttempts { get; private set; }
 
-        public static bool IsAiEnabled { get; private set; }
+        public bool IsAiEnabled { get; private set; }
 
         public Task ProcessMessage(IMessage message, CancellationToken token)
         {
