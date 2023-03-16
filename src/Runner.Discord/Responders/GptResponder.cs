@@ -96,7 +96,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     foreach (var completion in response.Choices)
                     {
                         _chatHistory.Add(new ChatMessage(ChatMessageRole.Assistant, completion.Message.Content));
-                        await PostMessage(message.Channel, $"{_chatHistory.Count}/{chatMessageLimit}" + Environment.NewLine + completion.Message.Content, token);
+                        await PostMessage(message.Channel, $"{_chatHistory.Count}/{chatMessageLimit}\n" + completion.Message.Content, token);
                     }
                 }
             }
