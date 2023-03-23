@@ -69,7 +69,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 using var httpClient = _httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
                 using var image = await httpClient.GetStreamAsync(result.Url);
 
-                await message.Channel.SendFileAsync(image, $"{prompt}.png", $"{_featureFlags.DalleAttempts.Count}/{dalleLimit}", options: token.ToRequestOptions());
+                await message.Channel.SendFileAsync(image, $"{prompt}.png", $"{_featureFlags.DalleAttempts.Count}/{dalleLimit}", messageReference: message.Reference, options: token.ToRequestOptions());
             }
         }
     }

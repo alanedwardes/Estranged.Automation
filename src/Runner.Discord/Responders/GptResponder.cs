@@ -78,7 +78,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 foreach (var completion in response.Choices)
                 {
-                    await PostMessage(message.Channel, completion.Message.Content, token);
+                    await PostMessage(message, completion.Message.Content, token);
                 }
             }
         }
@@ -112,7 +112,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     foreach (var completion in response.Choices)
                     {
                         _chatHistory.Add(new ChatMessage(ChatMessageRole.Assistant, completion.Message.Content));
-                        await PostMessage(message.Channel, $"{_chatHistory.Count}/{chatMessageLimit}\n" + completion.Message.Content, token);
+                        await PostMessage(message, $"{_chatHistory.Count}/{chatMessageLimit}\n" + completion.Message.Content, token);
                     }
                 }
             }
@@ -122,20 +122,20 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
         }
 
-        private static async Task PostMessage(IMessageChannel channel, string content, CancellationToken token)
+        private static async Task PostMessage(IMessage message, string content, CancellationToken token)
         {
             const int discordMessageLimit = 2000;
 
             if (content.Length > discordMessageLimit)
             {
-                await channel.SendMessageAsync(content[..discordMessageLimit], options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync(content[..discordMessageLimit], messageReference: message.Reference, options: token.ToRequestOptions());
 
                 // Assume not longer than 4000k
-                await channel.SendMessageAsync(content[discordMessageLimit..], options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync(content[discordMessageLimit..], messageReference: message.Reference, options: token.ToRequestOptions());
             }
             else
             {
-                await channel.SendMessageAsync(content, options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync(content, messageReference: message.Reference, options: token.ToRequestOptions());
             }
         }
     }
