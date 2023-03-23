@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Estranged.Automation.Runner.Discord.Events;
+using Newtonsoft.Json;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Models;
@@ -70,6 +71,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     new ChatMessage(ChatMessageRole.User, prompt)
                 }, _chatGptModel);
 
+                if (response.Choices.Count == 0)
+                {
+                    throw new Exception($"Got no results: {JsonConvert.SerializeObject(response)}");
+                }
+
                 foreach (var completion in response.Choices)
                 {
                     await PostMessage(message.Channel, completion.Message.Content, token);
@@ -97,6 +103,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     _chatHistory.Add(new ChatMessage(ChatMessageRole.User, prompt));
 
                     var response = await _openAi.Chat.CreateChatCompletionAsync(_chatHistory, _chatGptModel);
+
+                    if (response.Choices.Count == 0)
+                    {
+                        throw new Exception($"Got no results: {JsonConvert.SerializeObject(response)}");
+                    }
 
                     foreach (var completion in response.Choices)
                     {
