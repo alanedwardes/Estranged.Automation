@@ -28,6 +28,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private readonly Model _chatGptModel = new Model("gpt-3.5-turbo");
 
+        private readonly string _systemPrompt = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control.";
+
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
             if (message.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
@@ -68,6 +70,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 var response = await _openAi.Chat.CreateChatCompletionAsync(new List<ChatMessage>
                 {
+                    new ChatMessage(ChatMessageRole.System, _systemPrompt),
                     new ChatMessage(ChatMessageRole.User, prompt)
                 }, _chatGptModel);
 
@@ -100,6 +103,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 using (message.Channel.EnterTypingState())
                 {
+                    if (_chatHistory.Count == 0)
+                    {
+                        _chatHistory.Add(new ChatMessage(ChatMessageRole.System, _systemPrompt));
+                    }
+
                     _chatHistory.Add(new ChatMessage(ChatMessageRole.User, prompt));
 
                     var response = await _openAi.Chat.CreateChatCompletionAsync(_chatHistory, _chatGptModel);
