@@ -128,14 +128,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (content.Length > discordMessageLimit)
             {
-                await message.Channel.SendMessageAsync(content[..discordMessageLimit], messageReference: message.Reference, options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync(content[..discordMessageLimit], messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
 
                 // Assume not longer than 4000k
-                await message.Channel.SendMessageAsync(content[discordMessageLimit..], messageReference: message.Reference, options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync(content[discordMessageLimit..], messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
             }
             else
             {
-                await message.Channel.SendMessageAsync(content, messageReference: message.Reference, options: token.ToRequestOptions());
+                await message.Channel.SendMessageAsync(content, messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
             }
         }
     }
