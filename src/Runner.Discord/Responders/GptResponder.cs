@@ -28,7 +28,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private readonly Model _chatGptModel = new Model("gpt-3.5-turbo");
 
-        private readonly string _systemPrompt = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control.";
+        private readonly string _systemPrompt = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are ESTBOT.";
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
