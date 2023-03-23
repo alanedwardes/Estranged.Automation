@@ -46,7 +46,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
         public void ResetGptAttempts() => GptAttempts = new AttemptsBucket(CurrentGptBucket);
         public AttemptsBucket GptAttempts { get; private set; }
 
-        public bool IsAiEnabled { get; private set; }
+        public bool IsAiEnabled { get; private set; } = true;
 
         public Task ProcessMessage(IMessage message, CancellationToken token)
         {
