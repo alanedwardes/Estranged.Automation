@@ -107,7 +107,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private async Task MultiChat(IMessage message, string prompt, CancellationToken token)
         {
-            const int chatMessageLimit = 30;
+            const int chatMessageLimit = 100;
 
             await _semaphoreSlim.WaitAsync(token);
 
