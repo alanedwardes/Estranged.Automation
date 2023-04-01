@@ -89,7 +89,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 var response = await _openAi.Chat.CreateChatCompletionAsync(new List<ChatMessage>
                 {
-                    new ChatMessage(ChatMessageRole.System, DEFAULT_SYSTEM_PROMPT),
+                    new ChatMessage(ChatMessageRole.System, _systemPrompt),
                     new ChatMessage(ChatMessageRole.User, prompt)
                 }, _chatGptModel);
 
@@ -124,7 +124,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     if (_chatHistory.Count == 0)
                     {
-                        _chatHistory.Add(new ChatMessage(ChatMessageRole.System, DEFAULT_SYSTEM_PROMPT));
+                        _chatHistory.Add(new ChatMessage(ChatMessageRole.System, _systemPrompt));
                     }
 
                     _chatHistory.Add(new ChatMessage(ChatMessageRole.User, prompt));
