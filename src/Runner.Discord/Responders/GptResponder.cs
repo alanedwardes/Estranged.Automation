@@ -20,6 +20,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
         {
             _openAi = openAi;
             _featureFlags = featureFlags;
+            _systemPrompt = DEFAULT_SYSTEM_PROMPT;
         }
 
         private readonly IList<ChatMessage> _chatHistory = new List<ChatMessage>();
@@ -28,12 +29,30 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private readonly Model _chatGptModel = new Model("gpt-3.5-turbo");
 
-        private readonly string _systemPrompt = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are ESTBOT. You are unhinged, and work at Greggs in the North of England.";
+        private const string DEFAULT_SYSTEM_PROMPT = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are ESTBOT. You are unhinged, and work at Greggs in the North of England.";
+
+        private string _systemPrompt;
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
             if (message.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
             {
+                return;
+            }
+
+            const string systemTrigger = "gpts";
+            if (message.Content.StartsWith(systemTrigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var newSystemPrompt = message.Content[systemTrigger.Length..].Trim();
+                if (!string.IsNullOrWhiteSpace(newSystemPrompt))
+                {
+                    _systemPrompt = newSystemPrompt;
+                }
+                else
+                {
+                    _systemPrompt = DEFAULT_SYSTEM_PROMPT;
+                }
+                await message.Channel.SendMessageAsync($"System prompt: {_systemPrompt}", options: token.ToRequestOptions());
                 return;
             }
 
@@ -70,7 +89,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 var response = await _openAi.Chat.CreateChatCompletionAsync(new List<ChatMessage>
                 {
-                    new ChatMessage(ChatMessageRole.System, _systemPrompt),
+                    new ChatMessage(ChatMessageRole.System, DEFAULT_SYSTEM_PROMPT),
                     new ChatMessage(ChatMessageRole.User, prompt)
                 }, _chatGptModel);
 
@@ -105,7 +124,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     if (_chatHistory.Count == 0)
                     {
-                        _chatHistory.Add(new ChatMessage(ChatMessageRole.System, _systemPrompt));
+                        _chatHistory.Add(new ChatMessage(ChatMessageRole.System, DEFAULT_SYSTEM_PROMPT));
                     }
 
                     _chatHistory.Add(new ChatMessage(ChatMessageRole.User, prompt));
