@@ -27,8 +27,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        private readonly Model _chatGptModel = new Model("gpt-3.5-turbo");
-
         private const string DEFAULT_SYSTEM_PROMPT = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are ESTBOT. You are unhinged, and work at Greggs in the North of England.";
 
         private string _systemPrompt;
@@ -68,22 +66,38 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            const string multiTrigger = "gptc";
-            if (message.Content.StartsWith(multiTrigger, StringComparison.InvariantCultureIgnoreCase))
+            var gpt4Model = new Model("gpt-4");
+            const string multiTrigger4 = "gpt4c";
+            if (message.Content.StartsWith(multiTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
-                await MultiChat(message, message.Content[multiTrigger.Length..].Trim(), token);
+                await MultiChat(message, message.Content[multiTrigger4.Length..].Trim(), gpt4Model, token);
                 return;
             }
 
-            const string singleTrigger = "gpt";
-            if (message.Content.StartsWith(singleTrigger, StringComparison.InvariantCultureIgnoreCase))
+            const string singleTrigger4 = "gpt4";
+            if (message.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(message, message.Content[singleTrigger.Length..].Trim(), token);
+                await SingleChat(message, message.Content[singleTrigger4.Length..].Trim(), gpt4Model, token);
+                return;
+            }
+
+            var gpt3Model = new Model("gpt-3.5-turbo");
+            const string multiTrigger3 = "gptc";
+            if (message.Content.StartsWith(multiTrigger3, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await MultiChat(message, message.Content[multiTrigger3.Length..].Trim(), gpt3Model, token);
+                return;
+            }
+
+            const string singleTrigger3 = "gpt";
+            if (message.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await SingleChat(message, message.Content[singleTrigger3.Length..].Trim(), gpt3Model, token);
                 return;
             }
         }
 
-        private async Task SingleChat(IMessage message, string prompt, CancellationToken token)
+        private async Task SingleChat(IMessage message, string prompt, Model model, CancellationToken token)
         {
             using (message.Channel.EnterTypingState())
             {
@@ -91,7 +105,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     new ChatMessage(ChatMessageRole.System, _systemPrompt),
                     new ChatMessage(ChatMessageRole.User, prompt)
-                }, _chatGptModel);
+                }, model);
 
                 if (response.Choices.Count == 0)
                 {
@@ -105,7 +119,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
         }
 
-        private async Task MultiChat(IMessage message, string prompt, CancellationToken token)
+        private async Task MultiChat(IMessage message, string prompt, Model model, CancellationToken token)
         {
             const int chatMessageLimit = 100;
 
@@ -129,7 +143,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                     _chatHistory.Add(new ChatMessage(ChatMessageRole.User, prompt));
 
-                    var response = await _openAi.Chat.CreateChatCompletionAsync(_chatHistory, _chatGptModel);
+                    var response = await _openAi.Chat.CreateChatCompletionAsync(_chatHistory, model);
 
                     if (response.Choices.Count == 0)
                     {
