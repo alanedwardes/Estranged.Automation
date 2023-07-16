@@ -41,14 +41,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            const string philTrigger = "phil";
-            if (message.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
-            {
-                var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
-                await SingleChat(message, message.Content[philTrigger.Length..].Trim(), phil, gpt3Model, token);
-                return;
-            }
-
             const string systemTrigger = "gpts";
             if (message.Content.StartsWith(systemTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -74,6 +66,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
             if (_featureFlags.GptAttempts.Count >= 100)
             {
                 await message.Channel.SendMessageAsync("wait until the next hour", options: token.ToRequestOptions());
+                return;
+            }
+
+            const string philTrigger = "phil";
+            if (message.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
+                await SingleChat(message, message.Content[philTrigger.Length..].Trim(), phil, gpt3Model, token);
                 return;
             }
 
