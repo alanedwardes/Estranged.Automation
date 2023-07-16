@@ -33,8 +33,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
+            var gpt3Model = new Model("gpt-3.5-turbo");
+            var gpt4Model = new Model("gpt-4");
+
             if (message.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
             {
+                return;
+            }
+
+            const string philTrigger = "phil";
+            if (message.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
+                await SingleChat(message, message.Content[philTrigger.Length..].Trim(), phil, gpt3Model, token);
                 return;
             }
 
@@ -66,7 +77,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var gpt4Model = new Model("gpt-4");
             const string multiTrigger4 = "gpt4c";
             if (message.Content.StartsWith(multiTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -77,11 +87,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string singleTrigger4 = "gpt4";
             if (message.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(message, message.Content[singleTrigger4.Length..].Trim(), gpt4Model, token);
+                await SingleChat(message, message.Content[singleTrigger4.Length..].Trim(), _systemPrompt, gpt4Model, token);
                 return;
             }
 
-            var gpt3Model = new Model("gpt-3.5-turbo");
             const string multiTrigger3 = "gptc";
             if (message.Content.StartsWith(multiTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -92,18 +101,18 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string singleTrigger3 = "gpt";
             if (message.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(message, message.Content[singleTrigger3.Length..].Trim(), gpt3Model, token);
+                await SingleChat(message, message.Content[singleTrigger3.Length..].Trim(), _systemPrompt, gpt3Model, token);
                 return;
             }
         }
 
-        private async Task SingleChat(IMessage message, string prompt, Model model, CancellationToken token)
+        private async Task SingleChat(IMessage message, string prompt, string systemPrompt, Model model, CancellationToken token)
         {
             using (message.Channel.EnterTypingState())
             {
                 var response = await _openAi.Chat.CreateChatCompletionAsync(new List<ChatMessage>
                 {
-                    new ChatMessage(ChatMessageRole.System, _systemPrompt),
+                    new ChatMessage(ChatMessageRole.System, systemPrompt),
                     new ChatMessage(ChatMessageRole.User, prompt)
                 }, model);
 
