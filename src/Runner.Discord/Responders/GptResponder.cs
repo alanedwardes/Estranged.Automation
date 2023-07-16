@@ -142,6 +142,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     }
                 }
 
+                _logger.LogInformation("Sending {Content}", JsonSerializer.Serialize(chatMessages));
                 var response = await _openAi.Chat.CreateChatCompletionAsync(chatMessages, model);
                 if (response.Choices.Count == 0)
                 {
