@@ -126,13 +126,15 @@ namespace Estranged.Automation.Runner.Discord
             return client.GetEstrangedGuild().TextChannels.Single(x => x.Name == channelName);
         }
 
-        public static async IAsyncEnumerable<IMessage> GetFullConversation(this IMessage message, [EnumeratorCancellation] CancellationToken cancellation)
+        public static async Task<IList<IMessage>> GetFullConversation(this IMessage message, CancellationToken cancellation)
         {
             IMessage current = message;
 
+            var history = new List<IMessage>();
+
             if (current != null)
             {
-                yield return current;
+                history.Add(current);
             }
 
             while (current != null && current.Reference != null && current.Reference.MessageId.IsSpecified)
@@ -140,9 +142,11 @@ namespace Estranged.Automation.Runner.Discord
                 current = await current.Channel.GetMessageAsync(current.Reference.MessageId.Value, options: cancellation.ToRequestOptions());
                 if (current != null)
                 {
-                    yield return current;
+                    history.Add(current);
                 }
             }
+
+            return history;
         }
     }
 }

@@ -51,7 +51,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
 
             _logger.LogInformation("Starting to process message history");
-            var messageHistory = await originalMessage.GetFullConversation(token).ToListAsync(token);
+            var messageHistory = (await originalMessage.GetFullConversation(token));
             _logger.LogInformation("Message history: {MessageHistory}", messageHistory.Count);
 
             var lastMessage = messageHistory.Last();
