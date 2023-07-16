@@ -117,8 +117,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
         private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, Model model, CancellationToken token)
         {
             var initialMessage = messageHistory.Last();
+            var latestMessage = messageHistory.First();
 
-            using (initialMessage.Channel.EnterTypingState())
+            using (latestMessage.Channel.EnterTypingState())
             {
                 var chatMessages = new List<ChatMessage>
                 {
@@ -141,9 +142,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     }
                 }
 
-                _logger.LogInformation("Sending {Content}", JsonSerializer.Serialize(chatMessages));
                 var response = await _openAi.Chat.CreateChatCompletionAsync(chatMessages, model);
-
                 if (response.Choices.Count == 0)
                 {
                     throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
@@ -151,7 +150,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 foreach (var completion in response.Choices)
                 {
-                    await PostMessage(initialMessage, completion.Message.Content, token);
+                    await PostMessage(latestMessage, completion.Message.Content, token);
                 }
             }
         }
