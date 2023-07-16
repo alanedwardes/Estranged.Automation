@@ -28,6 +28,7 @@ namespace Estranged.Automation.Runner.Discord
                            .AddSingleton<IResponder, DalleResponder>()
                            .AddSingleton<IResponder, GptResponder>()
                            .AddSingleton<IResponder, LlamaResponder>()
+                           .AddSingleton<IResponder, ReplyTest>()
                            .AddSingleton<FeatureFlagResponder>()
                            .AddSingleton<IResponder>(x => x.GetRequiredService<FeatureFlagResponder>())
                            .AddSingleton<IFeatureFlags>(x => x.GetRequiredService<FeatureFlagResponder>())
