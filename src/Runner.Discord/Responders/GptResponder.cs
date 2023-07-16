@@ -25,6 +25,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _openAi = openAi;
             _featureFlags = featureFlags;
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
+
+            _logger.LogInformation("Constructed");
         }
 
         private readonly IList<ChatMessage> _chatHistory = new List<ChatMessage>();
@@ -37,6 +39,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
         {
+            _logger.LogInformation("ProcessMessage");
+
             var gpt3Model = new Model("gpt-3.5-turbo");
             var gpt4Model = new Model("gpt-4");
 
