@@ -2,6 +2,9 @@
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace Estranged.Automation.Runner.Discord
 {
@@ -121,6 +124,20 @@ namespace Estranged.Automation.Runner.Discord
         public static SocketTextChannel GetChannelByName(this DiscordSocketClient client, string channelName)
         {
             return client.GetEstrangedGuild().TextChannels.Single(x => x.Name == channelName);
+        }
+
+        public static async IAsyncEnumerable<IMessage> GetReplies(this IMessage message, [EnumeratorCancellation] CancellationToken cancellation)
+        {
+            IMessage current = message;
+
+            while (current != null && current.Reference != null && current.Reference.MessageId.IsSpecified)
+            {
+                current = await current.Channel.GetMessageAsync(current.Reference.MessageId.Value, options: cancellation.ToRequestOptions());
+                if (current != null)
+                {
+                    yield return current;
+                }
+            }
         }
     }
 }

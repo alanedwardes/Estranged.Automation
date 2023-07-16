@@ -20,29 +20,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
         {
-            var replies = await GetRepliesRecursive(message, token);
-
-            foreach (var reply in replies)
+            await foreach (var reply in message.GetReplies(token))
             {
                 _logger.LogInformation(reply.ToString());
             }
-        }
-
-        private async Task<IList<IMessage>> GetRepliesRecursive(IMessage message, CancellationToken cancellation)
-        {
-            IMessage? current = message;
-            var messages = new List<IMessage> { current };
-
-            while (current != null && current.Reference != null && current.Reference.MessageId.IsSpecified)
-            {
-                current = await current.Channel.GetMessageAsync(current.Reference.MessageId.Value, options: cancellation.ToRequestOptions());
-                if (current != null)
-                {
-                    messages.Add(current);
-                }
-            }
-
-            return messages;
         }
     }
 }
