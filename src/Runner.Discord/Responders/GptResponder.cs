@@ -39,6 +39,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
         {
+            Console.WriteLine("ProcessMessage");
             _logger.LogInformation("ProcessMessage");
 
             var gpt3Model = new Model("gpt-3.5-turbo");
