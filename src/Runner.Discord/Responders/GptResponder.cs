@@ -1,11 +1,13 @@
 ﻿using Discord;
 using Estranged.Automation.Runner.Discord.Events;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,11 +15,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     internal sealed class GptResponder : IResponder
     {
+        private readonly ILogger<GptResponder> _logger;
         private readonly OpenAIAPI _openAi;
         private readonly IFeatureFlags _featureFlags;
 
-        public GptResponder(OpenAIAPI openAi, IFeatureFlags featureFlags)
+        public GptResponder(ILogger<GptResponder> logger, OpenAIAPI openAi, IFeatureFlags featureFlags)
         {
+            _logger = logger;
             _openAi = openAi;
             _featureFlags = featureFlags;
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
@@ -31,20 +35,23 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private string _systemPrompt;
 
-        public async Task ProcessMessage(IMessage message, CancellationToken token)
+        public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
         {
             var gpt3Model = new Model("gpt-3.5-turbo");
             var gpt4Model = new Model("gpt-4");
 
-            if (message.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
+            if (originalMessage.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
             {
                 return;
             }
 
+            var messageHistory = await originalMessage.GetFullConversation(token).ToListAsync();
+            var firstMessage = messageHistory.Last();
+
             const string systemTrigger = "gpts";
-            if (message.Content.StartsWith(systemTrigger, StringComparison.InvariantCultureIgnoreCase))
+            if (firstMessage.Content.StartsWith(systemTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                var newSystemPrompt = message.Content[systemTrigger.Length..].Trim();
+                var newSystemPrompt = firstMessage.Content[systemTrigger.Length..].Trim();
                 if (!string.IsNullOrWhiteSpace(newSystemPrompt))
                 {
                     _systemPrompt = newSystemPrompt;
@@ -53,7 +60,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     _systemPrompt = DEFAULT_SYSTEM_PROMPT;
                 }
-                await message.Channel.SendMessageAsync($"System prompt: {_systemPrompt}", options: token.ToRequestOptions());
+                await firstMessage.Channel.SendMessageAsync($"System prompt: {_systemPrompt}", options: token.ToRequestOptions());
                 return;
             }
 
@@ -65,44 +72,77 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (_featureFlags.GptAttempts.Count >= 100)
             {
-                await message.Channel.SendMessageAsync("wait until the next hour", options: token.ToRequestOptions());
+                await firstMessage.Channel.SendMessageAsync("wait until the next hour", options: token.ToRequestOptions());
                 return;
             }
 
             const string philTrigger = "phil";
-            if (message.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
+            if (firstMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
-                await SingleChat(message, message.Content[philTrigger.Length..].Trim(), phil, gpt3Model, token);
+                await Chat(messageHistory, firstMessage.Content[philTrigger.Length..].Trim(), phil, gpt3Model, token);
                 return;
             }
 
             const string multiTrigger4 = "gpt4c";
-            if (message.Content.StartsWith(multiTrigger4, StringComparison.InvariantCultureIgnoreCase))
+            if (firstMessage.Content.StartsWith(multiTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
-                await MultiChat(message, message.Content[multiTrigger4.Length..].Trim(), gpt4Model, token);
+                await MultiChat(firstMessage, firstMessage.Content[multiTrigger4.Length..].Trim(), gpt4Model, token);
                 return;
             }
 
             const string singleTrigger4 = "gpt4";
-            if (message.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
+            if (firstMessage.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(message, message.Content[singleTrigger4.Length..].Trim(), _systemPrompt, gpt4Model, token);
+                await SingleChat(firstMessage, firstMessage.Content[singleTrigger4.Length..].Trim(), _systemPrompt, gpt4Model, token);
                 return;
             }
 
             const string multiTrigger3 = "gptc";
-            if (message.Content.StartsWith(multiTrigger3, StringComparison.InvariantCultureIgnoreCase))
+            if (firstMessage.Content.StartsWith(multiTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await MultiChat(message, message.Content[multiTrigger3.Length..].Trim(), gpt3Model, token);
+                await MultiChat(firstMessage, firstMessage.Content[multiTrigger3.Length..].Trim(), gpt3Model, token);
                 return;
             }
 
             const string singleTrigger3 = "gpt";
-            if (message.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
+            if (firstMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(message, message.Content[singleTrigger3.Length..].Trim(), _systemPrompt, gpt3Model, token);
+                await SingleChat(firstMessage, firstMessage.Content[singleTrigger3.Length..].Trim(), _systemPrompt, gpt3Model, token);
                 return;
+            }
+        }
+
+        private async Task Chat(IList<IMessage> messageHistory, string prompt, string systemPrompt, Model model, CancellationToken token)
+        {
+            var firstMessage = messageHistory.Last();
+
+            using (firstMessage.Channel.EnterTypingState())
+            {
+                var chatMessages = new List<ChatMessage>
+                {
+                    new ChatMessage(ChatMessageRole.System, systemPrompt)
+                };
+
+                foreach (var message in messageHistory.Reverse())
+                {
+                    chatMessages.Add(new ChatMessage(message.Author.IsBot ? ChatMessageRole.Assistant : ChatMessageRole.User, message.Content));
+                }
+
+                _logger.LogInformation(JsonSerializer.Serialize(chatMessages));
+                return;
+
+                var response = await _openAi.Chat.CreateChatCompletionAsync(chatMessages, model);
+
+                if (response.Choices.Count == 0)
+                {
+                    throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
+                }
+
+                foreach (var completion in response.Choices)
+                {
+                    await PostMessage(firstMessage, completion.Message.Content, token);
+                }
             }
         }
 
@@ -118,7 +158,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 if (response.Choices.Count == 0)
                 {
-                    throw new Exception($"Got no results: {JsonConvert.SerializeObject(response)}");
+                    throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
                 }
 
                 foreach (var completion in response.Choices)
@@ -156,7 +196,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                     if (response.Choices.Count == 0)
                     {
-                        throw new Exception($"Got no results: {JsonConvert.SerializeObject(response)}");
+                        throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
                     }
 
                     foreach (var completion in response.Choices)

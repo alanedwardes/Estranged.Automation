@@ -126,9 +126,14 @@ namespace Estranged.Automation.Runner.Discord
             return client.GetEstrangedGuild().TextChannels.Single(x => x.Name == channelName);
         }
 
-        public static async IAsyncEnumerable<IMessage> GetReplies(this IMessage message, [EnumeratorCancellation] CancellationToken cancellation)
+        public static async IAsyncEnumerable<IMessage> GetFullConversation(this IMessage message, [EnumeratorCancellation] CancellationToken cancellation)
         {
             IMessage current = message;
+
+            if (current != null)
+            {
+                yield return current;
+            }
 
             while (current != null && current.Reference != null && current.Reference.MessageId.IsSpecified)
             {
