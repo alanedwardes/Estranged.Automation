@@ -45,13 +45,15 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var messageHistory = await originalMessage.GetFullConversation(token).ToListAsync();
-            var firstMessage = messageHistory.Last();
+            var messageHistory = await originalMessage.GetFullConversation(token).ToListAsync(token);
+            _logger.LogInformation("Message history: {MessageHistory}", messageHistory.Count);
+
+            var lastMessage = messageHistory.Last();
 
             const string systemTrigger = "gpts";
-            if (firstMessage.Content.StartsWith(systemTrigger, StringComparison.InvariantCultureIgnoreCase))
+            if (lastMessage.Content.StartsWith(systemTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                var newSystemPrompt = firstMessage.Content[systemTrigger.Length..].Trim();
+                var newSystemPrompt = lastMessage.Content[systemTrigger.Length..].Trim();
                 if (!string.IsNullOrWhiteSpace(newSystemPrompt))
                 {
                     _systemPrompt = newSystemPrompt;
@@ -60,7 +62,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     _systemPrompt = DEFAULT_SYSTEM_PROMPT;
                 }
-                await firstMessage.Channel.SendMessageAsync($"System prompt: {_systemPrompt}", options: token.ToRequestOptions());
+                await lastMessage.Channel.SendMessageAsync($"System prompt: {_systemPrompt}", options: token.ToRequestOptions());
                 return;
             }
 
@@ -72,48 +74,48 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (_featureFlags.GptAttempts.Count >= 100)
             {
-                await firstMessage.Channel.SendMessageAsync("wait until the next hour", options: token.ToRequestOptions());
+                await lastMessage.Channel.SendMessageAsync("wait until the next hour", options: token.ToRequestOptions());
                 return;
             }
 
             const string philTrigger = "phil";
-            if (firstMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
+            if (lastMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
-                await Chat(messageHistory, firstMessage.Content[philTrigger.Length..].Trim(), phil, gpt3Model, token);
+                await Chat(messageHistory, phil, gpt3Model, token);
                 return;
             }
 
             const string multiTrigger4 = "gpt4c";
-            if (firstMessage.Content.StartsWith(multiTrigger4, StringComparison.InvariantCultureIgnoreCase))
+            if (lastMessage.Content.StartsWith(multiTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
-                await MultiChat(firstMessage, firstMessage.Content[multiTrigger4.Length..].Trim(), gpt4Model, token);
+                await MultiChat(lastMessage, lastMessage.Content[multiTrigger4.Length..].Trim(), gpt4Model, token);
                 return;
             }
 
             const string singleTrigger4 = "gpt4";
-            if (firstMessage.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
+            if (lastMessage.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(firstMessage, firstMessage.Content[singleTrigger4.Length..].Trim(), _systemPrompt, gpt4Model, token);
+                await SingleChat(lastMessage, lastMessage.Content[singleTrigger4.Length..].Trim(), _systemPrompt, gpt4Model, token);
                 return;
             }
 
             const string multiTrigger3 = "gptc";
-            if (firstMessage.Content.StartsWith(multiTrigger3, StringComparison.InvariantCultureIgnoreCase))
+            if (lastMessage.Content.StartsWith(multiTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await MultiChat(firstMessage, firstMessage.Content[multiTrigger3.Length..].Trim(), gpt3Model, token);
+                await MultiChat(lastMessage, lastMessage.Content[multiTrigger3.Length..].Trim(), gpt3Model, token);
                 return;
             }
 
             const string singleTrigger3 = "gpt";
-            if (firstMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
+            if (lastMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(firstMessage, firstMessage.Content[singleTrigger3.Length..].Trim(), _systemPrompt, gpt3Model, token);
+                await SingleChat(lastMessage, lastMessage.Content[singleTrigger3.Length..].Trim(), _systemPrompt, gpt3Model, token);
                 return;
             }
         }
 
-        private async Task Chat(IList<IMessage> messageHistory, string prompt, string systemPrompt, Model model, CancellationToken token)
+        private async Task Chat(IList<IMessage> messageHistory, string systemPrompt, Model model, CancellationToken token)
         {
             var firstMessage = messageHistory.Last();
 
