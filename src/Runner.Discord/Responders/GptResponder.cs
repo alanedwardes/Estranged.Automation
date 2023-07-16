@@ -25,8 +25,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _openAi = openAi;
             _featureFlags = featureFlags;
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
-
-            _logger.LogInformation("Constructed");
         }
 
         private readonly IList<ChatMessage> _chatHistory = new List<ChatMessage>();
@@ -39,9 +37,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
         {
-            Console.WriteLine("ProcessMessage");
-            _logger.LogInformation("ProcessMessage");
-
             var gpt3Model = new Model("gpt-3.5-turbo");
             var gpt4Model = new Model("gpt-4");
 
@@ -50,9 +45,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            _logger.LogInformation("Starting to process message history");
             var messageHistory = (await originalMessage.GetFullConversation(token));
-            _logger.LogInformation("Message history: {MessageHistory}", messageHistory.Count);
 
             var lastMessage = messageHistory.Last();
 
@@ -88,7 +81,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             if (lastMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
-                await Chat(messageHistory, phil, gpt3Model, token);
+                await Chat(messageHistory, philTrigger.Length, phil, gpt3Model, token);
                 return;
             }
 
@@ -121,11 +114,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
         }
 
-        private async Task Chat(IList<IMessage> messageHistory, string systemPrompt, Model model, CancellationToken token)
+        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, Model model, CancellationToken token)
         {
-            var firstMessage = messageHistory.Last();
+            var initialMessage = messageHistory.Last();
 
-            using (firstMessage.Channel.EnterTypingState())
+            using (initialMessage.Channel.EnterTypingState())
             {
                 var chatMessages = new List<ChatMessage>
                 {
@@ -134,7 +127,18 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 foreach (var message in messageHistory.Reverse())
                 {
-                    chatMessages.Add(new ChatMessage(message.Author.IsBot ? ChatMessageRole.Assistant : ChatMessageRole.User, message.Content));
+                    if (message.Author.IsBot)
+                    {
+                        chatMessages.Add(new ChatMessage(ChatMessageRole.Assistant, message.Content));
+                    }
+                    else if (message == initialMessage)
+                    {
+                        chatMessages.Add(new ChatMessage(ChatMessageRole.User, message.Content[initialMessagePrefixLength..].Trim()));
+                    }
+                    else
+                    {
+                        chatMessages.Add(new ChatMessage(ChatMessageRole.User, message.Content));
+                    }
                 }
 
                 _logger.LogInformation(JsonSerializer.Serialize(chatMessages));
@@ -149,7 +153,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 foreach (var completion in response.Choices)
                 {
-                    await PostMessage(firstMessage, completion.Message.Content, token);
+                    await PostMessage(initialMessage, completion.Message.Content, token);
                 }
             }
         }
