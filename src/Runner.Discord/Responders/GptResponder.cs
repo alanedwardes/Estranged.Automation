@@ -45,7 +45,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var messageHistory = (await originalMessage.GetFullConversation(token));
+            var messageHistory = await originalMessage.GetFullConversation(token);
+
+            if (messageHistory.Any(x => x.Channel != originalMessage.Channel))
+            {
+                _logger.LogWarning("Some of the message history is from other channels");
+                return;
+            }
 
             var lastMessage = messageHistory.Last();
 
@@ -142,7 +148,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     }
                 }
 
-                _logger.LogInformation("Sending {Content}", JsonSerializer.Serialize(chatMessages));
                 var response = await _openAi.Chat.CreateChatCompletionAsync(chatMessages, model);
                 if (response.Choices.Count == 0)
                 {
