@@ -33,9 +33,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
             IMessage? current = message;
             var messages = new List<IMessage> { current };
 
-            while (current?.Reference == null || !current.Reference.MessageId.IsSpecified)
+            while (current != null && current.Reference != null && current.Reference.MessageId.IsSpecified)
             {
-                current = await message.Channel.GetMessageAsync(message.Reference.MessageId.Value, options: cancellation.ToRequestOptions());
+                current = await current.Channel.GetMessageAsync(current.Reference.MessageId.Value, options: cancellation.ToRequestOptions());
                 if (current != null)
                 {
                     messages.Add(current);
