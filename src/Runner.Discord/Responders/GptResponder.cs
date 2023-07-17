@@ -94,7 +94,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string gregorTrigger = "gregor ";
             if (initialMessage.Content.StartsWith(gregorTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                var gregor = "You are Gregor, a powerful robot capable of mind control. You are unhinged, and work at Greggs in the North of England.";
+                var gregor = "You are Gregor, a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are Gregor. You are unhinged, and work at Greggs in the North of England.";
                 await Chat(messageHistory, gregorTrigger.Length, gregor, gpt3Model, token);
                 return;
             }
