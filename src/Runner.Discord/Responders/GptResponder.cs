@@ -83,11 +83,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            const string philTrigger = "phil";
+            const string philTrigger = "phil ";
             if (initialMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
                 await Chat(messageHistory, philTrigger.Length, phil, gpt3Model, token);
+                return;
+            }
+
+            const string gregorTrigger = "gregor ";
+            if (initialMessage.Content.StartsWith(gregorTrigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var gregor = "You are Gregor, a powerful robot capable of mind control. You are unhinged, and work at Greggs in the North of England.";
+                await Chat(messageHistory, gregorTrigger.Length, gregor, gpt3Model, token);
                 return;
             }
 
