@@ -89,7 +89,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
 
             const string phil4Trigger = "phil4 ";
-            if (initialMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
+            if (initialMessage.Content.StartsWith(phil4Trigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 await Chat(messageHistory, phil4Trigger.Length, phil, gpt4Model, token);
                 return;
@@ -105,7 +105,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
 
             const string gregor4Trigger = "gregor4 ";
-            if (initialMessage.Content.StartsWith(gregorTrigger, StringComparison.InvariantCultureIgnoreCase))
+            if (initialMessage.Content.StartsWith(gregor4Trigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 await Chat(messageHistory, gregor4Trigger.Length, gregor, gpt4Model, token);
                 return;
