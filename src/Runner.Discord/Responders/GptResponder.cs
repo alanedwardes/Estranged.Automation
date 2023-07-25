@@ -114,14 +114,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string singleTrigger3 = "gpt ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(initialMessage, initialMessage.Content[singleTrigger3.Length..].Trim(), _systemPrompt, gpt3Model, token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, gpt3Model, token);
                 return;
             }
 
             const string singleTrigger4 = "gpt4 ";
             if (initialMessage.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
             {
-                await SingleChat(initialMessage, initialMessage.Content[singleTrigger4.Length..].Trim(), _systemPrompt, gpt4Model, token);
+                await Chat(messageHistory, singleTrigger4.Length, _systemPrompt, gpt4Model, token);
                 return;
             }
         }
@@ -163,28 +163,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 foreach (var completion in response.Choices)
                 {
                     await PostMessage(latestMessage, completion.Message.Content, token);
-                }
-            }
-        }
-
-        private async Task SingleChat(IMessage message, string prompt, string systemPrompt, Model model, CancellationToken token)
-        {
-            using (message.Channel.EnterTypingState())
-            {
-                var response = await _openAi.Chat.CreateChatCompletionAsync(new List<ChatMessage>
-                {
-                    new ChatMessage(ChatMessageRole.System, systemPrompt),
-                    new ChatMessage(ChatMessageRole.User, prompt)
-                }, model);
-
-                if (response.Choices.Count == 0)
-                {
-                    throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
-                }
-
-                foreach (var completion in response.Choices)
-                {
-                    await PostMessage(message, completion.Message.Content, token);
                 }
             }
         }
