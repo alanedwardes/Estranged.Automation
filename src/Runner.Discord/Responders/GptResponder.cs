@@ -27,10 +27,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
         }
 
-        private readonly IList<ChatMessage> _chatHistory = new List<ChatMessage>();
-
-        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
-
         private const string DEFAULT_SYSTEM_PROMPT = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are ESTBOT. You are unhinged, and work at Greggs in the North of England.";
 
         private string _systemPrompt;
@@ -83,47 +79,49 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
+            var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
+
             const string philTrigger = "phil ";
             if (initialMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
                 await Chat(messageHistory, philTrigger.Length, phil, gpt3Model, token);
                 return;
             }
 
+            const string phil4Trigger = "phil4 ";
+            if (initialMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await Chat(messageHistory, phil4Trigger.Length, phil, gpt4Model, token);
+                return;
+            }
+
+            var gregor = "You are Gregor, a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are Gregor. You are unhinged, and work at Greggs in the North of England.";
+
             const string gregorTrigger = "gregor ";
             if (initialMessage.Content.StartsWith(gregorTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                var gregor = "You are Gregor, a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are Gregor. You are unhinged, and work at Greggs in the North of England.";
                 await Chat(messageHistory, gregorTrigger.Length, gregor, gpt3Model, token);
                 return;
             }
 
-            const string multiTrigger4 = "gpt4c";
-            if (initialMessage.Content.StartsWith(multiTrigger4, StringComparison.InvariantCultureIgnoreCase))
+            const string gregor4Trigger = "gregor4 ";
+            if (initialMessage.Content.StartsWith(gregorTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                await MultiChat(initialMessage, initialMessage.Content[multiTrigger4.Length..].Trim(), gpt4Model, token);
+                await Chat(messageHistory, gregor4Trigger.Length, gregor, gpt4Model, token);
                 return;
             }
 
-            const string singleTrigger4 = "gpt4";
-            if (initialMessage.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await SingleChat(initialMessage, initialMessage.Content[singleTrigger4.Length..].Trim(), _systemPrompt, gpt4Model, token);
-                return;
-            }
-
-            const string multiTrigger3 = "gptc";
-            if (initialMessage.Content.StartsWith(multiTrigger3, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await MultiChat(initialMessage, initialMessage.Content[multiTrigger3.Length..].Trim(), gpt3Model, token);
-                return;
-            }
-
-            const string singleTrigger3 = "gpt";
+            const string singleTrigger3 = "gpt ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
                 await SingleChat(initialMessage, initialMessage.Content[singleTrigger3.Length..].Trim(), _systemPrompt, gpt3Model, token);
+                return;
+            }
+
+            const string singleTrigger4 = "gpt4 ";
+            if (initialMessage.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await SingleChat(initialMessage, initialMessage.Content[singleTrigger4.Length..].Trim(), _systemPrompt, gpt4Model, token);
                 return;
             }
         }
@@ -188,50 +186,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     await PostMessage(message, completion.Message.Content, token);
                 }
-            }
-        }
-
-        private async Task MultiChat(IMessage message, string prompt, Model model, CancellationToken token)
-        {
-            const int chatMessageLimit = 100;
-
-            await _semaphoreSlim.WaitAsync(token);
-
-            try
-            {
-                if (prompt == "reset" || _chatHistory.Count >= chatMessageLimit)
-                {
-                    _chatHistory.Clear();
-                    await message.Channel.SendMessageAsync($"Message limit of {chatMessageLimit} reached or got 'reset', try your request again (new session)", options: token.ToRequestOptions());
-                    return;
-                }
-
-                using (message.Channel.EnterTypingState())
-                {
-                    if (_chatHistory.Count == 0)
-                    {
-                        _chatHistory.Add(new ChatMessage(ChatMessageRole.System, _systemPrompt));
-                    }
-
-                    _chatHistory.Add(new ChatMessage(ChatMessageRole.User, prompt));
-
-                    var response = await _openAi.Chat.CreateChatCompletionAsync(_chatHistory, model);
-
-                    if (response.Choices.Count == 0)
-                    {
-                        throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
-                    }
-
-                    foreach (var completion in response.Choices)
-                    {
-                        _chatHistory.Add(new ChatMessage(ChatMessageRole.Assistant, completion.Message.Content));
-                        await PostMessage(message, $"{_chatHistory.Count}/{chatMessageLimit}\n" + completion.Message.Content, token);
-                    }
-                }
-            }
-            finally
-            {
-                _semaphoreSlim.Release();
             }
         }
 
