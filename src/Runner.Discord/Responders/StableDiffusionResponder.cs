@@ -65,10 +65,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
         {
             var size = 350;
 
+            var random = new Random();
+
             var requestPayload = new
             {
                 prompt = prompt,
-                seed = 2851934585,
+                seed = random.Next(int.MaxValue),
                 used_random_seed = true,
                 negative_prompt = _negativePrompt.Trim(),
                 num_outputs = 1,
