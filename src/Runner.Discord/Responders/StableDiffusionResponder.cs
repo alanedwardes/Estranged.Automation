@@ -36,6 +36,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 _negativePrompt = message.Content[negativePromptTrigger.Length..].Trim(); ;
                 await message.Channel.SendMessageAsync($"Set negative prompt to '{_negativePrompt}'", options: token.ToRequestOptions());
+                return;
             }
 
             const string trigger = "sd";
