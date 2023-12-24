@@ -16,6 +16,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IFeatureFlags _featureFlags;
+        private string _negativePrompt = string.Empty;
 
         public StableDiffusionResponder(IHttpClientFactory httpClientFactory, IFeatureFlags featureFlags)
         {
@@ -30,20 +31,23 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            const string trigger = "sd";
-            if (!message.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
+            const string negativePromptTrigger = "sdn";
+            if (message.Content.StartsWith(negativePromptTrigger))
             {
-                return;
+                _negativePrompt = message.Content[negativePromptTrigger.Length..].Trim(); ;
+                await message.Channel.SendMessageAsync($"Set negative prompt to '{_negativePrompt}'", options: token.ToRequestOptions());
             }
 
-            var prompt = message.Content[trigger.Length..].Trim();
-
-            using (message.Channel.EnterTypingState())
+            const string trigger = "sd";
+            if (message.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                var imageBytes = await GenerateImage(prompt, token);
+                using (message.Channel.EnterTypingState())
+                {
+                    var imageBytes = await GenerateImage(message.Content[trigger.Length..].Trim(), token);
 
-                using var ms = new MemoryStream(imageBytes);
-                await message.Channel.SendFileAsync(ms, $"{Guid.NewGuid()}.png", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+                    using var ms = new MemoryStream(imageBytes);
+                    await message.Channel.SendFileAsync(ms, $"{Guid.NewGuid()}.jpg", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+                }
             }
         }
 
@@ -58,14 +62,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task<byte[]> GenerateImage(string prompt, CancellationToken token)
         {
-            var size = 512;
+            var size = 350;
 
             var requestPayload = new
             {
                 prompt = prompt,
                 seed = 2851934585,
                 used_random_seed = true,
-                negative_prompt = "",
+                negative_prompt = _negativePrompt.Trim(),
                 num_outputs = 1,
                 num_inference_steps = 25,
                 guidance_scale = 7.5,
