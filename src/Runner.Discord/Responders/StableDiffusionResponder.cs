@@ -58,8 +58,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task<byte[]> GenerateImage(string prompt, CancellationToken token)
         {
-            var parts = prompt.Split();
-
             var size = 512;
 
             var requestPayload = new
@@ -86,7 +84,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 output_quality = 90,
                 output_lossless = false,
                 metadata_output_format = "none",
-                original_prompt = "a photograph of an astronaut riding a horse",
+                original_prompt = prompt,
                 active_tags = new string[0],
                 inactive_tags = new string[0],
                 enable_vae_tiling = true,
