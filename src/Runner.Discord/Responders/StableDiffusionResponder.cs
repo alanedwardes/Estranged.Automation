@@ -86,7 +86,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 stream_progress_updates = true,
                 stream_image_progress = false,
                 show_only_filtered_image = true,
-                block_nsfw = true,
+                block_nsfw = false,
                 output_format = "jpeg",
                 output_quality = 90,
                 output_lossless = false,
