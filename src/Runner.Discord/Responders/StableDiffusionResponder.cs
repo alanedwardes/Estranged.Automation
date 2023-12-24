@@ -98,6 +98,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using var httpClient = _httpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(Environment.GetEnvironmentVariable("EASY_DIFFUSION"));
+            httpClient.Timeout = TimeSpan.FromMinutes(5);
 
             var response = await httpClient.PostAsJsonAsync("/render", requestPayload, token);
 
@@ -118,6 +119,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     stream = await httpClient.GetFromJsonAsync<StreamResponse>(streamUrl, linkedCancellation.Token);
                 }
                 catch (JsonException)
+                {
+                    continue;
+                }
+                catch (HttpRequestException)
                 {
                     continue;
                 }
