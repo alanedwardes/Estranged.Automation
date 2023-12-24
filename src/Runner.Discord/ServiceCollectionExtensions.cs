@@ -26,6 +26,7 @@ namespace Estranged.Automation.Runner.Discord
                            .AddSingleton<IResponder, MarioResponder>()
                            .AddSingleton<IResponder, SpammerResponder>()
                            .AddSingleton<IResponder, DalleResponder>()
+                           .AddSingleton<IResponder, StableDiffusionResponder>()
                            .AddSingleton<IResponder, GptResponder>()
                            .AddSingleton<IResponder, LlamaResponder>()
                            .AddSingleton<FeatureFlagResponder>()
