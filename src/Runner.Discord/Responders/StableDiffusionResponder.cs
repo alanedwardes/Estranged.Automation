@@ -119,7 +119,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var streamUrl = ((JsonElement)job["stream"]).GetString();
 
-            using var timeoutCancellation = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+            using var timeoutCancellation = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(token, timeoutCancellation.Token);
 
             while (true)
