@@ -39,15 +39,28 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            const string trigger = "sd";
-            if (message.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
+            var random = new Random();
+            var seed = random.Next(int.MaxValue);
+
+            const string sdlTrigger = "sdxl";
+            if (message.Content.StartsWith(sdlTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 using (message.Channel.EnterTypingState())
                 {
-                    var imageBytes = await GenerateImage(message.Content[trigger.Length..].Trim(), token);
+                    using var imageStream = await GenerateImage(message.Content[sdlTrigger.Length..].Trim(), "sd-v1-5", seed, token);
+                    await message.Channel.SendFileAsync(imageStream, $"{Guid.NewGuid()}-{seed}.jpg", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+                    return;
+                }
+            }
 
-                    using var ms = new MemoryStream(imageBytes);
-                    await message.Channel.SendFileAsync(ms, $"{Guid.NewGuid()}.jpg", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+            const string sdTrigger = "sd";
+            if (message.Content.StartsWith(sdTrigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                using (message.Channel.EnterTypingState())
+                {
+                    using var imageStream = await GenerateImage(message.Content[sdTrigger.Length..].Trim(), "sd_xl_turbo_1.0_fp16", seed, token);
+                    await message.Channel.SendFileAsync(imageStream, $"{Guid.NewGuid()}-{seed}.jpg", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+                    return;
                 }
             }
         }
@@ -61,16 +74,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
         }
 
-        public async Task<byte[]> GenerateImage(string prompt, CancellationToken token)
+        public async Task<MemoryStream> GenerateImage(string prompt, string model, int seed, CancellationToken token)
         {
-            var size = 350;
-
-            var random = new Random();
+            var size = 512;
 
             var requestPayload = new
             {
                 prompt = prompt,
-                seed = random.Next(int.MaxValue),
+                seed = seed,
                 used_random_seed = true,
                 negative_prompt = _negativePrompt.Trim(),
                 num_outputs = 1,
@@ -78,9 +89,9 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 guidance_scale = 7.5,
                 width = size,
                 height = size,
-                vram_usage_level = "balanced",
+                vram_usage_level = "low",
                 sampler_name = "euler_a",
-                use_stable_diffusion_model = "sd-v1-5",
+                use_stable_diffusion_model = model,
                 clip_skip = false,
                 use_vae_model = "",
                 stream_progress_updates = true,
@@ -136,7 +147,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 var matchGroups = Regex.Match(stream.Output[0].Data, @"^data:((?<type>[\w\/]+))?;base64,(?<data>.+)$").Groups;
                 var base64Data = matchGroups["data"].Value;
-                return Convert.FromBase64String(base64Data);
+                return new MemoryStream(Convert.FromBase64String(base64Data));
             }
         }
     }
