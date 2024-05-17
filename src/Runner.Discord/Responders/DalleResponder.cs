@@ -58,7 +58,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 var response = await _openAi.ImageGenerations.CreateImageAsync(new ImageGenerationRequest
                 {
-                    Size = ImageSize._256,
+                    Model = "dall-e-3",
+                    Size = ImageSize._1024,
                     NumOfImages = 1,
                     ResponseFormat = ImageResponseFormat.Url,
                     Prompt = prompt
