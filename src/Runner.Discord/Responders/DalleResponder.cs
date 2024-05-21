@@ -2,6 +2,7 @@
 using Estranged.Automation.Runner.Discord.Events;
 using OpenAI_API;
 using OpenAI_API.Images;
+using OpenAI_API.Models;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -30,36 +31,59 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            const string trigger = "dalle";
-            if (!message.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return;
-            }
-
             if (_featureFlags.ShouldResetDalleAttempts())
             {
                 // Refresh the bucket since time moved on
                 _featureFlags.ResetDalleAttempts();
             }
 
-            int dalleLimit = 10;
-
-            if (_featureFlags.DalleAttempts.Count >= dalleLimit)
+            if (_featureFlags.ShouldResetDalleHqAttempts())
             {
-                await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
+                // Refresh the bucket since time moved on
+                _featureFlags.ResetDalleHqAttempts();
+            }
+
+            const string dalle2Trigger = "dalle ";
+            if (message.Content.StartsWith(dalle2Trigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                const int dalle2Limit = 10;
+                if (_featureFlags.DalleAttempts.Count >= dalle2Limit)
+                {
+                    await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
+                    return;
+                }
+
+                _featureFlags.DalleAttempts.Count++;
+                await RequestImage(message, _featureFlags.DalleAttempts.Count, dalle2Limit, dalle2Trigger.Length, Model.DALLE2, ImageSize._256, token);
                 return;
             }
 
-            var prompt = message.Content[trigger.Length..].Trim();
+            const string dalle3Trigger = "dalle3 ";
+            if (message.Content.StartsWith(dalle3Trigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                const int dalle3Limit = 1;
+                if (_featureFlags.DalleHqAttempts.Count >= dalle3Limit)
+                {
+                    await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
+                    return;
+                }
 
-            _featureFlags.DalleAttempts.Count++;
+                _featureFlags.DalleHqAttempts.Count++;
+                await RequestImage(message, _featureFlags.DalleHqAttempts.Count, dalle3Limit, dalle3Trigger.Length, Model.DALLE3, ImageSize._1024, token);
+                return;
+            }
+        }
+
+        private async Task RequestImage(IMessage message, int dalleAttempts, int dalleLimit, int initialMessagePrefixLength, Model model, ImageSize size, CancellationToken token)
+        {
+            var prompt = message.Content[initialMessagePrefixLength..].Trim();
 
             using (message.Channel.EnterTypingState())
             {
                 var response = await _openAi.ImageGenerations.CreateImageAsync(new ImageGenerationRequest
                 {
-                    Model = "dall-e-3",
-                    Size = ImageSize._1024,
+                    Size = size,
+                    Model = model,
                     NumOfImages = 1,
                     ResponseFormat = ImageResponseFormat.Url,
                     Prompt = prompt
@@ -70,7 +94,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 using var httpClient = _httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
                 using var image = await httpClient.GetStreamAsync(result.Url);
 
-                await message.Channel.SendFileAsync(image, $"{Guid.NewGuid()}.png", $"{_featureFlags.DalleAttempts.Count}/{dalleLimit}", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+                await message.Channel.SendFileAsync(image, $"{Guid.NewGuid()}.png", $"{dalleAttempts}/{dalleLimit}", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
             }
         }
     }

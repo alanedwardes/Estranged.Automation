@@ -18,6 +18,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public FeatureFlagResponder()
         {
+            ResetDalleHqAttempts();
             ResetDalleAttempts();
             ResetGptAttempts();
         }
@@ -46,7 +47,20 @@ namespace Estranged.Automation.Runner.Discord.Responders
         public void ResetGptAttempts() => GptAttempts = new AttemptsBucket(CurrentGptBucket);
         public AttemptsBucket GptAttempts { get; private set; }
 
+        private DateTime CurrentDalleHqBucket
+        {
+            get
+            {
+                var now = DateTime.UtcNow;
+                return new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+            }
+        }
+        public bool ShouldResetDalleHqAttempts() => DalleHqAttempts.Bucket != CurrentDalleHqBucket;
+        public void ResetDalleHqAttempts() => DalleHqAttempts = new AttemptsBucket(CurrentDalleHqBucket);
+        public AttemptsBucket DalleHqAttempts { get; private set; }
+
         public bool IsAiEnabled { get; private set; } = true;
+
 
         public Task ProcessMessage(IMessage message, CancellationToken token)
         {
@@ -65,6 +79,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             if (message.Content == "ff dalle reset")
             {
                 ResetDalleAttempts();
+                ResetDalleHqAttempts();
                 message.Channel.SendMessageAsync($"Reset dalle attempts");
                 return Task.CompletedTask;
             }

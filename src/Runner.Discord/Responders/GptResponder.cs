@@ -75,7 +75,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             if (_featureFlags.GptAttempts.Count >= 100)
             {
-                await initialMessage.Channel.SendMessageAsync("wait until the next hour", options: token.ToRequestOptions());
+                // Ensure only 100 attempts per hour
                 return;
             }
 
