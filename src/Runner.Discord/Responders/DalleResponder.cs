@@ -61,10 +61,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string dalle3Trigger = "dalle3 ";
             if (message.Content.StartsWith(dalle3Trigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                const int dalle3Limit = 5;
+                const int dalle3Limit = 2;
                 if (_featureFlags.DalleHqAttempts.Count >= dalle3Limit)
                 {
-                    await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
+                    await message.Channel.SendMessageAsync("wait until the next two hour period", options: token.ToRequestOptions());
                     return;
                 }
 
