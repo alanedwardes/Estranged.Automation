@@ -49,7 +49,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 const int dalle2Limit = 10;
                 if (_featureFlags.DalleAttempts.Count >= dalle2Limit)
                 {
-                    await message.Channel.SendMessageAsync("wait until the next day", options: token.ToRequestOptions());
+                    await message.Channel.SendMessageAsync($"wait until the next period (current {_featureFlags.DalleAttempts.Bucket})", options: token.ToRequestOptions());
                     return;
                 }
 
@@ -64,7 +64,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 const int dalle3Limit = 2;
                 if (_featureFlags.DalleHqAttempts.Count >= dalle3Limit)
                 {
-                    await message.Channel.SendMessageAsync("wait until the next two hour period", options: token.ToRequestOptions());
+                    await message.Channel.SendMessageAsync($"wait until the next period (current {_featureFlags.DalleHqAttempts.Bucket})", options: token.ToRequestOptions());
                     return;
                 }
 

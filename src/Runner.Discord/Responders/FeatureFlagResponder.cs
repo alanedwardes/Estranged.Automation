@@ -52,7 +52,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             get
             {
                 var now = DateTime.UtcNow;
-                return new DateTime(now.Year, now.Month, now.Day, (int)Math.Round((double)now.Hour / 2, MidpointRounding.AwayFromZero) * 2, 0, 0, DateTimeKind.Utc);
+                return new DateTime(now.Year, now.Month, now.Day, (int)Math.Round((double)now.Hour / 2, MidpointRounding.ToZero) * 2, 0, 0, DateTimeKind.Utc);
             }
         }
         public bool ShouldResetDalleHqAttempts() => DalleHqAttempts.Bucket != CurrentDalleHqBucket;
