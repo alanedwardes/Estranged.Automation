@@ -37,7 +37,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             // If this author posted a link in 3 different channels in the last 20 minutes
             if (potentialSpamMessages.Select(x => x.Channel.Id).Distinct().Count() >= 3)
             {
-                await _discordSocketClient.GetChannelByName("moderators").SendMessageAsync($"HELP! I think <@{message.Author.Id}> is Spamming !! Lots of love xx https://alan.gdn/3eb70cea-8059-4797-b1aa-734a29e6779b.jpg");
+                await _discordSocketClient.GetChannelByName("moderators").SendMessageAsync($"HELP! I think <@{message.Author.Id}> is Spamming !! Lots of love xx https://s.alanedwardes.com/3eb70cea-8059-4797-b1aa-734a29e6779b.jpg");
             }
         }
 
