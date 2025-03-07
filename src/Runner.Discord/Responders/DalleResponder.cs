@@ -1,10 +1,8 @@
 ﻿using Discord;
 using Estranged.Automation.Runner.Discord.Events;
-using OpenAI_API;
-using OpenAI_API.Images;
-using OpenAI_API.Models;
+using OpenAI;
+using OpenAI.Images;
 using System;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,13 +11,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
 {
     internal sealed class DalleResponder : IResponder
     {
-        private readonly OpenAIAPI _openAi;
+        private readonly OpenAIClient _openAiClient;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IFeatureFlags _featureFlags;
 
-        public DalleResponder(OpenAIAPI openAi, IHttpClientFactory httpClientFactory, IFeatureFlags featureFlags)
+        public DalleResponder(OpenAIClient openAiClient, IHttpClientFactory httpClientFactory, IFeatureFlags featureFlags)
         {
-            _openAi = openAi;
+            _openAiClient = openAiClient;
             _httpClientFactory = httpClientFactory;
             _featureFlags = featureFlags;
         }
@@ -54,7 +52,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 }
 
                 _featureFlags.DalleAttempts.Count++;
-                await RequestImage(message, _featureFlags.DalleAttempts.Count, dalle2Limit, dalle2Trigger.Length, Model.DALLE2, ImageSize._256, token);
+                await RequestImage(message, _featureFlags.DalleAttempts.Count, dalle2Limit, dalle2Trigger.Length, "dall-e-2", GeneratedImageSize.W256xH256, token);
                 return;
             }
 
@@ -69,30 +67,29 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 }
 
                 _featureFlags.DalleHqAttempts.Count++;
-                await RequestImage(message, _featureFlags.DalleHqAttempts.Count, dalle3Limit, dalle3Trigger.Length, Model.DALLE3, ImageSize._1024, token);
+                await RequestImage(message, _featureFlags.DalleHqAttempts.Count, dalle3Limit, dalle3Trigger.Length, "dall-e-3", GeneratedImageSize.W1024xH1024, token);
                 return;
             }
         }
 
-        private async Task RequestImage(IMessage message, int dalleAttempts, int dalleLimit, int initialMessagePrefixLength, Model model, ImageSize size, CancellationToken token)
+        private async Task RequestImage(IMessage message, int dalleAttempts, int dalleLimit, int initialMessagePrefixLength, string model, GeneratedImageSize size, CancellationToken token)
         {
             var prompt = message.Content[initialMessagePrefixLength..].Trim();
 
             using (message.Channel.EnterTypingState())
             {
-                var response = await _openAi.ImageGenerations.CreateImageAsync(new ImageGenerationRequest
+                var imageClient = _openAiClient.GetImageClient(model);
+
+                var response = await imageClient.GenerateImageAsync(prompt, new ImageGenerationOptions
                 {
                     Size = size,
-                    Model = model,
-                    NumOfImages = 1,
-                    ResponseFormat = ImageResponseFormat.Url,
-                    Prompt = prompt
+                    ResponseFormat = GeneratedImageFormat.Uri
                 });
 
-                var result = response.Data.Single();
+                var result = response.Value;
 
                 using var httpClient = _httpClientFactory.CreateClient(DiscordHttpClientConstants.RESPONDER_CLIENT);
-                using var image = await httpClient.GetStreamAsync(result.Url);
+                using var image = await httpClient.GetStreamAsync(result.ImageUri);
 
                 await message.Channel.SendFileAsync(image, $"{Guid.NewGuid()}.png", $"{dalleAttempts}/{dalleLimit}", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
             }

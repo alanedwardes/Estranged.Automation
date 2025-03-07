@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Octokit;
-using OpenAI_API;
+using OpenAI;
 using System;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -49,7 +49,7 @@ namespace Estranged.Automation
                 .AddTransient<IRunner, DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddSingleton(discordSocketClient)
-                .AddSingleton(new OpenAIAPI(Environment.GetEnvironmentVariable("OPENAI_APIKEY")))
+                .AddSingleton(new OpenAIClient(Environment.GetEnvironmentVariable("OPENAI_APIKEY")))
                 .AddSingleton<IDiscordClient>(discordSocketClient)
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()

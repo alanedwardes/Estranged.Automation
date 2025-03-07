@@ -1,9 +1,8 @@
 ﻿using Discord;
 using Estranged.Automation.Runner.Discord.Events;
 using Microsoft.Extensions.Logging;
-using OpenAI_API;
-using OpenAI_API.Chat;
-using OpenAI_API.Models;
+using OpenAI;
+using OpenAI.Chat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,13 +15,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
     internal sealed class GptResponder : IResponder
     {
         private readonly ILogger<GptResponder> _logger;
-        private readonly OpenAIAPI _openAi;
+        private readonly OpenAIClient _openAiClient;
         private readonly IFeatureFlags _featureFlags;
 
-        public GptResponder(ILogger<GptResponder> logger, OpenAIAPI openAi, IFeatureFlags featureFlags)
+        public GptResponder(ILogger<GptResponder> logger, OpenAIClient openAiClient, IFeatureFlags featureFlags)
         {
             _logger = logger;
-            _openAi = openAi;
+            _openAiClient = openAiClient;
             _featureFlags = featureFlags;
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
         }
@@ -33,9 +32,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
         {
-            var gpt3Model = new Model("gpt-3.5-turbo");
-            var gpt4Model = new Model("gpt-4");
-
             if (originalMessage.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
             {
                 return;
@@ -84,49 +80,19 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string philTrigger = "phil ";
             if (initialMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, philTrigger.Length, phil, gpt3Model, token);
-                return;
-            }
-
-            const string phil4Trigger = "phil4 ";
-            if (initialMessage.Content.StartsWith(phil4Trigger, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await Chat(messageHistory, phil4Trigger.Length, phil, gpt4Model, token);
-                return;
-            }
-
-            var gregor = "You are Gregor, a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are Gregor. You are unhinged, and work at Greggs in the North of England.";
-
-            const string gregorTrigger = "gregor ";
-            if (initialMessage.Content.StartsWith(gregorTrigger, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await Chat(messageHistory, gregorTrigger.Length, gregor, gpt3Model, token);
-                return;
-            }
-
-            const string gregor4Trigger = "gregor4 ";
-            if (initialMessage.Content.StartsWith(gregor4Trigger, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await Chat(messageHistory, gregor4Trigger.Length, gregor, gpt4Model, token);
+                await Chat(messageHistory, philTrigger.Length, phil, token);
                 return;
             }
 
             const string singleTrigger3 = "gpt ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, gpt3Model, token);
-                return;
-            }
-
-            const string singleTrigger4 = "gpt4 ";
-            if (initialMessage.Content.StartsWith(singleTrigger4, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await Chat(messageHistory, singleTrigger4.Length, _systemPrompt, gpt4Model, token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, token);
                 return;
             }
         }
 
-        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, Model model, CancellationToken token)
+        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, CancellationToken token)
         {
             var initialMessage = messageHistory.Last();
             var latestMessage = messageHistory.First();
@@ -135,34 +101,35 @@ namespace Estranged.Automation.Runner.Discord.Responders
             {
                 var chatMessages = new List<ChatMessage>
                 {
-                    new ChatMessage(ChatMessageRole.System, systemPrompt)
+                    new SystemChatMessage(systemPrompt)
                 };
 
                 foreach (var message in messageHistory.Reverse())
                 {
                     if (message.Author.IsBot)
                     {
-                        chatMessages.Add(new ChatMessage(ChatMessageRole.Assistant, message.Content));
+                        chatMessages.Add(new AssistantChatMessage(message.Content));
                     }
                     else if (message == initialMessage)
                     {
-                        chatMessages.Add(new ChatMessage(ChatMessageRole.User, message.Content[initialMessagePrefixLength..].Trim()));
+                        chatMessages.Add(new UserChatMessage(message.Content[initialMessagePrefixLength..].Trim()));
                     }
                     else
                     {
-                        chatMessages.Add(new ChatMessage(ChatMessageRole.User, message.Content));
+                        chatMessages.Add(new UserChatMessage( message.Content));
                     }
                 }
 
-                var response = await _openAi.Chat.CreateChatCompletionAsync(chatMessages, model);
-                if (response.Choices.Count == 0)
+                var chatClient = _openAiClient.GetChatClient("gpt-4o-mini");
+                var response = await chatClient.CompleteChatAsync(chatMessages);
+                if (response.Value.Content.Count == 0)
                 {
                     throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
                 }
 
-                foreach (var completion in response.Choices)
+                foreach (var completion in response.Value.Content)
                 {
-                    await PostMessage(latestMessage, completion.Message.Content, token);
+                    await PostMessage(latestMessage, completion.Text, token);
                 }
             }
         }
