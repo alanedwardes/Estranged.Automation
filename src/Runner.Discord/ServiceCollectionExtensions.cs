@@ -16,7 +16,6 @@ namespace Estranged.Automation.Runner.Discord
                            .AddSingleton<IResponder, HelloResponder>()
                            .AddSingleton<IResponder, QuoteResponder>()
                            .AddSingleton<IResponder, RtxResponder>()
-                           .AddSingleton<IResponder, TwitchResponder>()
                            .AddSingleton<IResponder, SteamGameResponder>()
                            .AddSingleton<IResponder, SobResponder>()
                            .AddSingleton<IResponder, RepeatPhraseResponder>()
