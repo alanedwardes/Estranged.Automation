@@ -44,33 +44,76 @@ namespace Estranged.Automation.Runner.Discord
                     return Task.CompletedTask;
                 }
 
-                return Task.WhenAll(_serviceProvider.GetServices<IResponder>().Select(x => WrapTask(x.ProcessMessage(message, token))));
+                FireAndForgetHandlers<IResponder>(responder => responder.ProcessMessage(message, token));
+                return Task.CompletedTask;
             };
 
-            _discordSocketClient.MessageDeleted += (message, channel) => Task.WhenAll(_serviceProvider.GetServices<IMessageDeleted>().Select(x => WrapTask(x.MessageDeleted(message, channel, token))));
-            _discordSocketClient.MessageUpdated += (message, socketMessage, channel) => Task.WhenAll(_serviceProvider.GetServices<IMessageUpdated>().Select(x => WrapTask(x.MessageUpdated(message, socketMessage, channel, token))));
-            _discordSocketClient.UserJoined += user => Task.WhenAll(_serviceProvider.GetServices<IUserJoinedHandler>().Select(x => WrapTask(x.UserJoined(user, token))));
-            _discordSocketClient.UserLeft += (guild, user) => Task.WhenAll(_serviceProvider.GetServices<IUserLeftHandler>().Select(x => WrapTask(x.UserLeft(user, token))));
-            _discordSocketClient.ReactionAdded += (message, channel, reaction) => Task.WhenAll(_serviceProvider.GetServices<IReactionAddedHandler>().Select(x => WrapTask(x.ReactionAdded(message, channel, reaction, token))));
-            _discordSocketClient.GuildMemberUpdated += (oldMember, newMember) => Task.WhenAll(_serviceProvider.GetServices<IGuildMemberUpdated>().Select(x => WrapTask(x.GuildMemberUpdated(oldMember, newMember, token))));
-            _discordSocketClient.RoleUpdated += (oldRole, newRole) => Task.WhenAll(_serviceProvider.GetServices<IRoleUpdated>().Select(x => WrapTask(x.RoleUpdated(oldRole, newRole, token))));
-            _discordSocketClient.UserUpdated += (oldUser, newUser) => Task.WhenAll(_serviceProvider.GetServices<IUserUpdated>().Select(x => WrapTask(x.UserUpdated(oldUser, newUser, token))));
-            _discordSocketClient.UserIsTyping += (socketUser, channel) => Task.WhenAll(_serviceProvider.GetServices<IUserIsTyping>().Select(x => WrapTask(x.UserIsTyping(socketUser, channel, token))));
+            _discordSocketClient.MessageDeleted += (message, channel) =>
+            {
+                FireAndForgetHandlers<IMessageDeleted>(handler => handler.MessageDeleted(message, channel, token));
+                return Task.CompletedTask;
+            };
+            _discordSocketClient.MessageUpdated += (message, socketMessage, channel) =>
+            {
+                FireAndForgetHandlers<IMessageUpdated>(handler => handler.MessageUpdated(message, socketMessage, channel, token));
+                return Task.CompletedTask;
+            };
+            _discordSocketClient.UserJoined += user =>
+            {
+                FireAndForgetHandlers<IUserJoinedHandler>(handler => handler.UserJoined(user, token));
+                return Task.CompletedTask;
+            };
+            _discordSocketClient.UserLeft += (guild, user) =>
+            {
+                FireAndForgetHandlers<IUserLeftHandler>(handler => handler.UserLeft(user, token));
+                return Task.CompletedTask;
+            };
+            _discordSocketClient.ReactionAdded += (message, channel, reaction) =>
+            {
+                FireAndForgetHandlers<IReactionAddedHandler>(handler => handler.ReactionAdded(message, channel, reaction, token));
+                return Task.CompletedTask;
+            };
+            _discordSocketClient.GuildMemberUpdated += (oldMember, newMember) =>
+            {
+                FireAndForgetHandlers<IGuildMemberUpdated>(handler => handler.GuildMemberUpdated(oldMember, newMember, token));
+                return Task.CompletedTask;
+            };
+            _discordSocketClient.RoleUpdated += (oldRole, newRole) =>
+            {
+                FireAndForgetHandlers<IRoleUpdated>(handler => handler.RoleUpdated(oldRole, newRole, token));
+                return Task.CompletedTask;
+            };
+            _discordSocketClient.UserUpdated += (oldUser, newUser) =>
+            {
+                FireAndForgetHandlers<IUserUpdated>(handler => handler.UserUpdated(oldUser, newUser, token));
+                return Task.CompletedTask;
+            };
+            _discordSocketClient.UserIsTyping += (socketUser, channel) =>
+            {
+                FireAndForgetHandlers<IUserIsTyping>(handler => handler.UserIsTyping(socketUser, channel, token));
+                return Task.CompletedTask;
+            };
 
             await _discordSocketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
             await _discordSocketClient.StartAsync();
             await Task.Delay(-1);
         }
 
-        private async Task WrapTask(Task task)
+        private void FireAndForgetHandlers<T>(Func<T, Task> handlerAction)
         {
-            try
+            foreach (var handler in _serviceProvider.GetServices<T>())
             {
-                await task;
-            }
-            catch (Exception e)
-            {
-                _logger.LogCritical(e, "Exception from event handler");
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await handlerAction(handler);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogCritical(e, "Exception from event handler");
+                    }
+                });
             }
         }
     }
