@@ -66,7 +66,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 prompt = prompt,
                 steps = _steps,
                 width = 512,
-                height = 512
+                height = 512,
+                seed = new Random().Next(0, int.MaxValue)
             };
 
             using var httpClient = _httpClientFactory.CreateClient();
