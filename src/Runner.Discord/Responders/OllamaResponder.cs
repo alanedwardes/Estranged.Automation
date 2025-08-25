@@ -82,7 +82,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
             if (Random.Shared.NextSingle() <= 0.05f)
             {
                 var systemPrompt = Random.Shared.Next(0, 2) == 1 ? phil : _systemPrompt;
-                await Chat([], systemPrompt.Length, systemPrompt, token);
+                await Chat([], 0, systemPrompt, token);
                 return;
             }
         }
