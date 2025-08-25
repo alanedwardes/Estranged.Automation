@@ -11,6 +11,7 @@ using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using OpenAI;
+using OllamaSharp;
 using System;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -50,6 +51,7 @@ namespace Estranged.Automation
                 .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddSingleton(discordSocketClient)
                 .AddSingleton(new OpenAIClient(Environment.GetEnvironmentVariable("OPENAI_APIKEY")))
+                .AddSingleton(new OllamaApiClient(Environment.GetEnvironmentVariable("OLLAMA_HOST")))
                 .AddSingleton<IDiscordClient>(discordSocketClient)
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
