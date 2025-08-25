@@ -16,13 +16,11 @@ namespace Estranged.Automation.Runner.Discord.Responders
     {
         private readonly ILogger<OllamaResponder> _logger;
         private readonly OllamaApiClient _ollamaClient;
-        private readonly IFeatureFlags _featureFlags;
 
-        public OllamaResponder(ILogger<OllamaResponder> logger, OllamaApiClient ollamaClient, IFeatureFlags featureFlags)
+        public OllamaResponder(ILogger<OllamaResponder> logger, OllamaApiClient ollamaClient)
         {
             _logger = logger;
             _ollamaClient = ollamaClient;
-            _featureFlags = featureFlags;
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
             _model = Environment.GetEnvironmentVariable("OLLAMA_MODEL") ?? throw new NullReferenceException("OLLAMA_MODEL environment variable is not set");
         }
@@ -34,7 +32,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
         {
-            if (originalMessage.Channel.IsPublicChannel() || !_featureFlags.IsAiEnabled)
+            if (originalMessage.Channel.IsPublicChannel())
             {
                 return;
             }
@@ -65,16 +63,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (_featureFlags.ShouldResetGptAttempts())
-            {
-                _featureFlags.ResetGptAttempts();
-            }
-
-            if (_featureFlags.GptAttempts.Count >= 100)
-            {
-                return;
-            }
-
             var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
 
             const string philTrigger = "ophil ";
@@ -88,6 +76,13 @@ namespace Estranged.Automation.Runner.Discord.Responders
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
                 await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, token);
+                return;
+            }
+
+            if (Random.Shared.NextSingle() <= 0.05f)
+            {
+                var systemPrompt = Random.Shared.Next(0, 2) == 1 ? phil : _systemPrompt;
+                await Chat([], systemPrompt.Length, systemPrompt, token);
                 return;
             }
         }
