@@ -29,7 +29,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
         private const string DEFAULT_SYSTEM_PROMPT = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are ESTBOT. You are unhinged, and work at Greggs in the North of England.";
 
         private string _systemPrompt;
-        private readonly string _model;
+        private string _model;
 
         public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
         {
@@ -47,6 +47,18 @@ namespace Estranged.Automation.Runner.Discord.Responders
             }
 
             var initialMessage = messageHistory.Last();
+
+            const string modelTrigger = "ollamam";
+            if (initialMessage.Content.StartsWith(modelTrigger, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var newModel = initialMessage.Content[modelTrigger.Length..].Trim();
+                if (!string.IsNullOrWhiteSpace(newModel))
+                {
+                    _model = newModel;
+                    await initialMessage.Channel.SendMessageAsync($"Model: {_model}", options: token.ToRequestOptions());
+                }
+                return;
+            }
 
             const string systemTrigger = "ollamas";
             if (initialMessage.Content.StartsWith(systemTrigger, StringComparison.InvariantCultureIgnoreCase))
