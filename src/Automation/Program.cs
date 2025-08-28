@@ -16,6 +16,7 @@ using System;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace Estranged.Automation
 {
@@ -51,7 +52,13 @@ namespace Estranged.Automation
                 .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddSingleton(discordSocketClient)
                 .AddSingleton(new OpenAIClient(Environment.GetEnvironmentVariable("OPENAI_APIKEY")))
-                .AddSingleton(new OllamaApiClient(Environment.GetEnvironmentVariable("OLLAMA_HOST")))
+                .AddSingleton(provider =>
+                {
+                    var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient();
+                    httpClient.Timeout = TimeSpan.MaxValue;
+                    httpClient.BaseAddress = new Uri(Environment.GetEnvironmentVariable("OLLAMA_HOST"));
+                    return new OllamaApiClient(httpClient);
+                })
                 .AddSingleton<IDiscordClient>(discordSocketClient)
                 .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
                 .AddTransient<ISeenItemRepository, SeenItemRepository>()
