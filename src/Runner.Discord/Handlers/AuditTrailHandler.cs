@@ -13,8 +13,15 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public AuditTrailHandler(ILogger<AuditTrailHandler> logger) => _logger = logger;
 
+        private const ulong AuditTrailChannelId = 845981918130733106;
+
         public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, CancellationToken token)
         {
+            if (channel.Id == AuditTrailChannelId)
+            {
+                return Task.CompletedTask;
+            }
+
             if (message.HasValue)
             {
                 _logger.LogInformation("Message {Message} was deleted in {Channel}", message.Value, channel);
@@ -29,6 +36,11 @@ namespace Estranged.Automation.Runner.Discord.Handlers
 
         public async Task MessageUpdated(Cacheable<IMessage, ulong> message, SocketMessage socketMessage, ISocketMessageChannel channel, CancellationToken token)
         {
+            if (channel.Id == AuditTrailChannelId)
+            {
+                return;
+            }
+
             if (!socketMessage.EditedTimestamp.HasValue)
             {
                 // This edit was made by Discord

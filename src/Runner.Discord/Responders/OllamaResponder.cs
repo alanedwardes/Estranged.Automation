@@ -79,10 +79,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (Random.Shared.NextSingle() <= 0.05f)
+            if (Random.Shared.NextSingle() <= 0.1f)
             {
                 var systemPrompt = Random.Shared.Next(0, 2) == 1 ? phil : _systemPrompt;
-                await Chat([], 0, systemPrompt, token);
+                await Chat([originalMessage], 0, systemPrompt, token);
                 return;
             }
         }
