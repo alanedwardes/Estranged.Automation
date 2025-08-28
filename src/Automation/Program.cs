@@ -17,6 +17,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace Estranged.Automation
 {
@@ -26,11 +27,16 @@ namespace Estranged.Automation
         {
             Console.WriteLine("Bootstrapping");
 
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddJsonFile("config.secret.json", true)
+                .Build();
+
             var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");
 
             var gitHubClient = new GitHubClient(new Octokit.ProductHeaderValue(productHeader.Product.Name, productHeader.Product.Version))
             {
-                Credentials = new Credentials("estranged-automation", Environment.GetEnvironmentVariable("GITHUB_PASSWORD"))
+                Credentials = new Credentials("estranged-automation", configuration["GITHUB_PASSWORD"])
             };
 
             var discordSocketClient = new DiscordSocketClient(new DiscordSocketConfig
@@ -41,6 +47,7 @@ namespace Estranged.Automation
             });
 
             var services = new ServiceCollection()
+                .AddSingleton<IConfiguration>(configuration)
                 .AddLogging(options =>
                 {
                     options.AddConsole()
@@ -51,12 +58,12 @@ namespace Estranged.Automation
                 .AddTransient<IRunner, DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddSingleton(discordSocketClient)
-                .AddSingleton(new OpenAIClient(Environment.GetEnvironmentVariable("OPENAI_APIKEY")))
+                .AddSingleton(new OpenAIClient(configuration["OPENAI_APIKEY"]))
                 .AddSingleton(provider =>
                 {
                     var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient();
-                    httpClient.Timeout = TimeSpan.MaxValue;
-                    httpClient.BaseAddress = new Uri(Environment.GetEnvironmentVariable("OLLAMA_HOST"));
+                    httpClient.Timeout = TimeSpan.FromHours(1);
+                    httpClient.BaseAddress = new Uri(configuration["OLLAMA_HOST"]);
                     return new OllamaApiClient(httpClient);
                 })
                 .AddSingleton<IDiscordClient>(discordSocketClient)

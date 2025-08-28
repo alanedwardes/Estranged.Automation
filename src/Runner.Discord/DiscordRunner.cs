@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Estranged.Automation.Runner.Discord.Events;
 using Humanizer;
+using Microsoft.Extensions.Configuration;
 
 namespace Estranged.Automation.Runner.Discord
 {
@@ -16,12 +17,14 @@ namespace Estranged.Automation.Runner.Discord
     {
         private readonly ILogger<DiscordRunner> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConfiguration _configuration;
         private readonly DiscordSocketClient _discordSocketClient;
 
-        public DiscordRunner(ILogger<DiscordRunner> logger, IServiceProvider serviceProvider, DiscordSocketClient discordSocketClient)
+        public DiscordRunner(ILogger<DiscordRunner> logger, IServiceProvider serviceProvider, IConfiguration configuration, DiscordSocketClient discordSocketClient)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _configuration = configuration;
             _discordSocketClient = discordSocketClient;
         }
 
@@ -94,7 +97,7 @@ namespace Estranged.Automation.Runner.Discord
                 return Task.CompletedTask;
             };
 
-            await _discordSocketClient.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
+            await _discordSocketClient.LoginAsync(TokenType.Bot, _configuration["DISCORD_BOT_TOKEN"]);
             await _discordSocketClient.StartAsync();
             await Task.Delay(-1);
         }

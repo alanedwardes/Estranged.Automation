@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Estranged.Automation.Runner.Discord.Events;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,12 +16,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
     internal sealed class StableDiffusionResponder : IResponder
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
         private readonly IFeatureFlags _featureFlags;
         private int _steps = 3;
 
-        public StableDiffusionResponder(IHttpClientFactory httpClientFactory, IFeatureFlags featureFlags)
+        public StableDiffusionResponder(IHttpClientFactory httpClientFactory, IConfiguration configuration, IFeatureFlags featureFlags)
         {
             _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
             _featureFlags = featureFlags;
         }
 
@@ -71,8 +74,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
             };
 
             using var httpClient = _httpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(Environment.GetEnvironmentVariable("SD_API_URL"));
-            httpClient.Timeout = Timeout.InfiniteTimeSpan;
+            httpClient.BaseAddress = new Uri(_configuration["SD_API_URL"]);
+            httpClient.Timeout = TimeSpan.FromHours(1);
 
             var response = await httpClient.PostAsJsonAsync("/generate", requestPayload, token);
             

@@ -1,5 +1,6 @@
 using Discord;
 using Estranged.Automation.Runner.Discord.Events;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OllamaSharp;
 using OllamaSharp.Models.Chat;
@@ -17,12 +18,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
         private readonly ILogger<OllamaResponder> _logger;
         private readonly OllamaApiClient _ollamaClient;
 
-        public OllamaResponder(ILogger<OllamaResponder> logger, OllamaApiClient ollamaClient)
+        public OllamaResponder(ILogger<OllamaResponder> logger, IConfiguration configuration, OllamaApiClient ollamaClient)
         {
             _logger = logger;
             _ollamaClient = ollamaClient;
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
-            _model = Environment.GetEnvironmentVariable("OLLAMA_MODEL") ?? throw new NullReferenceException("OLLAMA_MODEL environment variable is not set");
+            _model = configuration["OLLAMA_MODEL"];
         }
 
         private const string DEFAULT_SYSTEM_PROMPT = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are ESTBOT. You are unhinged, and work at Greggs in the North of England.";
