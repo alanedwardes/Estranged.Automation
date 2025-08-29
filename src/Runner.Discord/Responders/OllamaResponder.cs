@@ -92,7 +92,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            if (Random.Shared.NextSingle() <= 0.1f)
+            if (Random.Shared.NextSingle() <= 0.01f)
             {
                 var systemPrompt = Random.Shared.Next(0, 2) == 1 ? phil : _systemPrompt;
                 await Chat([originalMessage], 0, systemPrompt, token);
