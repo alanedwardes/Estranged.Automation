@@ -2,12 +2,9 @@
 using Estranged.Automation.Runner.Discord.Events;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -75,7 +72,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using var httpClient = _httpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(_configuration["SD_API_URL"]);
-            httpClient.Timeout = TimeSpan.FromHours(1);
+            httpClient.Timeout = TimeSpan.FromHours(24);
 
             var response = await httpClient.PostAsJsonAsync("/generate", requestPayload, token);
             
