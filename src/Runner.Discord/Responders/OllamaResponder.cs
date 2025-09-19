@@ -132,7 +132,8 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 {
                     Model = _model,
                     Messages = messages,
-                    Stream = false
+                    Stream = false,
+                    Think = false
                 };
 
                 var response = await _ollamaClient.ChatAsync(request, token).SingleAsync();
