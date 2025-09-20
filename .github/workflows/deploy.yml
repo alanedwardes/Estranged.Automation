@@ -16,7 +16,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
       
     - name: Build Estbot
       run: dotnet publish src/Automation/Estranged.Automation.csproj --configuration Release --runtime linux-x64 --output build/output
