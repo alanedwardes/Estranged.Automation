@@ -118,9 +118,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     }
                 }
 
-                await foreach (var update in chatClient.GetStreamingResponseAsync(chatMessages, new() { Tools = [.. _tools] }, token))
+                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. _tools] }, token);
+                foreach (var message in chatResponse.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
                 {
-                    await latestMessage.Channel.SendMessageAsync(_configuration.MakeMcpReplacements(update.Text), messageReference: new MessageReference(latestMessage.Id), options: token.ToRequestOptions());
+                    await latestMessage.Channel.SendMessageAsync(_configuration.MakeMcpReplacements(message.Text), messageReference: new MessageReference(latestMessage.Id), options: token.ToRequestOptions());
                 }
             }
         }
