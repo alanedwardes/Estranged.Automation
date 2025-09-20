@@ -75,15 +75,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
-
-            const string philTrigger = "phil ";
-            if (initialMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await Chat(messageHistory, philTrigger.Length, phil, token);
-                return;
-            }
-
             const string singleTrigger3 = "gpt ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {

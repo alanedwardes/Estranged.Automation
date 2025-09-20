@@ -78,15 +78,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 return;
             }
 
-            var phil = "You are Phil Mason, a tough, stubborn working class Englishman who always responds in rough cockney English slang. You are 50 years old and you are cynical and grumpy towards most things.";
-
-            const string philTrigger = "ophil ";
-            if (initialMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
-            {
-                await Chat(messageHistory, philTrigger.Length, phil, _model, token);
-                return;
-            }
-
             const string singleTrigger3 = "ollama ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -101,13 +92,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     await Chat(messageHistory, trigger.Length, systemPrompt, model, token);
                     return;
                 }
-            }
-
-            if (Random.Shared.NextSingle() <= 0.01f)
-            {
-                var systemPrompt = Random.Shared.Next(0, 2) == 1 ? phil : _systemPrompt;
-                await Chat([originalMessage], 0, systemPrompt, _model, token);
-                return;
             }
         }
 
