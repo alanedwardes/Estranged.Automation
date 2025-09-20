@@ -124,7 +124,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. _tools] }, token);
 
                 var inputTokens = chatResponse.Usage.InputTokenCount;
-                var outputTokens = chatResponse.Usage.InputTokenCount;
+                var outputTokens = chatResponse.Usage.OutputTokenCount;
 
                 // Log price in usd
                 var price = inputTokens / 1_000_000f * usdPerMillionInputTokens + outputTokens / 1_000_000f * usdPerMillionOutputTokens;
