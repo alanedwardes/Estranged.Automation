@@ -29,6 +29,7 @@ namespace Estranged.Automation
 
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
+                .AddJsonFile("config.json", true)
                 .AddJsonFile("config.secret.json", true)
                 .Build();
 
