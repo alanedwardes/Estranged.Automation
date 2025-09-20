@@ -118,7 +118,18 @@ namespace Estranged.Automation.Runner.Discord.Responders
                     }
                 }
 
+                const float usdPerMillionInputTokens = 4f;
+                const float usdPerMillionOutputTokens = 16f;
+
                 var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. _tools] }, token);
+
+                var inputTokens = chatResponse.Usage.InputTokenCount;
+                var outputTokens = chatResponse.Usage.InputTokenCount;
+
+                // Log price in usd
+                var price = inputTokens / 1_000_000f * usdPerMillionInputTokens + outputTokens / 1_000_000f * usdPerMillionOutputTokens;
+                _logger.LogInformation($"Lore request complete, price: ${price:0.00000} (input: {inputTokens} tokens, output: {outputTokens} tokens)");
+
                 foreach (var message in chatResponse.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
                 {
                     await latestMessage.Channel.SendMessageAsync(_configuration.MakeMcpReplacements(message.Text), messageReference: new MessageReference(latestMessage.Id), options: token.ToRequestOptions());
