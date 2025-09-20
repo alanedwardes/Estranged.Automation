@@ -1,0 +1,4 @@
+[submodule "mcp"]
+	path = mcp
+	url = https://github.com/modelcontextprotocol/csharp-sdk.git
+	branch = main
