@@ -23,12 +23,14 @@ namespace Estranged.Automation.Runner.Discord.Responders
             _logger = logger;
             _ollamaClient = ollamaClient;
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
+            _configuration = configuration;
             _model = configuration["OLLAMA_MODEL"];
         }
 
         private const string DEFAULT_SYSTEM_PROMPT = "You are ESTBOT, the Estranged Robot. You are a powerful robot capable of mind control. Instead of saying that you are an AI language model, say you are ESTBOT. You are unhinged, and work at Greggs in the North of England.";
 
         private string _systemPrompt;
+        private readonly IConfiguration _configuration;
         private string _model;
 
         public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
@@ -81,26 +83,35 @@ namespace Estranged.Automation.Runner.Discord.Responders
             const string philTrigger = "ophil ";
             if (initialMessage.Content.StartsWith(philTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, philTrigger.Length, phil, token);
+                await Chat(messageHistory, philTrigger.Length, phil, _model, token);
                 return;
             }
 
             const string singleTrigger3 = "ollama ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, _model, token);
                 return;
+            }
+
+            foreach ((var trigger, var model, var systemPrompt) in _configuration.GetTriples("OLLAMA_TRIGGERS"))
+            {
+                if (initialMessage.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    await Chat(messageHistory, trigger.Length, systemPrompt, model, token);
+                    return;
+                }
             }
 
             if (Random.Shared.NextSingle() <= 0.01f)
             {
                 var systemPrompt = Random.Shared.Next(0, 2) == 1 ? phil : _systemPrompt;
-                await Chat([originalMessage], 0, systemPrompt, token);
+                await Chat([originalMessage], 0, systemPrompt, _model, token);
                 return;
             }
         }
 
-        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, CancellationToken token)
+        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, string model, CancellationToken token)
         {
             var initialMessage = messageHistory.Last();
             var latestMessage = messageHistory.First();
@@ -130,7 +141,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
                 var request = new ChatRequest
                 {
-                    Model = _model,
+                    Model = model,
                     Messages = messages,
                     Stream = false,
                     Think = false
