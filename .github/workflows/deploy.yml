@@ -17,8 +17,11 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 9.0.x
-      
-    - name: Build Estbot
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Publish
       run: dotnet publish src/Automation/Estranged.Automation.csproj --configuration Release --runtime linux-x64 --output build/output
       
     - name: Login to Public ECR
