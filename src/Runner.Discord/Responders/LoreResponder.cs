@@ -86,7 +86,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 "You must only search the wiki to find answers, you cannot use your knowledge, you cannot help with any other information source." +
                 "You must look at the page source using the get-page tool (passing withSource to get the page contents)." +
                 "If you cannot find an answer, consult the pages with \"Literature\" or \"Dialogue\" in their titles." +
-                "Keep responses concise but do not omit key information. Include links to the wiki, and do not use excessive line breaks.";
+                "Keep responses concise but do not omit key information. Include links to the wiki but not thumbnails, and do not use excessive line breaks.";
 
             var openAIClient = _openAIClient.GetChatClient("gpt-4o-mini");
 
