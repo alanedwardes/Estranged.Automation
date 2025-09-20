@@ -11,7 +11,7 @@ namespace Estranged.Automation.Runner.Discord
         {
             // split into tuples separated by ; each tuple is separated by ,
             return configuration[key]?.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Split(','))
                 .Where(x => x.Length == 2)
                 .Select(x => (x[0], x[1]))
                 .ToList() ?? [];
@@ -21,7 +21,7 @@ namespace Estranged.Automation.Runner.Discord
         {
             // split into triple separated by ; each triple is separated by ,
             return configuration[key]?.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Split(','))
                 .Where(x => x.Length == 3)
                 .Select(x => (x[0], x[1], x[2]))
                 .ToList() ?? [];

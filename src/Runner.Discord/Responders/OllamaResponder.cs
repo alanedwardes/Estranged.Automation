@@ -118,10 +118,12 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using (latestMessage.Channel.EnterTypingState())
             {
-                var messages = new List<Message>
+                var messages = new List<Message>();
+
+                if (!string.IsNullOrWhiteSpace(systemPrompt))
                 {
-                    new Message { Role = "system", Content = systemPrompt }
-                };
+                    messages.Add(new Message { Role = "system", Content = systemPrompt });
+                }
 
                 foreach (var message in messageHistory.Reverse())
                 {
