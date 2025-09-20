@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 9.0.x
 
     - name: Restore
-      run: dotnet restore
+      run: dotnet restore --source https://api.nuget.org/v3/index.json
 
     - name: Publish
       run: dotnet publish src/Automation/Estranged.Automation.csproj --configuration Release --runtime linux-x64 --output build/output
