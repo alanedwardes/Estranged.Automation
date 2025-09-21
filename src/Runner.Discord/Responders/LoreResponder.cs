@@ -19,7 +19,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
         private readonly IConfiguration _configuration;
         private readonly IFeatureFlags _featureFlags;
         private readonly OpenAIClient _openAIClient;
-        private IList<McpClientTool> _tools;
 
         public LoreResponder(ILogger<GptResponder> logger, IConfiguration configuration, IFeatureFlags featureFlags, OpenAIClient openAIClient)
         {
@@ -53,21 +52,17 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var initialMessage = messageHistory.Last();
 
-            // TODO: prevent multiple tool requests at once
-            if (_tools == null)
-            {
-                await GetTools();
-            }
+            var tools = await GetTools();
 
             const string loreTrigger = "lore ";
             if (initialMessage.Content.StartsWith(loreTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, loreTrigger.Length, token);
+                await Chat(messageHistory, loreTrigger.Length, tools, token);
                 return;
             }
         }
 
-        private async Task GetTools()
+        private async Task<IList<McpClientTool>> GetTools()
         {
             var httpTransport = new HttpClientTransport(new HttpClientTransportOptions
             {
@@ -77,10 +72,10 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             var mcpClient = await McpClient.CreateAsync(httpTransport);
 
-            _tools = await mcpClient.ListToolsAsync();
+            return await mcpClient.ListToolsAsync();
         }
 
-        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, CancellationToken token)
+        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, IList<McpClientTool> tools, CancellationToken token)
         {
             const string systemPrompt = "You are a helpful Estranged lore expert." +
                 "You must only search the wiki to find answers, you cannot use your knowledge, you cannot help with any other information source." +
@@ -121,7 +116,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
                 const float usdPerMillionInputTokens = 4f;
                 const float usdPerMillionOutputTokens = 16f;
 
-                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. _tools] }, token);
+                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools] }, token);
 
                 var inputTokens = chatResponse.Usage.InputTokenCount;
                 var outputTokens = chatResponse.Usage.OutputTokenCount;
