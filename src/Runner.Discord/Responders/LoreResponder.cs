@@ -77,12 +77,6 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
         private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, IList<McpClientTool> tools, CancellationToken token)
         {
-            const string systemPrompt = "You are a helpful Estranged lore expert." +
-                "You must only search the wiki to find answers, you cannot use your knowledge, you cannot help with any other information source." +
-                "You must look at the page source using the get-page tool (passing withSource to get the page contents)." +
-                "If you cannot find an answer, consult the pages with \"Literature\" or \"Dialogue\" in their titles." +
-                "Keep responses concise but do not omit key information. Include links to the wiki but not thumbnails or images, and do not use excessive line breaks.";
-
             var openAIClient = _openAIClient.GetChatClient("gpt-4o-mini");
 
             using IChatClient chatClient = openAIClient.AsIChatClient()
@@ -95,7 +89,7 @@ namespace Estranged.Automation.Runner.Discord.Responders
 
             using (latestMessage.Channel.EnterTypingState())
             {
-                IList<ChatMessage> chatMessages = [new(ChatRole.System, systemPrompt)];
+                IList<ChatMessage> chatMessages = [new(ChatRole.System, _configuration["ESTRANGED_WIKI_PROMPT"])];
 
                 foreach (var message in messageHistory.Reverse())
                 {
