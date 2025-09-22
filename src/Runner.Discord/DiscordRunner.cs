@@ -47,6 +47,12 @@ namespace Estranged.Automation.Runner.Discord
                     return Task.CompletedTask;
                 }
 
+                if (message.Channel is not IGuildChannel)
+                {
+                    _logger.LogInformation("Received DM from {User}: {Message} (channel type: {type})", message.Author, message.Content, message.Channel.GetType());
+                    return Task.CompletedTask;
+                }
+
                 FireAndForgetHandlers<IResponder>(responder => responder.ProcessMessage(message, token));
                 return Task.CompletedTask;
             };
