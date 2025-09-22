@@ -10,16 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v5
       with:
         submodules: true
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: |
+          - 9.0.x
+          - 8.0.x
 
     - name: Restore
-      run: dotnet restore --ignore-failed-sources --verbosity detailed
+      run: dotnet restore
 
     - name: Publish
       run: dotnet publish src/Automation/Estranged.Automation.csproj --configuration Release --runtime linux-x64 --output build/output
