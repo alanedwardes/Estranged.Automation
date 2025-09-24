@@ -19,11 +19,8 @@ jobs:
         dotnet-version: | 
           9.0.x
 
-    - name: Restore
-      run: dotnet restore
-
     - name: Publish
-      run: dotnet publish src/Automation/Estranged.Automation.csproj --configuration Release --runtime linux-x64 --output build/output
+      run: dotnet publish src/Automation/Estranged.Automation.csproj --configuration Release --runtime linux-x64 --framework net9.0 --output build/output
       
     - name: Login to Public ECR
       uses: docker/login-action@v1
