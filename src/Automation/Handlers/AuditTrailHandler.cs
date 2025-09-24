@@ -25,7 +25,7 @@ namespace Estranged.Automation.Handlers
 
             try
             {
-                await message.DownloadAsync();
+                await Task.WhenAll(message.DownloadAsync(), channel.DownloadAsync());
             }
             catch (Exception e)
             {
