@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Estranged.Automation.Events;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,16 +16,26 @@ namespace Estranged.Automation.Handlers
 
         private const ulong AuditTrailChannelId = 845981918130733106;
 
-        public Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, CancellationToken token)
+        public async Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, CancellationToken token)
         {
             if (channel.Id == AuditTrailChannelId)
             {
-                return Task.CompletedTask;
+                return;
+            }
+
+            try
+            {
+                await message.DownloadAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Failed to download deleted message {MessageId} in channel {ChannelId}", message.Id, channel.Id);
+                return;
             }
 
             if (message.HasValue && message.Value.Author.IsBot)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             if (message.HasValue)
@@ -35,8 +46,6 @@ namespace Estranged.Automation.Handlers
             {
                 _logger.LogInformation("Message {Message} was deleted in {Channel} (message not cached)", message.Id, channel);
             }
-
-            return Task.CompletedTask;
         }
 
         public async Task MessageUpdated(Cacheable<IMessage, ulong> message, SocketMessage socketMessage, ISocketMessageChannel channel, CancellationToken token)
