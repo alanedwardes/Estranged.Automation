@@ -27,6 +27,7 @@ namespace Estranged.Automation
                            .AddSingleton<IResponder, StableDiffusionResponder>()
                            .AddSingleton<IResponder, GptResponder>()
                            .AddSingleton<IResponder, OllamaResponder>()
+                           .AddSingleton<IResponder, RetentionResponder>()
                            .AddSingleton<IResponder, LoreResponder>()
                            .AddSingleton<FeatureFlagResponder>()
                            .AddSingleton<IResponder>(x => x.GetRequiredService<FeatureFlagResponder>())
