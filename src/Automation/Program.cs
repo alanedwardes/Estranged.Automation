@@ -1,7 +1,6 @@
 ﻿using Ae.Steam.Client;
 using Discord;
 using Discord.WebSocket;
-using Estranged.Automation.Runner.Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
