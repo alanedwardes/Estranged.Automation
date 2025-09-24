@@ -1,11 +1,9 @@
-﻿using Estranged.Automation.Shared;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Discord.WebSocket;
 using Discord;
 using System;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Estranged.Automation.Runner.Discord.Events;
 using Humanizer;
@@ -13,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Estranged.Automation.Runner.Discord
 {
-    public sealed class DiscordRunner : IRunner
+    public sealed class DiscordRunner
     {
         private readonly ILogger<DiscordRunner> _logger;
         private readonly IServiceProvider _serviceProvider;

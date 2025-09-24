@@ -1,10 +1,7 @@
 ﻿using Ae.Steam.Client;
-using Amazon;
-using Amazon.DynamoDBv2;
 using Discord;
 using Discord.WebSocket;
 using Estranged.Automation.Runner.Discord;
-using Estranged.Automation.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
@@ -18,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Microsoft.Extensions.Configuration;
+using Amazon.DynamoDBv2;
 
 namespace Estranged.Automation
 {
@@ -55,8 +53,7 @@ namespace Estranged.Automation
                            .AddProvider(new DiscordLoggerProvider(discordSocketClient))
                            .SetMinimumLevel(LogLevel.Information);
                 })
-                .AddTransient<RunnerManager>()
-                .AddTransient<IRunner, DiscordRunner>()
+                .AddTransient<DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddSingleton(discordSocketClient)
                 .AddSingleton(new OpenAIClient(configuration["OPENAI_APIKEY"]))
@@ -68,9 +65,7 @@ namespace Estranged.Automation
                     return new OllamaApiClient(httpClient);
                 })
                 .AddSingleton<IDiscordClient>(discordSocketClient)
-                .AddTransient<IAmazonDynamoDB>(x => new AmazonDynamoDBClient(RegionEndpoint.EUWest1))
-                .AddTransient<ISeenItemRepository, SeenItemRepository>()
-                .AddSingleton<IRateLimitingRepository, RateLimitingRepository>()
+                .AddTransient<IAmazonDynamoDB, AmazonDynamoDBClient>()
                 .AddResponderServices();
 
             var builder1 = services.AddHttpClient(DiscordHttpClientConstants.RESPONDER_CLIENT, x => x.DefaultRequestHeaders.UserAgent.Add(productHeader));
@@ -89,8 +84,8 @@ namespace Estranged.Automation
 
             try
             {
-                Console.WriteLine("Starting manager");
-                provider.GetRequiredService<RunnerManager>()
+                Console.WriteLine("Starting discord");
+                provider.GetRequiredService<DiscordRunner>()
                         .Run(source.Token)
                         .GetAwaiter()
                         .GetResult();
