@@ -22,6 +22,11 @@ namespace Estranged.Automation.Handlers
                 return Task.CompletedTask;
             }
 
+            if (message.HasValue && message.Value.Author.IsBot)
+            {
+                return Task.CompletedTask;
+            }
+
             if (message.HasValue)
             {
                 _logger.LogInformation("Message {Message} was deleted in {Channel}", message.Value, channel);
