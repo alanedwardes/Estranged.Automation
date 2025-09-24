@@ -50,11 +50,12 @@ namespace Estranged.Automation.Responders
 			int requestedCount = 0;
 			_ = int.TryParse(argText, out requestedCount);
 
-            var deleteDelayMs = 3_000;
+            var deleteDelayMs = 1_000;
 
 			var cutoff = DateTimeOffset.UtcNow - TimeSpan.FromDays(30);
 
 			int deleted = 0;
+			var channelBreakdown = new List<string>();
 			await originalMessage.Channel.SendMessageAsync($"Purging up to {requestedCount} messages older than 30 days across private channels...", messageReference: new MessageReference(originalMessage.Id), options: token.ToRequestOptions());
 
 			var guild = textChannel.Guild;
@@ -70,6 +71,7 @@ namespace Estranged.Automation.Responders
 				var pinnedIds = new HashSet<ulong>(pinned.Select(x => x.Id));
 
 				IMessage fromMessage = null;
+				int deletedInThisChannel = 0;
 				while (deleted < requestedCount)
 				{
 					IList<IMessage> messages = [];
@@ -105,6 +107,7 @@ namespace Estranged.Automation.Responders
 						{
 							await message.DeleteAsync(options: token.ToRequestOptions());
 							deleted++;
+							deletedInThisChannel++;
 							await Task.Delay(deleteDelayMs, token);
 						}
 						catch (Exception ex)
@@ -113,9 +116,15 @@ namespace Estranged.Automation.Responders
 						}
 					}
 				}
+
+				if (deletedInThisChannel > 0)
+				{
+					channelBreakdown.Add($"#{channel.Name} ({deletedInThisChannel})");
+				}
 			}
 
-			await originalMessage.Channel.SendMessageAsync($"Purged {deleted} message(s) across private channels.", messageReference: new MessageReference(originalMessage.Id), options: token.ToRequestOptions());
+			var breakdownText = channelBreakdown.Count > 0 ? $" Deleted from: {string.Join(", ", channelBreakdown)}" : string.Empty;
+			await originalMessage.Channel.SendMessageAsync($"Purged {deleted} message(s) across private channels.{breakdownText}", messageReference: new MessageReference(originalMessage.Id), options: token.ToRequestOptions());
         }
     }
 }

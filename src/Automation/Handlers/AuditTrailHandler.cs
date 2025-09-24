@@ -18,6 +18,8 @@ namespace Estranged.Automation.Handlers
 
         public async Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, CancellationToken token)
         {
+            return;
+
             if (channel.Id == AuditTrailChannelId)
             {
                 return;
