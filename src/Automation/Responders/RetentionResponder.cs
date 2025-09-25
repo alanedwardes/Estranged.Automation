@@ -50,7 +50,7 @@ namespace Estranged.Automation.Responders
 			int requestedCount = 0;
 			_ = int.TryParse(argText, out requestedCount);
 
-            var deleteDelayMs = 1_000;
+            var deleteDelayMs = 5_000;
 
 			var cutoff = DateTimeOffset.UtcNow - TimeSpan.FromDays(30);
 
