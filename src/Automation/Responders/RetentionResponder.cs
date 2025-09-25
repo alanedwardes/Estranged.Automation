@@ -114,13 +114,14 @@ namespace Estranged.Automation.Responders
 							deleted++;
 							deletedInThisChannel++;
 							lastPurgedTimestamp = message.Timestamp;
-							await Task.Delay(deleteDelayMs, token);
 						}
 						catch (Exception ex)
 						{
 							_logger.LogWarning(ex, "Failed to delete message {MessageId} in channel {ChannelId}", message.Id, channel.Id);
 						}
-					}
+
+                        await Task.Delay(deleteDelayMs, token);
+                    }
 				}
 
 				if (deletedInThisChannel > 0)
