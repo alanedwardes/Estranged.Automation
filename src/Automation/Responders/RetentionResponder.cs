@@ -108,7 +108,9 @@ namespace Estranged.Automation.Responders
 
 						try
 						{
-							await message.DeleteAsync(options: token.ToRequestOptions());
+							var requestOptions = token.ToRequestOptions();
+							requestOptions.RetryMode = RetryMode.Retry502 | RetryMode.RetryTimeouts;
+							await message.DeleteAsync(options: requestOptions);
 							deleted++;
 							deletedInThisChannel++;
 							lastPurgedTimestamp = message.Timestamp;
