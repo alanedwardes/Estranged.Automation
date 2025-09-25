@@ -71,16 +71,19 @@ namespace Estranged.Automation.Responders
 				var pinnedIds = new HashSet<ulong>(pinned.Select(x => x.Id));
 
 				IMessage fromMessage = null;
+				DateTimeOffset? lastPurgedTimestamp = null;
 				int deletedInThisChannel = 0;
 				while (deleted < requestedCount)
 				{
 					IList<IMessage> messages = [];
 					if (fromMessage == null)
 					{
+						Console.WriteLine($"Retrieving latest messages for #{channel.Name}...");
                         messages = [.. await channel.GetMessagesAsync().FlattenAsync()];
 					}
 					else
 					{
+						Console.WriteLine($"Retrieving messages before {fromMessage.Id} for #{channel.Name}...");
                         messages = [.. await channel.GetMessagesAsync(fromMessage, Direction.Before, 100, options: token.ToRequestOptions()).FlattenAsync()];
                     }
 
@@ -108,6 +111,7 @@ namespace Estranged.Automation.Responders
 							await message.DeleteAsync(options: token.ToRequestOptions());
 							deleted++;
 							deletedInThisChannel++;
+							lastPurgedTimestamp = message.Timestamp;
 							await Task.Delay(deleteDelayMs, token);
 						}
 						catch (Exception ex)
@@ -120,6 +124,7 @@ namespace Estranged.Automation.Responders
 				if (deletedInThisChannel > 0)
 				{
 					channelBreakdown.Add($"#{channel.Name} ({deletedInThisChannel})");
+					await originalMessage.Channel.SendMessageAsync($"Last message purged timestamp: {lastPurgedTimestamp.Value:O}", messageReference: new MessageReference(originalMessage.Id), options: token.ToRequestOptions());
 				}
 			}
 
