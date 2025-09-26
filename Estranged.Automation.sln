@@ -18,8 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelContextProtocol.Core", "mcp\src\ModelContextProtocol.Core\ModelContextProtocol.Core.csproj", "{91D1E916-749B-B0BC-EC5A-598EBA367001}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,17 +28,12 @@ Global
 		{7FEA4CA0-1922-4DBA-BD09-0DF149C35C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FEA4CA0-1922-4DBA-BD09-0DF149C35C36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FEA4CA0-1922-4DBA-BD09-0DF149C35C36}.Release|Any CPU.Build.0 = Release|Any CPU
-		{91D1E916-749B-B0BC-EC5A-598EBA367001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{91D1E916-749B-B0BC-EC5A-598EBA367001}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{91D1E916-749B-B0BC-EC5A-598EBA367001}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{91D1E916-749B-B0BC-EC5A-598EBA367001}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7FEA4CA0-1922-4DBA-BD09-0DF149C35C36} = {B690B076-CBB7-408E-8FB2-FFF13863AA2C}
-		{91D1E916-749B-B0BC-EC5A-598EBA367001} = {B690B076-CBB7-408E-8FB2-FFF13863AA2C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0C871391-E647-4431-8C32-5EA45E93BED8}
