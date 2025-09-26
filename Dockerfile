@@ -4,4 +4,6 @@ ADD build/output /opt/estbot
 
 VOLUME ["/data"]
 
+WORKDIR /data
+
 ENTRYPOINT ["/opt/estbot/Estranged.Automation"]
