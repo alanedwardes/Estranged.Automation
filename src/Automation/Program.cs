@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Microsoft.Extensions.Configuration;
 using Amazon.DynamoDBv2;
+using System.IO;
 
 namespace Estranged.Automation
 {
@@ -26,6 +27,7 @@ namespace Estranged.Automation
 
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
+                .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "config.json"), true)
                 .AddJsonFile("config.json", true)
                 .AddJsonFile("config.secret.json", true)
                 .Build();
