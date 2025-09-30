@@ -78,12 +78,10 @@ namespace Estranged.Automation.Responders
                 return;
             }
 
-            var tools = await GetTools();
-
             const string singleTrigger3 = "gpt ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, tools, token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, await GetTools(), token);
                 return;
             }
         }

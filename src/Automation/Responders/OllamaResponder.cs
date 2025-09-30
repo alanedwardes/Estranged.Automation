@@ -78,12 +78,10 @@ namespace Estranged.Automation.Responders
                 return;
             }
 
-            var tools = await GetTools();
-
             const string singleTrigger3 = "ollama ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, _model, tools, token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, _model, await GetTools(), token);
                 return;
             }
 
@@ -91,7 +89,7 @@ namespace Estranged.Automation.Responders
             {
                 if (initialMessage.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    await Chat(messageHistory, trigger.Length, systemPrompt, model, tools, token);
+                    await Chat(messageHistory, trigger.Length, systemPrompt, model, await GetTools(), token);
                     return;
                 }
             }
@@ -101,7 +99,7 @@ namespace Estranged.Automation.Responders
         {
             var httpTransport = new HttpClientTransport(new HttpClientTransportOptions
             {
-                Endpoint = new Uri(_configuration["ESTRANGED_WIKI_MCP"]),
+                Endpoint = new Uri(_configuration["SEARCH_MCP"]),
                 TransportMode = HttpTransportMode.StreamableHttp
             });
 

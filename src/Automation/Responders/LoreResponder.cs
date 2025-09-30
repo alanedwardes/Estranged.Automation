@@ -52,12 +52,10 @@ namespace Estranged.Automation.Responders
 
             var initialMessage = messageHistory.Last();
 
-            var tools = await GetTools();
-
             const string loreTrigger = "lore ";
             if (initialMessage.Content.StartsWith(loreTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, loreTrigger.Length, tools, token);
+                await Chat(messageHistory, loreTrigger.Length, await GetTools(), token);
                 return;
             }
         }
