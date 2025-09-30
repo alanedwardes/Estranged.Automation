@@ -83,7 +83,7 @@ namespace Estranged.Automation.Responders
             const string singleTrigger3 = "gpt ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, singleTrigger3.Length, $"The current date/time is {DateTime.UtcNow:O}. {_systemPrompt}", tools, token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, tools, token);
                 return;
             }
         }
@@ -115,7 +115,7 @@ namespace Estranged.Automation.Responders
 
             using (latestMessage.Channel.EnterTypingState())
             {
-                IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, systemPrompt);
+                IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, $"The current date/time is {DateTime.UtcNow:O}. {systemPrompt}");
 
                 var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools] }, token);
 

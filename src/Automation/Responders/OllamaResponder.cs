@@ -122,9 +122,9 @@ namespace Estranged.Automation.Responders
 
             using (latestMessage.Channel.EnterTypingState())
             {
-                IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, systemPrompt);
+                IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, $"The current date/time is {DateTime.UtcNow:O}. {systemPrompt}");
 
-                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { ModelId = model }, token);
+                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools], ModelId = model }, token);
 
                 foreach (var message in chatResponse.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
                 {
