@@ -1,13 +1,13 @@
 using Discord;
 using Estranged.Automation.Events;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Client;
 using OllamaSharp;
-using OllamaSharp.Models.Chat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -78,10 +78,12 @@ namespace Estranged.Automation.Responders
                 return;
             }
 
+            var tools = await GetTools();
+
             const string singleTrigger3 = "ollama ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, _model, token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, _model, tools, token);
                 return;
             }
 
@@ -89,58 +91,45 @@ namespace Estranged.Automation.Responders
             {
                 if (initialMessage.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    await Chat(messageHistory, trigger.Length, systemPrompt, model, token);
+                    await Chat(messageHistory, trigger.Length, systemPrompt, model, tools, token);
                     return;
                 }
             }
         }
 
-        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, string model, CancellationToken token)
+        private async Task<IList<McpClientTool>> GetTools()
         {
+            var httpTransport = new HttpClientTransport(new HttpClientTransportOptions
+            {
+                Endpoint = new Uri(_configuration["ESTRANGED_WIKI_MCP"]),
+                TransportMode = HttpTransportMode.StreamableHttp
+            });
+
+            var mcpClient = await McpClient.CreateAsync(httpTransport);
+
+            return await mcpClient.ListToolsAsync();
+        }
+
+        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, string model, IList<McpClientTool> tools, CancellationToken token)
+        {
+            using IChatClient chatClient = ((IChatClient)_ollamaClient)
+                .AsBuilder()
+                .UseFunctionInvocation()
+                .Build();
+
             var initialMessage = messageHistory.Last();
             var latestMessage = messageHistory.First();
 
             using (latestMessage.Channel.EnterTypingState())
             {
-                var messages = new List<Message>();
+                IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, systemPrompt);
 
-                if (!string.IsNullOrWhiteSpace(systemPrompt))
+                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { ModelId = model }, token);
+
+                foreach (var message in chatResponse.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
                 {
-                    messages.Add(new Message { Role = "system", Content = systemPrompt });
+                    await latestMessage.Channel.SendMessageAsync(_configuration.MakeMcpReplacements(message.Text), messageReference: new MessageReference(latestMessage.Id), flags: MessageFlags.SuppressEmbeds, options: token.ToRequestOptions());
                 }
-
-                foreach (var message in messageHistory.Reverse())
-                {
-                    if (message.Author.IsBot)
-                    {
-                        messages.Add(new Message { Role = "assistant", Content = message.Content });
-                    }
-                    else if (message == initialMessage)
-                    {
-                        messages.Add(new Message { Role = "user", Content = message.Content[initialMessagePrefixLength..].Trim() });
-                    }
-                    else
-                    {
-                        messages.Add(new Message { Role = "user", Content = message.Content });
-                    }
-                }
-
-                var request = new ChatRequest
-                {
-                    Model = model,
-                    Messages = messages,
-                    Stream = false,
-                    Think = false
-                };
-
-                var response = await _ollamaClient.ChatAsync(request, token).SingleAsync();
-                
-                if (string.IsNullOrEmpty(response.Message?.Content))
-                {
-                    throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
-                }
-
-                await PostMessage(latestMessage, response.Message.Content, token);
             }
         }
 

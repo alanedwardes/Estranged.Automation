@@ -15,7 +15,7 @@ namespace Estranged.Automation.Responders
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IFeatureFlags _featureFlags;
-        private int _steps = 3;
+        private int _steps = 20;
 
         public StableDiffusionResponder(IHttpClientFactory httpClientFactory, IConfiguration configuration, IFeatureFlags featureFlags)
         {
