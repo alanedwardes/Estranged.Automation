@@ -3,7 +3,6 @@ using Estranged.Automation.Events;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ModelContextProtocol.Client;
 using OllamaSharp;
 using System;
 using System.Collections.Generic;
@@ -81,7 +80,7 @@ namespace Estranged.Automation.Responders
             const string singleTrigger3 = "ollama ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, _model, await GetTools(), token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, _model, token);
                 return;
             }
 
@@ -89,26 +88,13 @@ namespace Estranged.Automation.Responders
             {
                 if (initialMessage.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    await Chat(messageHistory, trigger.Length, systemPrompt, model, await GetTools(), token);
+                    await Chat(messageHistory, trigger.Length, systemPrompt, model, token);
                     return;
                 }
             }
         }
 
-        private async Task<IList<McpClientTool>> GetTools()
-        {
-            var httpTransport = new HttpClientTransport(new HttpClientTransportOptions
-            {
-                Endpoint = new Uri(_configuration["SEARCH_MCP"]),
-                TransportMode = HttpTransportMode.StreamableHttp
-            });
-
-            var mcpClient = await McpClient.CreateAsync(httpTransport);
-
-            return await mcpClient.ListToolsAsync();
-        }
-
-        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, string model, IList<McpClientTool> tools, CancellationToken token)
+        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, string model, CancellationToken token)
         {
             using IChatClient chatClient = ((IChatClient)_ollamaClient)
                 .AsBuilder()
@@ -122,7 +108,7 @@ namespace Estranged.Automation.Responders
             {
                 IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, $"The current date/time is {DateTime.UtcNow:O}. {systemPrompt}");
 
-                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools], ModelId = model }, token);
+                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { ModelId = model }, token);
 
                 foreach (var message in chatResponse.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
                 {
