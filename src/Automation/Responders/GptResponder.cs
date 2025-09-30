@@ -1,12 +1,13 @@
 ﻿using Discord;
 using Estranged.Automation.Events;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Client;
 using OpenAI;
-using OpenAI.Chat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,14 +16,16 @@ namespace Estranged.Automation.Responders
     internal sealed class GptResponder : IResponder
     {
         private readonly ILogger<GptResponder> _logger;
-        private readonly OpenAIClient _openAiClient;
+        private readonly OpenAIClient _openAIClient;
         private readonly IFeatureFlags _featureFlags;
+        private readonly IConfiguration _configuration;
 
-        public GptResponder(ILogger<GptResponder> logger, OpenAIClient openAiClient, IFeatureFlags featureFlags)
+        public GptResponder(ILogger<GptResponder> logger, OpenAIClient openAIClient, IFeatureFlags featureFlags, IConfiguration configuration)
         {
             _logger = logger;
-            _openAiClient = openAiClient;
+            _openAIClient = openAIClient;
             _featureFlags = featureFlags;
+            _configuration = configuration;
             _systemPrompt = DEFAULT_SYSTEM_PROMPT;
         }
 
@@ -75,52 +78,50 @@ namespace Estranged.Automation.Responders
                 return;
             }
 
+            var tools = await GetTools();
+
             const string singleTrigger3 = "gpt ";
             if (initialMessage.Content.StartsWith(singleTrigger3, StringComparison.InvariantCultureIgnoreCase))
             {
-                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, token);
+                await Chat(messageHistory, singleTrigger3.Length, _systemPrompt, tools, token);
                 return;
             }
         }
 
-        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, CancellationToken token)
+        private async Task<IList<McpClientTool>> GetTools()
         {
+            var httpTransport = new HttpClientTransport(new HttpClientTransportOptions
+            {
+                Endpoint = new Uri(_configuration["SEARCH_MCP"]),
+                TransportMode = HttpTransportMode.StreamableHttp
+            });
+
+            var mcpClient = await McpClient.CreateAsync(httpTransport);
+
+            return await mcpClient.ListToolsAsync();
+        }
+
+        private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, string systemPrompt, IList<McpClientTool> tools, CancellationToken token)
+        {
+            var openAIClient = _openAIClient.GetChatClient("gpt-4o-mini");
+
+            using IChatClient chatClient = openAIClient.AsIChatClient()
+                .AsBuilder()
+                .UseFunctionInvocation()
+                .Build();
+
             var initialMessage = messageHistory.Last();
             var latestMessage = messageHistory.First();
 
             using (latestMessage.Channel.EnterTypingState())
             {
-                var chatMessages = new List<ChatMessage>
-                {
-                    new SystemChatMessage(systemPrompt)
-                };
+                IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, systemPrompt);
 
-                foreach (var message in messageHistory.Reverse())
-                {
-                    if (message.Author.IsBot)
-                    {
-                        chatMessages.Add(new AssistantChatMessage(message.Content));
-                    }
-                    else if (message == initialMessage)
-                    {
-                        chatMessages.Add(new UserChatMessage(message.Content[initialMessagePrefixLength..].Trim()));
-                    }
-                    else
-                    {
-                        chatMessages.Add(new UserChatMessage( message.Content));
-                    }
-                }
+                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools] }, token);
 
-                var chatClient = _openAiClient.GetChatClient("gpt-4o-mini");
-                var response = await chatClient.CompleteChatAsync(chatMessages);
-                if (response.Value.Content.Count == 0)
+                foreach (var message in chatResponse.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
                 {
-                    throw new Exception($"Got no results: {JsonSerializer.Serialize(response)}");
-                }
-
-                foreach (var completion in response.Value.Content)
-                {
-                    await PostMessage(latestMessage, completion.Text, token);
+                    await PostMessage(latestMessage, message.Text, token);
                 }
             }
         }

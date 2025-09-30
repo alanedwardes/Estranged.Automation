@@ -1,10 +1,10 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.AI;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
-using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Estranged.Automation
 {
@@ -147,6 +147,29 @@ namespace Estranged.Automation
             }
 
             return history;
+        }
+
+        public static IList<ChatMessage> BuildChatMessages(IList<IMessage> messageHistory, int initialMessagePrefixLength, IMessage initialMessage, string systemPrompt)
+        {
+            IList<ChatMessage> chatMessages = [new(ChatRole.System, systemPrompt)];
+
+            foreach (var message in messageHistory.Reverse())
+            {
+                if (message.Author.IsBot)
+                {
+                    chatMessages.Add(new(ChatRole.Assistant, message.Content));
+                }
+                else if (message == initialMessage)
+                {
+                    chatMessages.Add(new(ChatRole.User, message.Content[initialMessagePrefixLength..].Trim()));
+                }
+                else
+                {
+                    chatMessages.Add(new(ChatRole.User, message.Content));
+                }
+            }
+
+            return chatMessages;
         }
     }
 }

@@ -89,31 +89,15 @@ namespace Estranged.Automation.Responders
 
             using (latestMessage.Channel.EnterTypingState())
             {
-                IList<ChatMessage> chatMessages = [new(ChatRole.System, _configuration["ESTRANGED_WIKI_PROMPT"])];
-
-                foreach (var message in messageHistory.Reverse())
-                {
-                    if (message.Author.IsBot)
-                    {
-                        chatMessages.Add(new(ChatRole.Assistant, message.Content));
-                    }
-                    else if (message == initialMessage)
-                    {
-                        chatMessages.Add(new(ChatRole.User, message.Content[initialMessagePrefixLength..].Trim()));
-                    }
-                    else
-                    {
-                        chatMessages.Add(new(ChatRole.User, message.Content));
-                    }
-                }
-
-                const float usdPerMillionInputTokens = 4f;
-                const float usdPerMillionOutputTokens = 16f;
+                IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, _configuration["ESTRANGED_WIKI_PROMPT"]);
 
                 var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools] }, token);
 
                 var inputTokens = chatResponse.Usage.InputTokenCount;
                 var outputTokens = chatResponse.Usage.OutputTokenCount;
+
+                const float usdPerMillionInputTokens = 4f;
+                const float usdPerMillionOutputTokens = 16f;
 
                 // Log price in usd
                 var price = inputTokens / 1_000_000f * usdPerMillionInputTokens + outputTokens / 1_000_000f * usdPerMillionOutputTokens;
