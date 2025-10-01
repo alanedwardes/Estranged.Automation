@@ -101,7 +101,7 @@ namespace Estranged.Automation.Responders
                 var price = inputTokens / 1_000_000f * usdPerMillionInputTokens + outputTokens / 1_000_000f * usdPerMillionOutputTokens;
                 _logger.LogInformation($"Lore request complete, price: ${price:0.00000} (input: {inputTokens} tokens, output: {outputTokens} tokens)");
 
-                await MessageExtensions.PostChatMessages(latestMessage, chatMessages, token);
+                await MessageExtensions.PostChatMessages(latestMessage, chatResponse.Messages, token);
             }
         }
     }

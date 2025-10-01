@@ -117,7 +117,7 @@ namespace Estranged.Automation.Responders
 
                 var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools] }, token);
 
-                await MessageExtensions.PostChatMessages(latestMessage, chatMessages, token);
+                await MessageExtensions.PostChatMessages(latestMessage, chatResponse.Messages, token);
             }
         }
     }
