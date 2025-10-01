@@ -11,23 +11,25 @@ namespace Estranged.Automation.Responders
     {
         public static async Task StreamResponse(this IChatClient chatClient, IMessage latestMessage, IEnumerable<ChatMessage> chatMessages, ChatOptions chatOptions, CancellationToken token)
         {
+            IMessageChannel channel = latestMessage.Channel;
+            IMessage lastThreadMessage = latestMessage;
+
             var sb = new StringBuilder();
 
             await foreach (var chatResponse in chatClient.GetStreamingResponseAsync(chatMessages, chatOptions, token))
             {
                 sb.Append(chatResponse.Text);
 
-                // Post when we have 1000 characters or on the last message
                 if (sb.Length >= 1000)
                 {
-                    await latestMessage.Channel.SendMessageAsync(sb.ToString(), messageReference: new MessageReference(latestMessage.Id), flags: MessageFlags.SuppressEmbeds, options: token.ToRequestOptions());
+                    lastThreadMessage = await channel.SendMessageAsync(sb.ToString(), messageReference: new MessageReference(lastThreadMessage.Id), flags: MessageFlags.SuppressEmbeds, options: token.ToRequestOptions());
                     sb.Clear();
                 }
             }
 
             if (sb.Length > 0)
             {
-                await latestMessage.Channel.SendMessageAsync(sb.ToString(), messageReference: new MessageReference(latestMessage.Id), flags: MessageFlags.SuppressEmbeds, options: token.ToRequestOptions());
+                await channel.SendMessageAsync(sb.ToString(), messageReference: new MessageReference(lastThreadMessage.Id), flags: MessageFlags.SuppressEmbeds, options: token.ToRequestOptions());
             }
         }
     }
