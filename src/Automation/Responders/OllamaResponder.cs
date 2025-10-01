@@ -107,10 +107,7 @@ namespace Estranged.Automation.Responders
             using (latestMessage.Channel.EnterTypingState())
             {
                 IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, $"The current date is {DateTime.Now:D}. {systemPrompt}");
-
-                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { ModelId = model }, token);
-
-                await MessageExtensions.PostChatMessages(latestMessage, chatResponse.Messages, token);
+                await chatClient.StreamResponse(latestMessage, chatMessages, new() { ModelId = model }, token);
             }
         }
     }

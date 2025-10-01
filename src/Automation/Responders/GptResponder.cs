@@ -114,10 +114,7 @@ namespace Estranged.Automation.Responders
             using (latestMessage.Channel.EnterTypingState())
             {
                 IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, systemPrompt);
-
-                var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools] }, token);
-
-                await MessageExtensions.PostChatMessages(latestMessage, chatResponse.Messages, token);
+                await chatClient.StreamResponse(latestMessage, chatMessages, new() { Tools = [.. tools] }, token);
             }
         }
     }
