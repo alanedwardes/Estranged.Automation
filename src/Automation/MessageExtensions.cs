@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.AI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,7 +23,7 @@ namespace Estranged.Automation
                 builder.WithFooter($"Originally posted in #{quotedMessage.Channel.Name}");
             }
             else
-            { 
+            {
                 builder.WithFooter($"Quoted by {quoter.Username}, originally posted in #{quotedMessage.Channel.Name}");
             }
 
@@ -170,6 +171,25 @@ namespace Estranged.Automation
             }
 
             return chatMessages;
+        }
+
+        public static async Task PostChatMessages(IMessage latestMessage, IList<ChatMessage> chatMessages, CancellationToken token)
+        {
+            foreach (var chatMessage in chatMessages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
+            {
+                foreach (var chunk in chatMessage.Text.ChunkBy(2000))
+                {
+                    await latestMessage.Channel.SendMessageAsync(chunk, messageReference: new MessageReference(latestMessage.Id), flags: MessageFlags.SuppressEmbeds, options: token.ToRequestOptions());
+                }
+            }
+        }
+
+        private static IEnumerable<string> ChunkBy(this string str, int chunkSize)
+        {
+            for (int i = 0; i < str.Length; i += chunkSize)
+            {
+                yield return str.Substring(i, Math.Min(chunkSize, str.Length - i));
+            }
         }
     }
 }

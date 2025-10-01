@@ -110,26 +110,7 @@ namespace Estranged.Automation.Responders
 
                 var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { ModelId = model }, token);
 
-                foreach (var message in chatResponse.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
-                {
-                    await PostMessage(latestMessage, message.Text, token);
-                }
-            }
-        }
-
-        private static async Task PostMessage(IMessage message, string content, CancellationToken token)
-        {
-            const int discordMessageLimit = 2000;
-
-            if (content.Length > discordMessageLimit)
-            {
-                await message.Channel.SendMessageAsync(content[..discordMessageLimit], messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
-
-                await message.Channel.SendMessageAsync(content[discordMessageLimit..], messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
-            }
-            else
-            {
-                await message.Channel.SendMessageAsync(content, messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+                await MessageExtensions.PostChatMessages(latestMessage, chatMessages, token);
             }
         }
     }

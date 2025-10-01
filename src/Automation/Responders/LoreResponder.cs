@@ -101,10 +101,7 @@ namespace Estranged.Automation.Responders
                 var price = inputTokens / 1_000_000f * usdPerMillionInputTokens + outputTokens / 1_000_000f * usdPerMillionOutputTokens;
                 _logger.LogInformation($"Lore request complete, price: ${price:0.00000} (input: {inputTokens} tokens, output: {outputTokens} tokens)");
 
-                foreach (var message in chatResponse.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)))
-                {
-                    await latestMessage.Channel.SendMessageAsync(_configuration.MakeMcpReplacements(message.Text), messageReference: new MessageReference(latestMessage.Id), flags: MessageFlags.SuppressEmbeds, options: token.ToRequestOptions());
-                }
+                await MessageExtensions.PostChatMessages(latestMessage, chatMessages, token);
             }
         }
     }
