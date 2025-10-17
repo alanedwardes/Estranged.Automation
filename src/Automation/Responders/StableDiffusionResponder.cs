@@ -7,6 +7,11 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.Processing.Processors.Quantization;
 
 namespace Estranged.Automation.Responders
 {
@@ -47,12 +52,16 @@ namespace Estranged.Automation.Responders
                 return;
             }
 
+
             const string sdTrigger = "sd";
             if (message.Content.StartsWith(sdTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
                 using (message.Channel.EnterTypingState())
                 {
-                    using var imageStream = await GenerateImage(message.Content[sdTrigger.Length..].Trim(), token);
+                    var result = await GenerateImageWithGif(message.Content[sdTrigger.Length..].Trim(), token);
+                    using var gifStream = result.gifStream;
+                    await message.Channel.SendFileAsync(gifStream, $"{Guid.NewGuid()}.gif", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+                    using var imageStream = result.pngStream;
                     await message.Channel.SendFileAsync(imageStream, $"{Guid.NewGuid()}.png", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
                     return;
                 }
@@ -78,6 +87,17 @@ namespace Estranged.Automation.Responders
             
             if (response.IsSuccessStatusCode)
             {
+                // generated_fcf9d38b-4ef8-4805-b44e-9944bf69bfca.png
+                var filename = response.RequestMessage.RequestUri.PathAndQuery.Split("/generate/")[1];
+                Console.WriteLine($"Generated image filename: {filename}");
+
+                for (int step = 0; step < requestPayload.steps; step++)
+                {
+                    // generated_fcf9d38b-4ef8-4805-b44e-9944bf69bfca.png_preview_0.png
+                    var stepFilename = $"{filename}_preview_{step}.png";
+                    await httpClient.GetByteArrayAsync($"/generate/{stepFilename}", token);
+                }
+
                 var imageBytes = await response.Content.ReadAsByteArrayAsync(token);
                 return new MemoryStream(imageBytes);
             }
@@ -85,6 +105,66 @@ namespace Estranged.Automation.Responders
             {
                 throw new HttpRequestException($"Image generation failed with status code: {response.StatusCode}");
             }
+        }      
+
+        private async Task<(MemoryStream gifStream, MemoryStream pngStream)> GenerateImageWithGif(string prompt, CancellationToken token)
+        {
+            var requestPayload = new
+            {
+                prompt,
+                steps = _steps,
+                width = 512,
+                height = 512,
+                seed = new Random().Next(0, int.MaxValue)
+            };
+
+            using var httpClient = _httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(_configuration["SD_API_URL"]);
+            httpClient.Timeout = TimeSpan.FromHours(24);
+
+            var response = await httpClient.PostAsJsonAsync("/generate", requestPayload, token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Image generation failed with status code: {response.StatusCode}");
+            }
+
+            var filename = response.RequestMessage.RequestUri.PathAndQuery.Split("/generate/")[1];
+
+            var frameBytes = new List<byte[]>(capacity: requestPayload.steps);
+            for (int step = 0; step < requestPayload.steps; step++)
+            {
+                var stepFilename = $"{filename}_preview_{step}.png";
+                var bytes = await httpClient.GetByteArrayAsync($"/generate/{stepFilename}", token);
+                frameBytes.Add(bytes);
+            }
+
+            using var first = SixLabors.ImageSharp.Image.Load<Rgba32>(frameBytes[0]);
+            for (int i = 1; i < frameBytes.Count; i++)
+            {
+                using var img = SixLabors.ImageSharp.Image.Load<Rgba32>(frameBytes[i]);
+                first.Frames.AddFrame(img.Frames.RootFrame);
+            }
+
+            foreach (var frame in first.Frames)
+            {
+                var meta = frame.Metadata.GetGifMetadata();
+                meta.FrameDelay = 6;
+                meta.DisposalMethod = GifDisposalMethod.RestoreToBackground;
+            }
+
+            var gifStream = new MemoryStream();
+            await first.SaveAsGifAsync(gifStream, new GifEncoder
+            {
+                ColorTableMode = GifColorTableMode.Global,
+                Quantizer = new OctreeQuantizer()
+            }, token);
+            gifStream.Position = 0;
+
+            var pngBytes = await response.Content.ReadAsByteArrayAsync(token);
+            var pngStream = new MemoryStream(pngBytes);
+
+            return (gifStream, pngStream);
         }
     }
 }
