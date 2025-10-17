@@ -131,6 +131,9 @@ namespace Estranged.Automation.Responders
 
             var filename = response.RequestMessage.RequestUri.PathAndQuery.Split("/images/")[1];
 
+            var pngBytes = await response.Content.ReadAsByteArrayAsync(token);
+            var pngStream = new MemoryStream(pngBytes);
+
             var frameBytes = new List<byte[]>(capacity: requestPayload.steps);
             for (int step = 0; step < requestPayload.steps; step++)
             {
@@ -140,6 +143,9 @@ namespace Estranged.Automation.Responders
             }
 
             using var first = SixLabors.ImageSharp.Image.Load<Rgba32>(frameBytes[0]);
+
+            first.Metadata.GetGifMetadata().RepeatCount = 0;
+
             for (int i = 1; i < frameBytes.Count; i++)
             {
                 using var img = SixLabors.ImageSharp.Image.Load<Rgba32>(frameBytes[i]);
@@ -149,7 +155,7 @@ namespace Estranged.Automation.Responders
             foreach (var frame in first.Frames)
             {
                 var meta = frame.Metadata.GetGifMetadata();
-                meta.FrameDelay = 6;
+                meta.FrameDelay = 25;
                 meta.DisposalMethod = GifDisposalMethod.RestoreToBackground;
             }
 
@@ -160,9 +166,6 @@ namespace Estranged.Automation.Responders
                 Quantizer = new OctreeQuantizer()
             }, token);
             gifStream.Position = 0;
-
-            var pngBytes = await response.Content.ReadAsByteArrayAsync(token);
-            var pngStream = new MemoryStream(pngBytes);
 
             return (gifStream, pngStream);
         }
