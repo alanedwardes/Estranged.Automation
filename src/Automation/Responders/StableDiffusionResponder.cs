@@ -129,7 +129,7 @@ namespace Estranged.Automation.Responders
                 throw new HttpRequestException($"Image generation failed with status code: {response.StatusCode}");
             }
 
-            var filename = response.RequestMessage.RequestUri.PathAndQuery.Split("/generate/")[1];
+            var filename = response.RequestMessage.RequestUri.PathAndQuery.Split("/images/")[1];
 
             var frameBytes = new List<byte[]>(capacity: requestPayload.steps);
             for (int step = 0; step < requestPayload.steps; step++)
