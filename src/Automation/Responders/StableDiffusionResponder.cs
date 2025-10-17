@@ -135,7 +135,7 @@ namespace Estranged.Automation.Responders
             for (int step = 0; step < requestPayload.steps; step++)
             {
                 var stepFilename = $"{filename}_preview_{step}.png";
-                var bytes = await httpClient.GetByteArrayAsync($"/generate/{stepFilename}", token);
+                var bytes = await httpClient.GetByteArrayAsync($"/images/{stepFilename}", token);
                 frameBytes.Add(bytes);
             }
 
