@@ -65,6 +65,7 @@ namespace Estranged.Automation
                     httpClient.BaseAddress = new Uri(configuration["OLLAMA_HOST"]);
                     return new OllamaApiClient(httpClient);
                 })
+                .AddSingleton<IChatClientFactory, ChatClientFactory>()
                 .AddSingleton<IDiscordClient>(discordSocketClient)
                 .AddTransient<IAmazonDynamoDB, AmazonDynamoDBClient>()
                 .AddResponderServices();
