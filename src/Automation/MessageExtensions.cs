@@ -66,30 +66,22 @@ namespace Estranged.Automation
             IEnumerable<ulong> publicChannels = new ulong[]
             {
                 435094509953744907, // #announcements
-                453209462438887435, // #welcome
                 633724305871470593, // #goodbyes
                 633725420285591571, // #deletions
                 435152590209286145, // #reviews
-                470513916393291777, // #feedback
-                435913619662831616, // #syndication
                 455012497775132673, // #community
-                435097044433240065, // #git
 
                 368117881000427540, // #general
                 479405352207777795, // #gaming
+                1036776421584027688,// #game-screenshots
+                845428451077783643, // #verification
+
                 437311972917248022, // #act-i
                 437312012603752458, // #the-departure
+                802974954160128011, // #arctic-cold
                 439742315016486922, // #dev-screenshots
-                454937488000024577, // #bugs,
                 457813004889751553, // #ideas
-                535160312320753664, // #bots
-                549182701630914561, // #aaaaaaaaaaaaaaaaaaaa
-
-                899774965895811082, // #test1
-                899775011261399131, // #test2
-                899775057331642448, // #test3
-
-                435131444931723264, // #friends
+                454937488000024577, // #bugs
             };
 
             return publicChannels.Contains(channel.Id);
