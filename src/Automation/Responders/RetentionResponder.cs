@@ -135,10 +135,18 @@ namespace Estranged.Automation.Responders
 					break;
 				}
 
+				// Use the oldest message in this batch as the next anchor to avoid
+				// repeatedly retrieving the same page due to ordering/overlap.
+				var oldestInBatch = messages.MinBy(m => m.Id);
+				if (fromMessage != null && oldestInBatch.Id >= fromMessage.Id)
+				{
+					Console.WriteLine("No pagination progress detected; stopping.");
+					break;
+				}
+				fromMessage = oldestInBatch;
+
 				foreach (var message in messages)
 				{
-					fromMessage = message;
-
 					if (deleted >= requestedCount)
 					{
 						break;
