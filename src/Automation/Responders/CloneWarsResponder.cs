@@ -178,20 +178,42 @@ namespace Estranged.Automation.Responders
 
 
 				case SessionStep.AwaitContinue:
-					if (string.Equals(content, "continue", StringComparison.InvariantCultureIgnoreCase))
+					if (content.StartsWith("continue", StringComparison.InvariantCultureIgnoreCase))
 					{
+						// Parse optional turn count
+						int turns = 1;
+						var parts = content.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+						if (parts.Length > 1)
+						{
+							if (!int.TryParse(parts[1], out turns) || turns <= 0)
+							{
+								await message.Channel.SendMessageAsync("Usage: continue [1-10]", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+								break;
+							}
+							turns = Math.Min(turns, 10);
+						}
+
+						// Build and send confirmation of exact order
+						var order = new List<string>();
+						bool next = session.NextIsA;
+						for (int i = 0; i < turns; i++)
+						{
+							order.Add(next ? $"A ({session.UrnA})" : $"B ({session.UrnB})");
+							next = !next;
+						}
+						await message.Channel.SendMessageAsync($"Continuing: {turns} turn(s). Order: {string.Join(", ", order)}.", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+
 						session.Step = SessionStep.Running;
-						// Confirm what will happen next before running the turn
-						if (session.NextIsA)
+						for (int i = 0; i < turns; i++)
 						{
-							await message.Channel.SendMessageAsync($"Continuing: Agent A will respond (URN: {session.UrnA}).", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+							var completed = await RunOneTurn(session, message, token);
+							if (completed)
+							{
+								break;
+							}
 						}
-						else
-						{
-							await message.Channel.SendMessageAsync($"Continuing: Agent B will respond (URN: {session.UrnB}).", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
-						}
-						var completed = await RunOneTurn(session, message, token);
-						if (!completed)
+
+						if (session.Step != SessionStep.Completed)
 						{
 							session.Step = SessionStep.AwaitContinue;
 							await message.Channel.SendMessageAsync("Type 'continue' to proceed, or 'cancel' to stop.", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
