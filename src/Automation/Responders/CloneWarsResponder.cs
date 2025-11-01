@@ -29,7 +29,6 @@ namespace Estranged.Automation.Responders
 			AskSystemA,
 			AskSystemB,
 			AskInitialA,
-			AskInitialB,
 			AwaitContinue,
 			Running,
 			Completed
@@ -45,7 +44,6 @@ namespace Estranged.Automation.Responders
 			public string SystemA { get; set; }
 			public string SystemB { get; set; }
 			public string InitialA { get; set; }
-			public string InitialB { get; set; }
 			public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.UtcNow;
 			public List<ChatMessage> HistoryA { get; } = new();
 			public List<ChatMessage> HistoryB { get; } = new();
@@ -137,17 +135,17 @@ namespace Estranged.Automation.Responders
 					if (!await TryValidateUrn(content, message, token)) return;
 					session.UrnB = content;
 					session.Step = SessionStep.AskSystemA;
-					await message.Channel.SendMessageAsync("Enter system prompt for Agent A:", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+					await message.Channel.SendMessageAsync("Enter system prompt for Agent A (or 'None'):", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
 					break;
 
 				case SessionStep.AskSystemA:
-					session.SystemA = content; // allow empty
+					session.SystemA = string.Equals(content, "None", StringComparison.InvariantCultureIgnoreCase) ? string.Empty : content; // allow empty via 'None'
 					session.Step = SessionStep.AskSystemB;
-					await message.Channel.SendMessageAsync("Enter system prompt for Agent B:", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+					await message.Channel.SendMessageAsync("Enter system prompt for Agent B (or 'None'):", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
 					break;
 
 				case SessionStep.AskSystemB:
-					session.SystemB = content; // allow empty
+					session.SystemB = string.Equals(content, "None", StringComparison.InvariantCultureIgnoreCase) ? string.Empty : content; // allow empty via 'None'
 					session.Step = SessionStep.AskInitialA;
 					await message.Channel.SendMessageAsync("Enter initial message for Agent A:", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
 					break;
@@ -159,18 +157,7 @@ namespace Estranged.Automation.Responders
 						return;
 					}
 					session.InitialA = content;
-					session.Step = SessionStep.AskInitialB;
-					await message.Channel.SendMessageAsync("Enter initial message for Agent B:", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
-					break;
-
-				case SessionStep.AskInitialB:
-					if (string.IsNullOrWhiteSpace(content))
-					{
-						await message.Channel.SendMessageAsync("Initial message cannot be empty. Type it or 'cancel'.", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
-						return;
-					}
-					session.InitialB = content;
-					// Initialize histories and prompt for explicit continue
+					// Initialize histories and prompt for explicit continue (no initial message for B)
 					session.HistoryA.Clear();
 					session.HistoryB.Clear();
 					if (!string.IsNullOrWhiteSpace(session.SystemA))
@@ -182,7 +169,6 @@ namespace Estranged.Automation.Responders
 					{
 						session.HistoryB.Add(new ChatMessage(ChatRole.System, session.SystemB));
 					}
-					session.HistoryB.Add(new ChatMessage(ChatRole.User, session.InitialB));
 					session.TurnsA = 0;
 					session.TurnsB = 0;
 					session.NextIsA = true; // A starts
@@ -190,10 +176,20 @@ namespace Estranged.Automation.Responders
 					await message.Channel.SendMessageAsync("Type 'continue' to start, or 'cancel' to abort.", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
 					break;
 
+
 				case SessionStep.AwaitContinue:
 					if (string.Equals(content, "continue", StringComparison.InvariantCultureIgnoreCase))
 					{
 						session.Step = SessionStep.Running;
+						// Confirm what will happen next before running the turn
+						if (session.NextIsA)
+						{
+							await message.Channel.SendMessageAsync($"Continuing: Agent A will respond (URN: {session.UrnA}).", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+						}
+						else
+						{
+							await message.Channel.SendMessageAsync($"Continuing: Agent B will respond (URN: {session.UrnB}).", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+						}
 						var completed = await RunOneTurn(session, message, token);
 						if (!completed)
 						{
@@ -248,17 +244,12 @@ namespace Estranged.Automation.Responders
 				case SessionStep.AskSystemB:
 					session.SystemA = null;
 					session.Step = SessionStep.AskSystemA;
-					await message.Channel.SendMessageAsync("Enter system prompt for Agent A:", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+					await message.Channel.SendMessageAsync("Enter system prompt for Agent A (or 'None'):", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
 					break;
 				case SessionStep.AskInitialA:
 					session.SystemB = null;
 					session.Step = SessionStep.AskSystemB;
-					await message.Channel.SendMessageAsync("Enter system prompt for Agent B:", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
-					break;
-				case SessionStep.AskInitialB:
-					session.InitialA = null;
-					session.Step = SessionStep.AskInitialA;
-					await message.Channel.SendMessageAsync("Enter initial message for Agent A:", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+					await message.Channel.SendMessageAsync("Enter system prompt for Agent B (or 'None'):", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
 					break;
 			}
 		}
@@ -272,41 +263,44 @@ namespace Estranged.Automation.Responders
 					AdditionalProperties = new AdditionalPropertiesDictionary { { "Think", false } }
 				};
 
-				if (session.NextIsA)
+				using (initialMessage.Channel.EnterTypingState())
 				{
-					var clientA = _chatFactory.CreateClient(session.UrnA);
-					var response = await clientA.GetResponseAsync(session.HistoryA, options, token);
-					var text = response.Text ?? string.Empty;
-					if (string.IsNullOrWhiteSpace(text))
+					if (session.NextIsA)
 					{
-						await initialMessage.Channel.SendMessageAsync("Agent A produced no response. Ending.", messageReference: new MessageReference(initialMessage.Id), options: token.ToRequestOptions());
-						_sessions.TryRemove((session.ChannelId, session.UserId), out _);
-						session.Step = SessionStep.Completed;
-						return true;
+						var clientA = _chatFactory.CreateClient(session.UrnA);
+						var response = await clientA.GetResponseAsync(session.HistoryA, options, token);
+						var text = response.Text ?? string.Empty;
+						if (string.IsNullOrWhiteSpace(text))
+						{
+							await initialMessage.Channel.SendMessageAsync("Agent A produced no response. Ending.", messageReference: new MessageReference(initialMessage.Id), options: token.ToRequestOptions());
+							_sessions.TryRemove((session.ChannelId, session.UserId), out _);
+							session.Step = SessionStep.Completed;
+							return true;
+						}
+						session.HistoryA.Add(new ChatMessage(ChatRole.Assistant, text));
+						session.HistoryB.Add(new ChatMessage(ChatRole.User, text));
+						session.TurnsA++;
+						session.NextIsA = false;
+						await MessageExtensions.PostChatMessages(initialMessage, new List<ChatMessage> { new(ChatRole.Assistant, $"A> {text}") }, token);
 					}
-					session.HistoryA.Add(new ChatMessage(ChatRole.Assistant, text));
-					session.HistoryB.Add(new ChatMessage(ChatRole.User, text));
-					session.TurnsA++;
-					session.NextIsA = false;
-					await MessageExtensions.PostChatMessages(initialMessage, new List<ChatMessage> { new(ChatRole.Assistant, $"A> {text}") }, token);
-				}
-				else
-				{
-					var clientB = _chatFactory.CreateClient(session.UrnB);
-					var response = await clientB.GetResponseAsync(session.HistoryB, options, token);
-					var text = response.Text ?? string.Empty;
-					if (string.IsNullOrWhiteSpace(text))
+					else
 					{
-						await initialMessage.Channel.SendMessageAsync("Agent B produced no response. Ending.", messageReference: new MessageReference(initialMessage.Id), options: token.ToRequestOptions());
-						_sessions.TryRemove((session.ChannelId, session.UserId), out _);
-						session.Step = SessionStep.Completed;
-						return true;
+						var clientB = _chatFactory.CreateClient(session.UrnB);
+						var response = await clientB.GetResponseAsync(session.HistoryB, options, token);
+						var text = response.Text ?? string.Empty;
+						if (string.IsNullOrWhiteSpace(text))
+						{
+							await initialMessage.Channel.SendMessageAsync("Agent B produced no response. Ending.", messageReference: new MessageReference(initialMessage.Id), options: token.ToRequestOptions());
+							_sessions.TryRemove((session.ChannelId, session.UserId), out _);
+							session.Step = SessionStep.Completed;
+							return true;
+						}
+						session.HistoryB.Add(new ChatMessage(ChatRole.Assistant, text));
+						session.HistoryA.Add(new ChatMessage(ChatRole.User, text));
+						session.TurnsB++;
+						session.NextIsA = true;
+						await MessageExtensions.PostChatMessages(initialMessage, new List<ChatMessage> { new(ChatRole.Assistant, $"B> {text}") }, token);
 					}
-					session.HistoryB.Add(new ChatMessage(ChatRole.Assistant, text));
-					session.HistoryA.Add(new ChatMessage(ChatRole.User, text));
-					session.TurnsB++;
-					session.NextIsA = true;
-					await MessageExtensions.PostChatMessages(initialMessage, new List<ChatMessage> { new(ChatRole.Assistant, $"B> {text}") }, token);
 				}
 				return false;
 			}
