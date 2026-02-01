@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Estranged.Automation.Events;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
@@ -20,13 +21,15 @@ namespace Estranged.Automation.Responders
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IFeatureFlags _featureFlags;
+        private readonly IChatClientFactory _chatClientFactory;
         private int _steps = 20;
 
-        public StableDiffusionResponder(IHttpClientFactory httpClientFactory, IConfiguration configuration, IFeatureFlags featureFlags)
+        public StableDiffusionResponder(IHttpClientFactory httpClientFactory, IConfiguration configuration, IFeatureFlags featureFlags, IChatClientFactory chatClientFactory)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _featureFlags = featureFlags;
+            _chatClientFactory = chatClientFactory;
         }
 
         public async Task ProcessMessage(IMessage message, CancellationToken token)
@@ -56,11 +59,22 @@ namespace Estranged.Automation.Responders
             const string sdTrigger = "sd";
             if (message.Content.StartsWith(sdTrigger, StringComparison.InvariantCultureIgnoreCase))
             {
+                var prompt = message.Content[sdTrigger.Length..].Trim();
+
                 using (message.Channel.EnterTypingState())
                 {
-                    var result = await GenerateImageWithGif(message.Content[sdTrigger.Length..].Trim(), token);
+                    var chatClient = _chatClientFactory.CreateClient($"urn:ollama:{_configuration["OLLAMA_MODEL"]}");
+                    var response = await chatClient.GetResponseAsync(new[]
+                    {
+                        new ChatMessage(ChatRole.System, "You are a prompt generator for Stable Diffusion. You will be given a prompt, and you must add details to it to make it better. You must only output the improved prompt, and nothing else."),
+                        new ChatMessage(ChatRole.User, prompt)
+                    }, new ChatOptions { AdditionalProperties = new AdditionalPropertiesDictionary { { "Think", false } } }, cancellationToken: token);
+
+                    var enhancedPrompt = response.Text.Trim();
+
+                    var result = await GenerateImageWithGif(enhancedPrompt, token);
                     using var gifStream = result.gifStream;
-                    await message.Channel.SendFileAsync(gifStream, $"{Guid.NewGuid()}.gif", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
+                    await message.Channel.SendFileAsync(gifStream, $"{Guid.NewGuid()}.gif", text: enhancedPrompt, messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
                     using var imageStream = result.pngStream;
                     await message.Channel.SendFileAsync(imageStream, $"{Guid.NewGuid()}.png", messageReference: new MessageReference(message.Id), options: token.ToRequestOptions());
                     return;
