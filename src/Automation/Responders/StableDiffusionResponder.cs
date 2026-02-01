@@ -1,7 +1,10 @@
 ﻿using Discord;
 using Estranged.Automation.Events;
 using Microsoft.Extensions.AI;
+using Estranged.Automation.Events;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -19,13 +22,15 @@ namespace Estranged.Automation.Responders
     internal sealed class StableDiffusionResponder : IResponder
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<StableDiffusionResponder> _logger;
         private readonly IConfiguration _configuration;
         private readonly IFeatureFlags _featureFlags;
         private readonly IChatClientFactory _chatClientFactory;
         private int _steps = 20;
 
-        public StableDiffusionResponder(IHttpClientFactory httpClientFactory, IConfiguration configuration, IFeatureFlags featureFlags, IChatClientFactory chatClientFactory)
+        public StableDiffusionResponder(ILogger<StableDiffusionResponder> logger, IHttpClientFactory httpClientFactory, IConfiguration configuration, IFeatureFlags featureFlags, IChatClientFactory chatClientFactory)
         {
+            _logger = logger;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _featureFlags = featureFlags;
@@ -71,6 +76,8 @@ namespace Estranged.Automation.Responders
                     }, new ChatOptions { AdditionalProperties = new AdditionalPropertiesDictionary { { "Think", false } } }, cancellationToken: token);
 
                     var enhancedPrompt = response.Text.Trim();
+
+                    _logger.LogInformation("Enhanced prompt: {EnhancedPrompt}", enhancedPrompt);
 
                     var result = await GenerateImageWithGif(enhancedPrompt, token);
                     using var gifStream = result.gifStream;
