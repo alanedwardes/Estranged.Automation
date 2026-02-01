@@ -69,7 +69,7 @@ namespace Estranged.Automation.Responders
                     var chatClient = _chatClientFactory.CreateClient("urn:ollama:llama3.2:1b");
                     var response = await chatClient.GetResponseAsync(new[]
                     {
-                        new ChatMessage(ChatRole.System, "You are a prompt generator for Stable Diffusion. You will be given a prompt, and you must add a few keywords to it to make it better. You must only output the improved prompt, and nothing else. Do not use command line arguments or negative tags."),
+                        new ChatMessage(ChatRole.System, "You are a prompt generator for Stable Diffusion. You will be given a prompt, and you must add keywords to it to make it better. You must only output the improved prompt, and nothing else. Do not use command line arguments or negative tags. Do not engage in conversation. Do not roleplay."),
                         new ChatMessage(ChatRole.User, prompt)
                     }, new ChatOptions { AdditionalProperties = new AdditionalPropertiesDictionary { { "Think", false } } }, cancellationToken: token);
 
