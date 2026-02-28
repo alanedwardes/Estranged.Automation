@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Octokit;
-using OpenAI;
 using OllamaSharp;
 using System;
 using System.Net.Http.Headers;
@@ -57,7 +56,6 @@ namespace Estranged.Automation
                 .AddTransient<DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddSingleton(discordSocketClient)
-                .AddSingleton(new OpenAIClient(configuration["OPENAI_APIKEY"]))
                 .AddSingleton(provider =>
                 {
                     var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient();

@@ -1,7 +1,6 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using OllamaSharp;
-using OpenAI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,13 +18,11 @@ namespace Estranged.Automation
 
 	internal sealed class ChatClientFactory : IChatClientFactory
 	{
-		private readonly OpenAIClient _openAIClient;
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly IConfiguration _configuration;
 
-		public ChatClientFactory(OpenAIClient openAIClient, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+		public ChatClientFactory(IHttpClientFactory httpClientFactory, IConfiguration configuration)
 		{
-			_openAIClient = openAIClient;
 			_httpClientFactory = httpClientFactory;
 			_configuration = configuration;
 		}
@@ -43,8 +40,6 @@ namespace Estranged.Automation
 
 			switch (provider)
 			{
-				case "openai":
-					return _openAIClient.GetChatClient(model).AsIChatClient();
 				case "ollama":
 					{
 						var httpClient = _httpClientFactory.CreateClient();
@@ -69,9 +64,6 @@ namespace Estranged.Automation
 
 			switch (provider)
 			{
-				case "openai":
-					var openAiModels = await _openAIClient.GetOpenAIModelClient().GetModelsAsync(token);
-					return [.. openAiModels.Value.Select(x => x.Id)];
 				case "ollama":
 					{
                         using var httpClient = _httpClientFactory.CreateClient();

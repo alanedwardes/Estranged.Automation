@@ -4,7 +4,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
-using OpenAI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,17 +14,17 @@ namespace Estranged.Automation.Responders
 {
     internal sealed class LoreResponder : IResponder
     {
-        private readonly ILogger<GptResponder> _logger;
+        private readonly ILogger<LoreResponder> _logger;
         private readonly IConfiguration _configuration;
         private readonly IFeatureFlags _featureFlags;
-        private readonly OpenAIClient _openAIClient;
+        private readonly IChatClientFactory _chatClientFactory;
 
-        public LoreResponder(ILogger<GptResponder> logger, IConfiguration configuration, IFeatureFlags featureFlags, OpenAIClient openAIClient)
+        public LoreResponder(ILogger<LoreResponder> logger, IConfiguration configuration, IFeatureFlags featureFlags, IChatClientFactory chatClientFactory)
         {
             _logger = logger;
             _configuration = configuration;
             _featureFlags = featureFlags;
-            _openAIClient = openAIClient;
+            _chatClientFactory = chatClientFactory;
         }
 
         public async Task ProcessMessage(IMessage originalMessage, CancellationToken token)
@@ -75,9 +74,7 @@ namespace Estranged.Automation.Responders
 
         private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, IList<McpClientTool> tools, CancellationToken token)
         {
-            var openAIClient = _openAIClient.GetChatClient("gpt-4o-mini");
-
-            using IChatClient chatClient = openAIClient.AsIChatClient()
+            using IChatClient chatClient = _chatClientFactory.CreateClient("urn:ollama:quen3:8b")
                 .AsBuilder()
                 .UseFunctionInvocation()
                 .Build();
