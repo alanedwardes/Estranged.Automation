@@ -74,7 +74,7 @@ namespace Estranged.Automation.Responders
 
         private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, IList<McpClientTool> tools, CancellationToken token)
         {
-            using IChatClient chatClient = _chatClientFactory.CreateClient("urn:ollama:qwen3:1.7b")
+            using IChatClient chatClient = _chatClientFactory.CreateClient(_configuration["ESTRANGED_WIKI_MODEL"])
                 .AsBuilder()
                 .UseFunctionInvocation()
                 .Build();
@@ -87,17 +87,6 @@ namespace Estranged.Automation.Responders
                 IList<ChatMessage> chatMessages = MessageExtensions.BuildChatMessages(messageHistory, initialMessagePrefixLength, initialMessage, _configuration["ESTRANGED_WIKI_PROMPT"]);
 
                 var chatResponse = await chatClient.GetResponseAsync(chatMessages, new() { Tools = [.. tools] }, token);
-
-                var inputTokens = chatResponse.Usage.InputTokenCount;
-                var outputTokens = chatResponse.Usage.OutputTokenCount;
-
-                const float usdPerMillionInputTokens = 4f;
-                const float usdPerMillionOutputTokens = 16f;
-
-                // Log price in usd
-                var price = inputTokens / 1_000_000f * usdPerMillionInputTokens + outputTokens / 1_000_000f * usdPerMillionOutputTokens;
-                _logger.LogInformation($"Lore request complete, price: ${price:0.00000} (input: {inputTokens} tokens, output: {outputTokens} tokens)");
-
                 await MessageExtensions.PostChatMessages(latestMessage, chatResponse.Messages, token);
             }
         }
