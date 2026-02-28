@@ -74,7 +74,7 @@ namespace Estranged.Automation.Responders
 
         private async Task Chat(IList<IMessage> messageHistory, int initialMessagePrefixLength, IList<McpClientTool> tools, CancellationToken token)
         {
-            using IChatClient chatClient = _chatClientFactory.CreateClient("urn:ollama:quen3:8b")
+            using IChatClient chatClient = _chatClientFactory.CreateClient("urn:ollama:qwen3:8b")
                 .AsBuilder()
                 .UseFunctionInvocation()
                 .Build();
