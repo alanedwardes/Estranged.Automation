@@ -1,3 +1,4 @@
+using Anthropic;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using OllamaSharp;
@@ -20,12 +21,14 @@ namespace Estranged.Automation
 	{
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly IConfiguration _configuration;
+        private readonly IAnthropicClient _anthropicClient;
 
-		public ChatClientFactory(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public ChatClientFactory(IHttpClientFactory httpClientFactory, IAnthropicClient anthropicClient, IConfiguration configuration)
 		{
 			_httpClientFactory = httpClientFactory;
 			_configuration = configuration;
-		}
+            _anthropicClient = anthropicClient;
+        }
 
 		public IChatClient CreateClient(string urn)
 		{
@@ -47,7 +50,11 @@ namespace Estranged.Automation
 						httpClient.BaseAddress = new Uri(_configuration["OLLAMA_HOST"]);
 						return new OllamaApiClient(httpClient, model);
 					}
-				default:
+				case "anthropic":
+					{
+						return _anthropicClient.AsIChatClient(model);
+                    }
+                default:
 					throw new NotSupportedException($"Provider '{provider}' is not supported.");
 			}
 		}
@@ -72,6 +79,11 @@ namespace Estranged.Automation
                         using var client = new OllamaApiClient(httpClient);
 						var ollamaModels = await client.ListLocalModelsAsync(token);
 						return [.. ollamaModels.Select(x => x.Name)];
+                    }
+				case "anthropic":
+					{
+                        var models = await _anthropicClient.Models.List(null, token);
+						return [.. models.Items.Select(x => x.ID)];
                     }
                 default:
                     throw new NotSupportedException($"Provider '{provider}' is not supported.");

@@ -1,6 +1,9 @@
 ﻿using Ae.Steam.Client;
+using Amazon.DynamoDBv2;
+using Anthropic;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
@@ -8,13 +11,11 @@ using Microsoft.Extensions.Logging;
 using Octokit;
 using OllamaSharp;
 using System;
+using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Http;
-using Microsoft.Extensions.Configuration;
-using Amazon.DynamoDBv2;
-using System.IO;
 
 namespace Estranged.Automation
 {
@@ -62,6 +63,10 @@ namespace Estranged.Automation
                     httpClient.Timeout = TimeSpan.FromHours(1);
                     httpClient.BaseAddress = new Uri(configuration["OLLAMA_HOST"]);
                     return new OllamaApiClient(httpClient);
+                })
+                .AddSingleton<IAnthropicClient>(provider =>
+                {
+                    return new AnthropicClient(new Anthropic.Core.ClientOptions { ApiKey = configuration["ANTHROPIC_API_KEY"] });
                 })
                 .AddSingleton<IChatClientFactory, ChatClientFactory>()
                 .AddSingleton<IDiscordClient>(discordSocketClient)
