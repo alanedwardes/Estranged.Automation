@@ -65,23 +65,23 @@ namespace Estranged.Automation
         {
             IEnumerable<ulong> publicChannels = new ulong[]
             {
-                435094509953744907, // #announcements
-                633724305871470593, // #goodbyes
-                633725420285591571, // #deletions
-                435152590209286145, // #reviews
-                455012497775132673, // #community
+                435094509953744907,  // #announcements
+                633724305871470593,  // #goodbyes
+                633725420285591571,  // #deletions
+                435152590209286145,  // #reviews
+                455012497775132673,  // #community
 
-                368117881000427540, // #general
-                479405352207777795, // #gaming
-                1036776421584027688,// #game-screenshots
-                845428451077783643, // #verification
+                368117881000427540,  // #general
+                479405352207777795,  // #gaming
+                1036776421584027688, // #game-screenshots
+                845428451077783643,  // #verification
 
-                437311972917248022, // #act-i
-                437312012603752458, // #the-departure
-                802974954160128011, // #arctic-cold
-                439742315016486922, // #dev-screenshots
-                457813004889751553, // #ideas
-                454937488000024577, // #bugs
+                437311972917248022,  // #act-i
+                437312012603752458,  // #the-departure
+                1468770259736727744, // #arctic-cold
+                439742315016486922,  // #dev-screenshots
+                457813004889751553,  // #ideas
+                454937488000024577,  // #bugs
             };
 
             return publicChannels.Contains(channel.Id);
@@ -92,18 +92,18 @@ namespace Estranged.Automation
             IEnumerable<ulong> protectedChannels = new ulong[]
             {
                 1036776421584027688, // #game-screenshots
-                435094509953744907, // #announcements
-                454937488000024577, // #bugs
-                439742315016486922, // #dev-screenshots
-                457813004889751553, // #ideas
-                883750008141279253, // #game-dev
-                455012497775132673, // #community
-                435152590209286145, // #reviews
-                633725420285591571, // #deletions
-                633724305871470593, // #goodbyes
-                437311972917248022, // #act-i
-                437312012603752458, // #the-departure
-                802974954160128011, // #arctic-cold
+                435094509953744907,  // #announcements
+                454937488000024577,  // #bugs
+                439742315016486922,  // #dev-screenshots
+                457813004889751553,  // #ideas
+                883750008141279253,  // #game-dev
+                455012497775132673,  // #community
+                435152590209286145,  // #reviews
+                633725420285591571,  // #deletions
+                633724305871470593,  // #goodbyes
+                437311972917248022,  // #act-i
+                437312012603752458,  // #the-departure
+                1468770259736727744, // #arctic-cold
             };
 
             return protectedChannels.Contains(channel.Id);
