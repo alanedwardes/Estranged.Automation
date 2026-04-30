@@ -53,7 +53,6 @@ namespace Estranged.Automation
                     return Task.CompletedTask;
                 }
 
-                _logger.LogInformation("Received guild message from {User} in {Channel}: {Message}", message.Author, message.Channel.Name, message.Content);
                 FireAndForgetHandlers<IResponder>(responder => responder.ProcessMessage(message, token));
                 return Task.CompletedTask;
             };
