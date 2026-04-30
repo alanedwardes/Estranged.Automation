@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Discord.WebSocket;
@@ -109,7 +110,18 @@ namespace Estranged.Automation
 
         private void FireAndForgetHandlers<T>(Func<T, Task> handlerAction)
         {
-            foreach (var handler in _serviceProvider.GetServices<T>())
+            List<T> handlers;
+            try
+            {
+                handlers = _serviceProvider.GetServices<T>().ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Exception resolving handlers for {Type}", typeof(T).Name);
+                return;
+            }
+
+            foreach (var handler in handlers)
             {
                 _ = Task.Run(async () =>
                 {
@@ -119,7 +131,7 @@ namespace Estranged.Automation
                     }
                     catch (Exception e)
                     {
-                        _logger.LogCritical(e, "Exception from event handler");
+                        _logger.LogCritical(e, "Exception from {Handler}", handler.GetType().Name);
                     }
                 });
             }
