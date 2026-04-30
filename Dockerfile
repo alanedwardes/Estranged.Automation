@@ -6,6 +6,6 @@ COPY src/ src/
 RUN dotnet publish src/Automation/Estranged.Automation.csproj -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/runtime:9.0
-WORKDIR /data
+WORKDIR /app
 COPY --from=build /app .
 ENTRYPOINT ["dotnet", "Estranged.Automation.dll"]

@@ -84,11 +84,11 @@ namespace Estranged.Automation.Responders
                 return;
             }
 
-            foreach ((var trigger, var model, var systemPrompt) in _configuration.GetTriples("OLLAMA_TRIGGERS"))
+            foreach (var trigger in _configuration.GetSection("OllamaTriggers").Get<OllamaTrigger[]>() ?? [])
             {
-                if (initialMessage.Content.StartsWith(trigger, StringComparison.InvariantCultureIgnoreCase))
+                if (initialMessage.Content.StartsWith(trigger.Trigger, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    await Chat(messageHistory, trigger.Length, systemPrompt, model, token);
+                    await Chat(messageHistory, trigger.Trigger.Length, trigger.SystemPrompt, trigger.Model, token);
                     return;
                 }
             }
