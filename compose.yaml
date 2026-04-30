@@ -1,0 +1,21 @@
+services:
+  estbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: estbot
+    environment:
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      GITHUB_PASSWORD: ${GITHUB_PASSWORD}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OLLAMA_HOST: ${OLLAMA_HOST}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-}
+      SD_API_URL: ${SD_API_URL:-}
+      ESTRANGED_WIKI_MCP: ${ESTRANGED_WIKI_MCP:-}
+      ESTRANGED_WIKI_MODEL: ${ESTRANGED_WIKI_MODEL:-}
+      ESTRANGED_WIKI_PROMPT: ${ESTRANGED_WIKI_PROMPT:-}
+      OLLAMA_TRIGGERS: ${OLLAMA_TRIGGERS:-}
+      MCP_REPLACEMENTS: ${MCP_REPLACEMENTS:-}
+    volumes:
+      - "${DATA_DIR:-./data}:/data"
+    restart: unless-stopped
