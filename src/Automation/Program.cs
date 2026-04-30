@@ -24,6 +24,13 @@ namespace Estranged.Automation
         public static int Main(string[] args)
         {
             Console.WriteLine("Bootstrapping");
+            Console.WriteLine($"Working directory: {Directory.GetCurrentDirectory()}");
+
+            foreach (var candidate in new[] { "config.json", "config.secret.json" })
+            {
+                var full = Path.Combine(Directory.GetCurrentDirectory(), candidate);
+                Console.WriteLine($"  {full}: {(File.Exists(full) ? "found" : "not found")}");
+            }
 
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
@@ -31,6 +38,9 @@ namespace Estranged.Automation
                 .AddJsonFile("config.json", true)
                 .AddJsonFile("config.secret.json", true)
                 .Build();
+
+            Console.WriteLine($"DISCORD_BOT_TOKEN: {(string.IsNullOrEmpty(configuration["DISCORD_BOT_TOKEN"]) ? "NOT SET" : "set")}");
+            Console.WriteLine($"OllamaTriggers count: {(configuration.GetSection("OllamaTriggers").Get<object[]>()?.Length.ToString() ?? "null")}");
 
             var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");
 
