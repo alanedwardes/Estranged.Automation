@@ -1,4 +1,9 @@
 namespace Estranged.Automation
 {
-    internal sealed record OllamaTrigger(string Trigger, string Model, string SystemPrompt);
+    internal sealed class OllamaTrigger
+    {
+        public string Trigger { get; set; } = "";
+        public string Model { get; set; } = "";
+        public string SystemPrompt { get; set; } = "";
+    }
 }
