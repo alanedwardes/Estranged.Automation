@@ -121,14 +121,16 @@ namespace Estranged.Automation.Responders
 				IList<IMessage> messages = [];
 				if (fromMessage == null)
 				{
-					Console.WriteLine($"Retrieving latest messages for #{channel.Name}...");
-					messages = [.. await channel.GetMessagesAsync().FlattenAsync()];
+					_logger.LogInformation("Retrieving latest messages for #{ChannelName}...", channel.Name);
+					messages = [.. await channel.GetMessagesAsync(options: token.ToRequestOptions()).FlattenAsync()];
 				}
 				else
 				{
-					Console.WriteLine($"Retrieving messages before {fromMessage.Id} for #{channel.Name}...");
+					_logger.LogInformation("Retrieving messages before {MessageId} ({Timestamp:O}) for #{ChannelName}...", fromMessage.Id, fromMessage.Timestamp, channel.Name);
 					messages = [.. await channel.GetMessagesAsync(fromMessage, Direction.Before, 100, options: token.ToRequestOptions()).FlattenAsync()];
 				}
+
+				_logger.LogInformation("Got {Count} messages for #{ChannelName}", messages.Count, channel.Name);
 
 				if (messages.Count == 0)
 				{
@@ -140,7 +142,7 @@ namespace Estranged.Automation.Responders
 				var oldestInBatch = messages.MinBy(m => m.Id);
 				if (fromMessage != null && oldestInBatch.Id >= fromMessage.Id)
 				{
-					Console.WriteLine("No pagination progress detected; stopping.");
+					_logger.LogWarning("No pagination progress detected for #{ChannelName}; stopping.", channel.Name);
 					break;
 				}
 				fromMessage = oldestInBatch;
@@ -154,6 +156,7 @@ namespace Estranged.Automation.Responders
 
 					if (pinnedIds.Contains(message.Id))
 					{
+						_logger.LogInformation("Skipping pinned message {MessageId} in #{ChannelName}", message.Id, channel.Name);
 						continue;
 					}
 
@@ -161,6 +164,8 @@ namespace Estranged.Automation.Responders
 					{
 						continue;
 					}
+
+					_logger.LogInformation("Deleting message {MessageId} ({Timestamp:O}) in #{ChannelName} ({Deleted}/{RequestedCount} done)", message.Id, message.Timestamp, channel.Name, deleted, requestedCount);
 
 					try
 					{
@@ -173,7 +178,7 @@ namespace Estranged.Automation.Responders
 					}
 					catch (Exception ex)
 					{
-						_logger.LogWarning(ex, "Failed to delete message {MessageId} in channel {ChannelId}", message.Id, channel.Id);
+						_logger.LogWarning(ex, "Failed to delete message {MessageId} in #{ChannelName}", message.Id, channel.Name);
 					}
 
 					await Task.Delay(deleteDelayMs, token);
