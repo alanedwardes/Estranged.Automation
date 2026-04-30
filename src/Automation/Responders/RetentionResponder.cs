@@ -121,16 +121,14 @@ namespace Estranged.Automation.Responders
 				IList<IMessage> messages = [];
 				if (fromMessage == null)
 				{
-					_logger.LogInformation("Retrieving latest messages for #{ChannelName}...", channel.Name);
 					messages = [.. await channel.GetMessagesAsync(options: token.ToRequestOptions()).FlattenAsync()];
 				}
 				else
 				{
-					_logger.LogInformation("Retrieving messages before {MessageId} ({Timestamp:O}) for #{ChannelName}...", fromMessage.Id, fromMessage.Timestamp, channel.Name);
 					messages = [.. await channel.GetMessagesAsync(fromMessage, Direction.Before, 100, options: token.ToRequestOptions()).FlattenAsync()];
 				}
 
-				_logger.LogInformation("Got {Count} messages for #{ChannelName}", messages.Count, channel.Name);
+				_logger.LogInformation("#{ChannelName}: fetched {Count} messages, oldest anchor {Timestamp:O}", channel.Name, messages.Count, fromMessage?.Timestamp);
 
 				if (messages.Count == 0)
 				{
@@ -156,7 +154,6 @@ namespace Estranged.Automation.Responders
 
 					if (pinnedIds.Contains(message.Id))
 					{
-						_logger.LogInformation("Skipping pinned message {MessageId} in #{ChannelName}", message.Id, channel.Name);
 						continue;
 					}
 
@@ -164,8 +161,6 @@ namespace Estranged.Automation.Responders
 					{
 						continue;
 					}
-
-					_logger.LogInformation("Deleting message {MessageId} ({Timestamp:O}) in #{ChannelName} ({Deleted}/{RequestedCount} done)", message.Id, message.Timestamp, channel.Name, deleted, requestedCount);
 
 					try
 					{
@@ -178,7 +173,7 @@ namespace Estranged.Automation.Responders
 					}
 					catch (Exception ex)
 					{
-						_logger.LogWarning(ex, "Failed to delete message {MessageId} in #{ChannelName}", message.Id, channel.Name);
+						_logger.LogWarning(ex, "Failed to delete message {MessageId} ({Timestamp:O}) in #{ChannelName}", message.Id, message.Timestamp, channel.Name);
 					}
 
 					await Task.Delay(deleteDelayMs, token);
