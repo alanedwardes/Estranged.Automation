@@ -25,7 +25,7 @@ namespace Estranged.Automation
             Console.WriteLine("Bootstrapping");
 
             var configuration = new ConfigurationBuilder()
-                .AddYamlFile("config.secret.yaml", true, true)
+                .AddYamlFile("config/config.secret.yaml", true, true)
                 .Build();
 
             var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");

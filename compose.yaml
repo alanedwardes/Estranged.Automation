@@ -8,8 +8,7 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION:-eu-west-1}
-      DOTNET_USE_POLLING_FILE_WATCHER: "true"
     volumes:
-      - ./config.secret.yaml:/app/config.secret.yaml:ro
+      - ./config:/app/config:ro
       - ./data:/data
     restart: unless-stopped
