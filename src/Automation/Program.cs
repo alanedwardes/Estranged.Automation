@@ -25,10 +25,7 @@ namespace Estranged.Automation
             Console.WriteLine("Bootstrapping");
 
             var configuration = new ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "config.json"), true, true)
-                .AddJsonFile("config.json", true, true)
-                .AddJsonFile("config.secret.json", true, true)
+                .AddYamlFile("config.secret.yaml", true, true)
                 .Build();
 
             var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");

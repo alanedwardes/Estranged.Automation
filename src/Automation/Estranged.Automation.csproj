@@ -12,8 +12,7 @@
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.6.5" />
     <PackageReference Include="Discord.Net" Version="3.18.0" />
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.9" />
+    <PackageReference Include="NetEscapades.Configuration.Yaml" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
@@ -28,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="config.secret.json">
+    <None Update="config.secret.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

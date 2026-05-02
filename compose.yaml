@@ -9,6 +9,6 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION:-eu-west-1}
     volumes:
-      - ./config.secret.json:/app/config.secret.json:ro
+      - ./config.secret.yaml:/app/config.secret.yaml:ro
       - ./data:/data
     restart: unless-stopped
