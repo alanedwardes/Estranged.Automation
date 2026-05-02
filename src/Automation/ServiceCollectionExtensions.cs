@@ -24,7 +24,6 @@ namespace Estranged.Automation
                            .AddSingleton<IResponder, CopyReactionEmoji>()
                            .AddSingleton<IResponder, SpammerResponder>()
                            .AddSingleton<IResponder, StableDiffusionResponder>()
-                           .AddSingleton<IResponder, OllamaResponder>()
                            .AddSingleton<IResponder, RetentionResponder>()
                            .AddSingleton<IResponder, LoreResponder>()
                            .AddSingleton<IResponder, LlmResponder>()

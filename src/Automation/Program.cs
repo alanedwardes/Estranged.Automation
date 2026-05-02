@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Octokit;
-using OllamaSharp;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -27,9 +26,9 @@ namespace Estranged.Automation
 
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
-                .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "config.json"), true)
-                .AddJsonFile("config.json", true)
-                .AddJsonFile("config.secret.json", true)
+                .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "config.json"), true, true)
+                .AddJsonFile("config.json", true, true)
+                .AddJsonFile("config.secret.json", true, true)
                 .Build();
 
             var productHeader = new ProductInfoHeaderValue("Estranged-Automation", "1.0.0");
@@ -57,13 +56,6 @@ namespace Estranged.Automation
                 .AddTransient<DiscordRunner>()
                 .AddSingleton<IGitHubClient>(gitHubClient)
                 .AddSingleton(discordSocketClient)
-                .AddSingleton(provider =>
-                {
-                    var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient();
-                    httpClient.Timeout = TimeSpan.FromHours(1);
-                    httpClient.BaseAddress = new Uri(configuration["OLLAMA_HOST"]);
-                    return new OllamaApiClient(httpClient);
-                })
                 .AddSingleton<IAnthropicClient>(provider =>
                 {
                     return new AnthropicClient(new Anthropic.Core.ClientOptions { ApiKey = configuration["ANTHROPIC_API_KEY"] });
