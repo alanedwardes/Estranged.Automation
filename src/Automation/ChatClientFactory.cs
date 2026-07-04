@@ -1,3 +1,4 @@
+using Ae.Mistral;
 using Anthropic;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
@@ -22,12 +23,14 @@ namespace Estranged.Automation
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly IConfiguration _configuration;
         private readonly IAnthropicClient _anthropicClient;
+        private readonly IMistralClient _mistralClient;
 
-        public ChatClientFactory(IHttpClientFactory httpClientFactory, IAnthropicClient anthropicClient, IConfiguration configuration)
+        public ChatClientFactory(IHttpClientFactory httpClientFactory, IAnthropicClient anthropicClient, IMistralClient mistralClient, IConfiguration configuration)
 		{
 			_httpClientFactory = httpClientFactory;
 			_configuration = configuration;
             _anthropicClient = anthropicClient;
+            _mistralClient = mistralClient;
         }
 
 		public IChatClient CreateClient(string urn)
@@ -53,6 +56,10 @@ namespace Estranged.Automation
 				case "anthropic":
 					{
 						return _anthropicClient.AsIChatClient(model);
+                    }
+                case "mistral":
+                    {
+                        return new MistralChatClient(_mistralClient, model);
                     }
                 default:
 					throw new NotSupportedException($"Provider '{provider}' is not supported.");
@@ -84,6 +91,11 @@ namespace Estranged.Automation
 					{
                         var models = await _anthropicClient.Models.List(null, token);
 						return [.. models.Items.Select(x => x.ID)];
+                    }
+                case "mistral":
+                    {
+                        var models = await _mistralClient.ListModelsAsync(token);
+                        return [.. models.Select(x => x.Id)];
                     }
                 default:
                     throw new NotSupportedException($"Provider '{provider}' is not supported.");

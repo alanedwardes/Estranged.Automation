@@ -1,4 +1,5 @@
-﻿using Ae.Steam.Client;
+﻿using Ae.Mistral;
+using Ae.Steam.Client;
 using Amazon.DynamoDBv2;
 using Anthropic;
 using Discord;
@@ -56,6 +57,10 @@ namespace Estranged.Automation
                 .AddSingleton<IAnthropicClient>(provider =>
                 {
                     return new AnthropicClient(new Anthropic.Core.ClientOptions { ApiKey = configuration["ANTHROPIC_API_KEY"] });
+                })
+                .AddSingleton<IMistralClient>(provider =>
+                {
+                    return new MistralClient(configuration["MISTRAL_API_KEY"]);
                 })
                 .AddSingleton<IChatClientFactory, ChatClientFactory>()
                 .AddSingleton<IDiscordClient>(discordSocketClient)

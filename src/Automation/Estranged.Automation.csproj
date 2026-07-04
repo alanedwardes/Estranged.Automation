@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ae.Mistral" Version="0.3.0" />
     <PackageReference Include="Ae.Steam.Client" Version="0.0.4" />
     <PackageReference Include="Anthropic" Version="12.8.0" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.6.5" />
